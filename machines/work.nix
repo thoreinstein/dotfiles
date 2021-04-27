@@ -13,12 +13,13 @@ in {
 
   home-manager.users.kon8522 = import ../modules/home.nix { inherit pkgs inputs proxy; };
 
+
   system.defaults = {
     NSGlobalDomain = {
-      AppleKeyboardUIMode = 3;
       ApplePressAndHoldEnabled = false;
       InitialKeyRepeat = 10;
       KeyRepeat = 1;
+			AppleKeyboardUIMode = null;
       NSAutomaticCapitalizationEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticPeriodSubstitutionEnabled = false;

@@ -1,6 +1,7 @@
 { pkgs, inputs, proxy, ... }:
 let
 	packages = import ./packages.nix { inherit pkgs; };
+
 in
 	{
 		home.packages = packages;
@@ -49,9 +50,9 @@ in
 				vim = "nvim";
 				git = "hub";
 				cat = "bat";
-					find = "fd";
-					ls = "exa";
-					drs = "~/src/dotfiles/result/sw/bin/darwin-rebuild switch --flake . --impure";
+				find = "fd";
+				ls = "exa";
+				drs = "~/src/dotfiles/result/sw/bin/darwin-rebuild switch --flake . --impure";
 			};
 			initExtraFirst = ''
 				source ~/.nix-profile/etc/profile.d/nix.sh
@@ -63,6 +64,14 @@ in
 				export GPG_TTY="$(tty)"
 				export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
 				gpgconf --launch gpg-agent
+
+				source $HOME/.config/zsh/*.zsh
+				source $HOME/.secrets.zsh
+
+				export PATH=$HOME/.local/bin:$PATH
+				export PATH=$HOME/bin:$PATH
+				export PATH=/Users/kon8522/.luarocks/bin:$PATH
+				export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin":$PATH
 			'';
 
 			envExtra = pkgs.lib.mkIf proxy ''
@@ -87,7 +96,6 @@ in
 			enableBashIntegration = true;
 			enableZshIntegration = true;
 			enableNixDirenvIntegration = true;
-		#config = {};
 	};
 
 	programs.fzf = {
@@ -141,19 +149,31 @@ in
 	programs.tmux = {
 		enable = true;
 		shell = "${pkgs.zsh}/bin/zsh";
-		sensibleOnTop = false;
+		sensibleOnTop = true;
 		terminal = "screen-256color";
 		shortcut = "s";
 		clock24 = true;
 		escapeTime = 50;
 		baseIndex = 1;
 		keyMode = "vi";
-		extraConfig = builtins.readFile ../config/tmux.conf;
 		plugins = with pkgs.tmuxPlugins; [
+			prefix-highlight
 			vim-tmux-navigator
-			dracula
-
+			pain-control
 		];
+		extraConfig = ''
+			set -g mouse on
+			set -g @dracula-show-powerline true
+			set -g @dracula-military-time true
+			set -g @dracula-show-timezone false
+			set -g @dracula-show-flags true
+			set -g @dracula-show-left-icon 
+			set -g @dracula-border-contrast true
+			set -g @dracula-cpu-usage true
+			set -g @dracula-ram-usage true
+
+			run-shell $HOME/src/tmux/dracula.tmux
+		'';
 	};
 
 	home.file = {
@@ -165,6 +185,8 @@ in
 		".curlrc" = pkgs.lib.mkIf proxy {
 			text = "proxy=http://127.0.0.1:3128";
 		};
+		".config/zsh/functions.zsh".source = ../config/functions.zsh;
+		".config/spotifyd/spotifyd.conf".source = ../config/spotifyd.conf;
 	};
 
 	home.sessionVariables = {

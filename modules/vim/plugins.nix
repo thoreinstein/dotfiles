@@ -67,6 +67,8 @@ in
 		lspsaga.nvim
 		nvim-treesitter
 		playground
+		rust-vim
+		vim-ledger
     completion-nvim
     delimitMate
     dracula-vim
@@ -75,7 +77,6 @@ in
     indentLine
     nvim-lspconfig
     nvim-web-devicons
-		rust-vim
     tabular
     vim-commentary
     vim-dirvish
