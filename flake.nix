@@ -45,7 +45,7 @@
 	{
 		darwinConfigurations =
 			{
-				"OF060VV4A8HTD6F" = inputs.darwin.lib.darwinSystem
+				"MACBOOK-PRO.LOCAL" = inputs.darwin.lib.darwinSystem
 				{
 					modules = [
 						./machines/work.nix
