@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Neovim
+nvim/.config/nvim/plugin/
+nvim/.config/nvim/lazy-lock.json
+nvim/.config/nvim/.luarc.json
+
+# Zsh
+zsh/**/*.zwc
+zsh/**/*.zwc.old
+zsh/.zcompcache/
+zsh/.zcompdump*
+zsh/.zsh_history
+zsh/.zsh_sessions/
+
+# Tokens and sensitive files
+**/tokens
+**/secrets
+**/credentials
