@@ -11,26 +11,29 @@ create-dirs:
 
 # Stow configurations
 zsh:
-	$(STOW) $(STOW_FLAGS) -t $(HOME) zsh
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) zsh
 
 tmux:
-	$(STOW) $(STOW_FLAGS) -t $(HOME) tmux
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) tmux
 
 nvim:
-	$(STOW) $(STOW_FLAGS) -t $(HOME) nvim
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) nvim
 
 starship:
-	$(STOW) $(STOW_FLAGS) -t $(HOME)/.config -d starship -S .
+	mkdir -p $(HOME)/.config
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) starship
 
 git:
-	$(STOW) $(STOW_FLAGS) -t $(HOME) git
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) git
+
+bin:
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
 
 # Install all configurations
-install: create-dirs zsh tmux nvim starship git
+install: create-dirs zsh tmux nvim starship git bin
 	@echo "All dotfiles have been installed"
 
 # Clean up (unstow everything)
 clean:
-	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux nvim git
-	$(STOW) $(STOW_FLAGS) -D -t $(HOME)/.config -d starship -S .
+	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux nvim git bin starship
 	@echo "All dotfiles have been unlinked"
