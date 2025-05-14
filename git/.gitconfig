@@ -1,0 +1,39 @@
+[user]
+	name = Jim Myers
+	email = myersjim223@gmail.com
+	signingkey = 29BB1A34A4E78B2F
+
+[core]
+	editor = nvim
+	excludesfile = ~/.gitignore_global
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	default = current
+
+[credential]
+	helper = osxkeychain
+
+[commit]
+	gpgsign = true
+
+[alias]
+	s = status
+	co = checkout
+	cb = checkout -b
+	cm = commit -m
+	ca = commit --amend
+	can = commit --amend --no-edit
+	wa = worktree add
+	wl = worktree list
+	wr = worktree remove
+	rewrite = rebase -i
+	l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+[gpg]
+	program = /opt/homebrew/bin/gpg

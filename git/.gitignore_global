@@ -1,0 +1,54 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.com.apple.timemachine.donotpresent
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vim/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.envrc
+
+# Logs
+logs
+*.log
+
+# Dependency directories
+node_modules/
+jspm_packages/
+vendor/
+venv/
+.venv/
+__pycache__/
+dist/
+build/
+
+# Cache
+.npm
+.eslintcache
+.stylelintcache
+.cache/
+
+# Secrets
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
