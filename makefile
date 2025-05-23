@@ -17,7 +17,8 @@ tmux:
 	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) tmux
 
 nvim:
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) nvim
+	mkdir -p $(HOME)/.config
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) .config
 
 starship:
 	mkdir -p $(HOME)/.config
@@ -35,5 +36,5 @@ install: create-dirs zsh tmux nvim starship git bin
 
 # Clean up (unstow everything)
 clean:
-	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux nvim git bin starship
+	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config git bin starship
 	@echo "All dotfiles have been unlinked"
