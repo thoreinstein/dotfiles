@@ -1,0 +1,212 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BASE_DIR="${HOME}/src"
+
+# Check for required dependencies
+for cmd in tmux git fzf; do
+  if ! command -v "$cmd" &> /dev/null; then
+    echo "Error: Required command '$cmd' not found" >&2
+    exit 1
+  fi
+done
+
+# Check if BASE_DIR exists
+if [[ ! -d "$BASE_DIR" ]]; then
+  echo "Error: Base directory '$BASE_DIR' does not exist" >&2
+  exit 1
+fi
+
+declare -a options
+
+switch_to() {
+  if [[ -z $TMUX ]]; then
+    tmux attach-session -t "$1"
+  else
+    tmux switch-client -t "$1"
+  fi
+}
+
+has_session() {
+  tmux list-sessions | grep -q "^$1:"
+}
+
+get_git_status() {
+  local worktree_path="$1"
+  local git_dir="$2"
+  
+  if [[ ! -d "$worktree_path" ]]; then
+    echo "Missing"
+    return
+  fi
+  
+  if ! cd "$worktree_path" 2>/dev/null; then
+    echo "Error"
+    return
+  fi
+  
+  # Check if there are uncommitted changes
+  if ! git --git-dir="$git_dir" --work-tree="$worktree_path" diff-index --quiet HEAD -- 2>/dev/null; then
+    echo "Dirty"
+  elif [[ -n $(git --git-dir="$git_dir" --work-tree="$worktree_path" status --porcelain 2>/dev/null) ]]; then
+    echo "Staged"
+  else
+    echo "Clean"
+  fi
+}
+
+get_remote_info() {
+  local git_dir="$1"
+  local worktree_path="$2"
+  
+  if ! cd "$worktree_path" 2>/dev/null; then
+    echo "unknown/unknown"
+    return
+  fi
+  
+  # Get the remote URL
+  local remote_url
+  remote_url=$(git --git-dir="$git_dir" --work-tree="$worktree_path" remote get-url origin 2>/dev/null)
+  
+  if [[ -z "$remote_url" ]]; then
+    echo "local/local"
+    return
+  fi
+  
+  # Parse GitHub URL (supports both SSH and HTTPS)
+  if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/]+)(\.git)?$ ]]; then
+    local org="${BASH_REMATCH[1]}"
+    local repo="${BASH_REMATCH[2]}"
+    echo "$org/$repo"
+  else
+    # For non-GitHub or unrecognized URLs
+    echo "unknown/$(basename "$remote_url" .git)"
+  fi
+}
+
+for repo in "$BASE_DIR"/*/*; do
+  if [[ -d "$repo" ]] && [[ -d "$repo/objects" ]] && [[ -d "$repo/refs" ]]; then
+    repo_name=$(basename "$repo")
+    
+    # Safely get worktree list
+    if ! worktrees=$(git --git-dir="$repo" worktree list 2>/dev/null); then
+      echo "Warning: Failed to get worktree list for $repo" >&2
+      continue
+    fi
+
+    while IFS= read -r line; do
+      if [[ "$line" =~ ^([^\ ]+)[\ ]+([0-9a-f]{7,})[\ ]*(\[[^\]]+\])? ]]; then
+        worktree_path="${BASH_REMATCH[1]}"
+        branch_info="${BASH_REMATCH[3]}"
+        
+        worktree_name=$(basename "$worktree_path")
+        
+        # Determine if this is a worktree or main repo
+        is_worktree="false"
+        if [[ "$worktree_path" != "$repo" ]]; then
+          is_worktree="true"
+        fi
+        
+        # Extract branch name from bracket info or get current branch
+        if [[ -n "$branch_info" ]]; then
+          branch_name="${branch_info//[\[\]]/}"
+        else
+          # Get current branch for main repo
+          if cd "$worktree_path" 2>/dev/null; then
+            if ! branch_name=$(git --git-dir="$repo" --work-tree="$worktree_path" branch --show-current 2>/dev/null); then
+              branch_name="detached"
+            fi
+          else
+            branch_name="error"
+          fi
+        fi
+        
+        # Get git status
+        status=$(get_git_status "$worktree_path" "$repo")
+        
+        # Get remote info (GitHub org/repo)
+        remote_info=$(get_remote_info "$repo" "$worktree_path")
+        
+        # Format the display line with consistent spacing
+        # Format: GitHub Org/Repo | Repo Name | Is Worktree | Branch | Status
+        option_line=$(printf "%-30s| %-20s| %-9s| %-15s| %-8s\t%s\t%s\t%s" \
+          "$remote_info" \
+          "$repo_name" \
+          "$is_worktree" \
+          "$branch_name" \
+          "$status" \
+          "$worktree_name" \
+          "$repo_name" \
+          "$worktree_path")
+
+        options+=("$option_line")
+      fi
+    done <<< "$worktrees"
+  fi
+done
+
+# Check if we have any options
+if [[ ${#options[@]} -eq 0 ]]; then
+  echo "No git repositories found in $BASE_DIR" >&2
+  exit 1
+fi
+
+# Present options via fzf with better formatting
+if ! selected=$(printf '%s\n' "${options[@]}" | fzf \
+  --tmux 100%,90% \
+  --with-nth=1 \
+  --delimiter=$'\t' \
+  --preview='echo "Path: {4}"; echo ""; exa -la {4} 2>/dev/null || ls -la {4}' \
+  --layout=reverse-list \
+  --prompt='Select Repository > ' \
+  --header="$(printf "%-30s| %-20s| %-9s| %-15s| %-8s" "GitHub Org/Repo" "Repository" "Worktree" "Branch" "Status")" \
+  --bind='?:toggle-preview' 2>/dev/null); then
+  echo "fzf selection failed or cancelled" >&2
+  exit 1
+fi
+
+if [[ -z $selected ]]; then
+  exit 0
+fi
+
+# Extract fields from the selected line
+IFS=$'\t' read -r _ worktree_name repo_name selected_path <<< "$selected"
+
+# Validate extracted fields
+if [[ -z "$worktree_name" ]] || [[ -z "$repo_name" ]] || [[ -z "$selected_path" ]]; then
+  echo "Error: Failed to parse selection" >&2
+  exit 1
+fi
+
+# Verify the selected path exists
+if [[ ! -d "$selected_path" ]]; then
+  echo "Error: Selected path '$selected_path' does not exist" >&2
+  exit 1
+fi
+
+worktree=$(echo "$worktree_name" | xargs)
+# Construct the session name as 'repo_name [worktree_name]'
+selected_name="${repo_name} [${worktree}]"
+
+tmux_running=$(pgrep tmux 2>/dev/null || true)
+
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+  if ! tmux new-session -s "$selected_name" -c "$selected_path"; then
+    echo "Error: Failed to create new tmux session" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+if ! has_session "$selected_name"; then
+  if ! tmux new-session -ds "$selected_name" -c "$selected_path"; then
+    echo "Error: Failed to create detached tmux session" >&2
+    exit 1
+  fi
+fi
+
+if ! switch_to "$selected_name"; then
+  echo "Error: Failed to switch to tmux session" >&2
+  exit 1
+fi
