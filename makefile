@@ -1,4 +1,4 @@
-.PHONY: all zsh tmux nvim-base nvim starship git install clean create-dirs
+.PHONY: all zsh tmux nvim-base nvim starship git kitty install clean create-dirs
 
 STOW := stow
 STOW_FLAGS := --verbose
@@ -16,12 +16,6 @@ zsh:
 tmux:
 	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) tmux
 
-# LazyVim base configuration (submodule)
-nvim-base:
-	mkdir -p $(HOME)/.config
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) .config
-
-# Custom Neovim overlays (depends on base)
 nvim: nvim-base
 	mkdir -p $(HOME)/.config
 	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) nvim
@@ -36,11 +30,15 @@ git:
 bin:
 	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
 
+kitty:
+	mkdir -p $(HOME)/.config
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) kitty
+
 # Install all configurations
-install: create-dirs zsh tmux nvim starship git bin
+install: create-dirs zsh tmux nvim starship git bin kitty
 	@echo "All dotfiles have been installed"
 
 # Clean up (unstow everything)
 clean:
-	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config nvim git bin starship
+	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config nvim git bin starship kitty
 	@echo "All dotfiles have been unlinked"

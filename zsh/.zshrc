@@ -1,5 +1,6 @@
 # Homebrew PATH setup (must be first)
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
 
 # MyersLabs Digital Laboratory ZSH Theme
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#475569,bg=none,bold,underline"
@@ -76,10 +77,14 @@ alias tf='terraform fmt -recursive'
 alias ti='terraform init'
 alias tiu='terraform init -upgrade'
 alias tp='terraform plan'
-alias ts='terraform state'
 alias tv='terraform validate'
 
 # Load tokens from secure storage
 [ -f ~/.tokens ] && source ~/.tokens
 [ -f ~/.config/aliasrc ] && source ~/.config/aliasrc
 alias claude="/Users/myers/.claude/local/claude"
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=(/Users/myers/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions

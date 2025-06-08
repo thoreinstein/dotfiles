@@ -20,6 +20,18 @@ fi
 
 declare -a options
 
+# Helper function to truncate strings with ellipsis
+truncate_string() {
+  local str="$1"
+  local max_len="$2"
+  
+  if [[ ${#str} -le $max_len ]]; then
+    echo "$str"
+  else
+    echo "${str:0:$((max_len - 3))}..."
+  fi
+}
+
 switch_to() {
   if [[ -z $TMUX ]]; then
     tmux attach-session -t "$1"
@@ -128,13 +140,19 @@ for repo in "$BASE_DIR"/*/*; do
         # Get remote info (GitHub org/repo)
         remote_info=$(get_remote_info "$repo" "$worktree_path")
         
+        # Truncate long values for better table formatting
+        truncated_remote=$(truncate_string "$remote_info" 25)
+        truncated_repo=$(truncate_string "$repo_name" 18)
+        truncated_branch=$(truncate_string "$branch_name" 20)
+        truncated_worktree=$(truncate_string "$worktree_name" 15)
+        
         # Format the display line with consistent spacing
-        # Format: GitHub Org/Repo | Repo Name | Is Worktree | Branch | Status
-        option_line=$(printf "%-30s| %-20s| %-9s| %-15s| %-8s\t%s\t%s\t%s" \
-          "$remote_info" \
-          "$repo_name" \
-          "$is_worktree" \
-          "$branch_name" \
+        # Format: GitHub Org/Repo | Repo Name | Worktree | Branch | Status
+        option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
+          "$truncated_remote" \
+          "$truncated_repo" \
+          "$truncated_worktree" \
+          "$truncated_branch" \
           "$status" \
           "$worktree_name" \
           "$repo_name" \
@@ -157,10 +175,10 @@ if ! selected=$(printf '%s\n' "${options[@]}" | fzf \
   --tmux 100%,90% \
   --with-nth=1 \
   --delimiter=$'\t' \
-  --preview='echo "Path: {4}"; echo ""; exa -la {4} 2>/dev/null || ls -la {4}' \
-  --layout=reverse-list \
+  --preview='echo "Path: {4}"; echo ""; ls -la {4}' \
+  --layout=reverse \
   --prompt='Select Repository > ' \
-  --header="$(printf "%-30s| %-20s| %-9s| %-15s| %-8s" "GitHub Org/Repo" "Repository" "Worktree" "Branch" "Status")" \
+  --header="$(printf "%-25s | %-18s | %-15s | %-20s | %-8s" "GitHub Org/Repo" "Repository" "Worktree" "Branch" "Status")" \
   --bind='?:toggle-preview' 2>/dev/null); then
   echo "fzf selection failed or cancelled" >&2
   exit 1

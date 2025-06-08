@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# ghclone - Clone GitHub repositories with organization-based directory structure
+# Usage: ghclone <github-url>
+
+set -euo pipefail
+
+# Function to print error messages
+error() {
+    echo "Error: $1" >&2
+    exit 1
+}
+
+# Function to extract org/owner and repo name from GitHub URL
+parse_github_url() {
+    local url="$1"
+    local org repo
+    
+    # Remove trailing .git if present
+    url="${url%.git}"
+    
+    # Handle different GitHub URL formats
+    if [[ "$url" =~ ^git@github\.com:([^/]+)/([^/]+)$ ]]; then
+        # SSH format: git@github.com:owner/repo
+        org="${BASH_REMATCH[1]}"
+        repo="${BASH_REMATCH[2]}"
+        echo "ssh" "$org" "$repo"
+    elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)$ ]]; then
+        # HTTPS format: https://github.com/owner/repo
+        org="${BASH_REMATCH[1]}"
+        repo="${BASH_REMATCH[2]}"
+        echo "https" "$org" "$repo"
+    elif [[ "$url" =~ ^github\.com/([^/]+)/([^/]+)$ ]]; then
+        # Short format: github.com/owner/repo
+        org="${BASH_REMATCH[1]}"
+        repo="${BASH_REMATCH[2]}"
+        echo "https" "$org" "$repo"
+    else
+        error "Invalid GitHub URL format: $url"
+    fi
+}
+
+# Main script
+main() {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: ghclone <github-url>"
+        echo "Examples:"
+        echo "  ghclone https://github.com/owner/repo"
+        echo "  ghclone git@github.com:owner/repo.git"
+        exit 1
+    fi
+    
+    local github_url="$1"
+    local clone_type org repo
+    
+    # Parse the GitHub URL
+    read -r clone_type org repo <<< "$(parse_github_url "$github_url")"
+    
+    # Create directory structure
+    local base_dir="$HOME/src/$org"
+    local repo_dir="$base_dir/$repo"
+    
+    echo "Creating directory: $base_dir"
+    mkdir -p "$base_dir"
+    
+    # Change to the organization directory
+    cd "$base_dir"
+    
+    # Check if repository already exists
+    if [[ -d "$repo" ]]; then
+        error "Repository already exists at $repo_dir"
+    fi
+    
+    # Clone based on type
+    if [[ "$clone_type" == "https" ]]; then
+        echo "Cloning via HTTPS: $github_url"
+        git clone "$github_url" "$repo"
+        echo "Successfully cloned to: $repo_dir"
+    else
+        # SSH clone with bare repo and worktree
+        echo "Cloning via SSH as bare repository: $github_url"
+        
+        # Clone as bare repository
+        git clone --bare "$github_url" "$repo"
+        cd "$repo"
+        
+        # Get the default branch name
+        local default_branch
+        default_branch=$(git symbolic-ref HEAD | sed 's|refs/heads/||')
+        
+        # Create worktree for the default branch
+        echo "Creating worktree for branch: $default_branch"
+        git worktree add "$default_branch" "$default_branch"
+        
+        echo "Successfully cloned to: $repo_dir (bare) with worktree at: $repo_dir/$default_branch"
+    fi
+}
+
+# Run main function
+main "$@"
