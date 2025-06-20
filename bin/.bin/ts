@@ -3,6 +3,26 @@
 set -euo pipefail
 
 BASE_DIR="${HOME}/src"
+CACHE_FILE="${HOME}/.cache/ts_repos.cache"
+CACHE_MAX_AGE=3600  # 1 hour in seconds
+
+# Parse command line arguments
+UPDATE_CACHE=false
+if [[ "${1:-}" == "--update" ]] || [[ "${1:-}" == "-u" ]]; then
+  UPDATE_CACHE=true
+elif [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+  echo "Usage: ts [OPTIONS]"
+  echo ""
+  echo "Tmux session switcher for Git repositories"
+  echo ""
+  echo "Options:"
+  echo "  -u, --update    Force update the repository cache"
+  echo "  -h, --help      Show this help message"
+  echo ""
+  echo "The script caches repository information for 1 hour to improve performance."
+  echo "Use --update to force a refresh of the cache."
+  exit 0
+fi
 
 # Check for required dependencies
 for cmd in tmux git fzf; do
@@ -18,7 +38,133 @@ if [[ ! -d "$BASE_DIR" ]]; then
   exit 1
 fi
 
+# Ensure cache directory exists
+mkdir -p "$(dirname "$CACHE_FILE")"
+
 declare -a options
+
+# Function to check if cache is valid
+is_cache_valid() {
+  if [[ ! -f "$CACHE_FILE" ]]; then
+    return 1
+  fi
+  
+  local cache_time
+  cache_time=$(stat -c %Y "$CACHE_FILE" 2>/dev/null || stat -f %m "$CACHE_FILE" 2>/dev/null || echo 0)
+  local current_time
+  current_time=$(date +%s)
+  local age=$((current_time - cache_time))
+  
+  [[ $age -lt $CACHE_MAX_AGE ]]
+}
+
+# Function to build repository list
+build_repo_list() {
+  local -a temp_options=()
+  
+  echo "Scanning repositories in $BASE_DIR..." >&2
+  
+  # Find all Git repositories
+  while IFS= read -r -d '' repo_path; do
+    if [[ -d "$repo_path/.git" ]]; then
+      # Regular Git repository
+      repo_name=$(basename "$repo_path")
+      
+      if cd "$repo_path" 2>/dev/null; then
+        # Get current branch
+        if ! branch_name=$(git branch --show-current 2>/dev/null); then
+          branch_name="detached"
+        fi
+        
+        # Get git status
+        status=$(get_regular_git_status "$repo_path")
+        
+        # Get remote info
+        remote_info=$(get_regular_remote_info "$repo_path")
+        
+        # Truncate long values for better table formatting
+        truncated_remote=$(truncate_string "$remote_info" 25)
+        truncated_repo=$(truncate_string "$repo_name" 18)
+        truncated_branch=$(truncate_string "$branch_name" 20)
+        truncated_worktree=$(truncate_string "$repo_name" 15)
+        
+        # Format the display line
+        option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
+          "$truncated_remote" \
+          "$truncated_repo" \
+          "$truncated_worktree" \
+          "$truncated_branch" \
+          "$status" \
+          "$repo_name" \
+          "$repo_name" \
+          "$repo_path")
+
+        temp_options+=("$option_line")
+      fi
+    elif [[ -d "$repo_path/objects" ]] && [[ -d "$repo_path/refs" ]]; then
+      # Bare repository with worktrees
+      repo_name=$(basename "$repo_path")
+      
+      # Safely get worktree list
+      if worktrees=$(git --git-dir="$repo_path" worktree list 2>/dev/null); then
+        while IFS= read -r line; do
+          if [[ "$line" =~ ^([^\ ]+)[\ ]+([0-9a-f]{7,})[\ ]*(\[[^\]]+\])? ]]; then
+            worktree_path="${BASH_REMATCH[1]}"
+            branch_info="${BASH_REMATCH[3]}"
+            
+            worktree_name=$(basename "$worktree_path")
+            
+            # Extract branch name from bracket info or get current branch
+            if [[ -n "$branch_info" ]]; then
+              branch_name="${branch_info//[\[\]]/}"
+            else
+              # Get current branch for main repo
+              if cd "$worktree_path" 2>/dev/null; then
+                if ! branch_name=$(git --git-dir="$repo_path" --work-tree="$worktree_path" branch --show-current 2>/dev/null); then
+                  branch_name="detached"
+                fi
+              else
+                branch_name="error"
+              fi
+            fi
+            
+            # Get git status
+            status=$(get_git_status "$worktree_path" "$repo_path")
+            
+            # Get remote info (GitHub org/repo)
+            remote_info=$(get_remote_info "$repo_path" "$worktree_path")
+            
+            # Truncate long values for better table formatting
+            truncated_remote=$(truncate_string "$remote_info" 25)
+            truncated_repo=$(truncate_string "$repo_name" 18)
+            truncated_branch=$(truncate_string "$branch_name" 20)
+            truncated_worktree=$(truncate_string "$worktree_name" 15)
+            
+            # Format the display line with consistent spacing
+            option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
+              "$truncated_remote" \
+              "$truncated_repo" \
+              "$truncated_worktree" \
+              "$truncated_branch" \
+              "$status" \
+              "$worktree_name" \
+              "$repo_name" \
+              "$worktree_path")
+
+            temp_options+=("$option_line")
+          fi
+        done <<< "$worktrees"
+      fi
+    fi
+  done < <(find -L "$BASE_DIR" -type d \( -name ".git" -o \( -name "objects" -a -d \) \) -exec dirname {} \; | sort -u | tr '\n' '\0')
+  
+  # Save to cache
+  printf '%s\n' "${temp_options[@]}" > "$CACHE_FILE"
+  echo "Repository cache updated (${#temp_options[@]} repositories found)" >&2
+  
+  # Return the options
+  options=("${temp_options[@]}")
+}
 
 # Helper function to truncate strings with ellipsis
 truncate_string() {
@@ -97,72 +243,63 @@ get_remote_info() {
   fi
 }
 
-for repo in "$BASE_DIR"/*/*; do
-  if [[ -d "$repo" ]] && [[ -d "$repo/objects" ]] && [[ -d "$repo/refs" ]]; then
-    repo_name=$(basename "$repo")
-    
-    # Safely get worktree list
-    if ! worktrees=$(git --git-dir="$repo" worktree list 2>/dev/null); then
-      echo "Warning: Failed to get worktree list for $repo" >&2
-      continue
-    fi
-
-    while IFS= read -r line; do
-      if [[ "$line" =~ ^([^\ ]+)[\ ]+([0-9a-f]{7,})[\ ]*(\[[^\]]+\])? ]]; then
-        worktree_path="${BASH_REMATCH[1]}"
-        branch_info="${BASH_REMATCH[3]}"
-        
-        worktree_name=$(basename "$worktree_path")
-        
-        # Determine if this is a worktree or main repo
-        is_worktree="false"
-        if [[ "$worktree_path" != "$repo" ]]; then
-          is_worktree="true"
-        fi
-        
-        # Extract branch name from bracket info or get current branch
-        if [[ -n "$branch_info" ]]; then
-          branch_name="${branch_info//[\[\]]/}"
-        else
-          # Get current branch for main repo
-          if cd "$worktree_path" 2>/dev/null; then
-            if ! branch_name=$(git --git-dir="$repo" --work-tree="$worktree_path" branch --show-current 2>/dev/null); then
-              branch_name="detached"
-            fi
-          else
-            branch_name="error"
-          fi
-        fi
-        
-        # Get git status
-        status=$(get_git_status "$worktree_path" "$repo")
-        
-        # Get remote info (GitHub org/repo)
-        remote_info=$(get_remote_info "$repo" "$worktree_path")
-        
-        # Truncate long values for better table formatting
-        truncated_remote=$(truncate_string "$remote_info" 25)
-        truncated_repo=$(truncate_string "$repo_name" 18)
-        truncated_branch=$(truncate_string "$branch_name" 20)
-        truncated_worktree=$(truncate_string "$worktree_name" 15)
-        
-        # Format the display line with consistent spacing
-        # Format: GitHub Org/Repo | Repo Name | Worktree | Branch | Status
-        option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
-          "$truncated_remote" \
-          "$truncated_repo" \
-          "$truncated_worktree" \
-          "$truncated_branch" \
-          "$status" \
-          "$worktree_name" \
-          "$repo_name" \
-          "$worktree_path")
-
-        options+=("$option_line")
-      fi
-    done <<< "$worktrees"
+# Function to get git status for regular repos
+get_regular_git_status() {
+  local repo_path="$1"
+  
+  if ! cd "$repo_path" 2>/dev/null; then
+    echo "Error"
+    return
   fi
-done
+  
+  # Check if there are uncommitted changes
+  if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+    echo "Dirty"
+  elif [[ -n $(git status --porcelain 2>/dev/null) ]]; then
+    echo "Staged"
+  else
+    echo "Clean"
+  fi
+}
+
+# Function to get remote info for regular repos
+get_regular_remote_info() {
+  local repo_path="$1"
+  
+  if ! cd "$repo_path" 2>/dev/null; then
+    echo "unknown/unknown"
+    return
+  fi
+  
+  # Get the remote URL
+  local remote_url
+  remote_url=$(git remote get-url origin 2>/dev/null)
+  
+  if [[ -z "$remote_url" ]]; then
+    echo "local/local"
+    return
+  fi
+  
+  # Parse GitHub URL (supports both SSH and HTTPS)
+  if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/]+)(\.git)?$ ]]; then
+    local org="${BASH_REMATCH[1]}"
+    local repo="${BASH_REMATCH[2]}"
+    echo "$org/$repo"
+  else
+    # For non-GitHub or unrecognized URLs
+    echo "unknown/$(basename "$remote_url" .git)"
+  fi
+}
+
+# Load repository list (from cache or build fresh)
+if [[ "$UPDATE_CACHE" == "true" ]] || ! is_cache_valid; then
+  build_repo_list
+else
+  # Load from cache
+  while IFS= read -r line; do
+    options+=("$line")
+  done < "$CACHE_FILE"
+fi
 
 # Check if we have any options
 if [[ ${#options[@]} -eq 0 ]]; then
@@ -171,7 +308,7 @@ if [[ ${#options[@]} -eq 0 ]]; then
 fi
 
 # Present options via fzf with better formatting
-if ! selected=$(printf '%s\n' "${options[@]}" | fzf \
+selected=$(printf '%s\n' "${options[@]}" | fzf \
   --tmux 100%,90% \
   --with-nth=1 \
   --delimiter=$'\t' \
@@ -179,12 +316,10 @@ if ! selected=$(printf '%s\n' "${options[@]}" | fzf \
   --layout=reverse \
   --prompt='Select Repository > ' \
   --header="$(printf "%-25s | %-18s | %-15s | %-20s | %-8s" "GitHub Org/Repo" "Repository" "Worktree" "Branch" "Status")" \
-  --bind='?:toggle-preview' 2>/dev/null); then
-  echo "fzf selection failed or cancelled" >&2
-  exit 1
-fi
+  --bind='?:toggle-preview' 2>/dev/null) || exit 0
 
-if [[ -z $selected ]]; then
+# Check if selection is empty (shouldn't happen with new exit handling, but just in case)
+if [[ -z "$selected" ]]; then
   exit 0
 fi
 
