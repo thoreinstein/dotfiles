@@ -1,38 +1,63 @@
 .PHONY: all zsh tmux nvim-base nvim starship git install clean create-dirs
 
 STOW := stow
-STOW_FLAGS := --verbose
+STOW_FLAGS := 
 
 all: install
 
 # Create target directories if they don't exist
 create-dirs:
-	mkdir -p $(HOME)/.config
+	@mkdir -p $(HOME)/.config
 
 tmux:
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) tmux
+	@echo "Installing tmux configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) tmux
 
 nvim: nvim-base
-	mkdir -p $(HOME)/.config
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) nvim
+	@echo "Installing nvim configuration..."
+	@mkdir -p $(HOME)/.config
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) nvim
 
 git:
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) git
+	@echo "Installing git configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) git
 
 bin:
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
+	@echo "Installing bin scripts..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
 
 fish: create-dirs
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fish
+	@echo "Installing fish configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fish
 
 ghostty: create-dirs
-	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) ghostty
+	@echo "Installing ghostty configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) ghostty
+
+ripgrep:
+	@echo "Installing ripgrep configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) ripgrep
+
+bat:
+	@echo "Installing bat configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bat
+	@echo "Rebuilding bat cache for themes..."
+	@$(HOME)/.config/bat/install.sh
+
+fd:
+	@echo "Installing fd configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fd
+
+eza:
+	@echo "Installing eza configuration..."
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) eza
 
 # Install all configurations
-install: create-dirs tmux nvim git bin fish ghostty
+install: create-dirs tmux nvim git bin fish ghostty ripgrep bat fd eza
 	@echo "All dotfiles have been installed"
 
 # Clean up (unstow everything)
 clean:
-	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config nvim git bin starship fish ghostty
+	@echo "Removing all dotfile symlinks..."
+	@$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config nvim git bin starship fish ghostty ripgrep bat fd eza
 	@echo "All dotfiles have been unlinked"
