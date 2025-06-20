@@ -22,11 +22,17 @@ git:
 bin:
 	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
 
+fish: create-dirs
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fish
+
+ghostty: create-dirs
+	$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) ghostty
+
 # Install all configurations
-install: create-dirs tmux nvim git bin
+install: create-dirs tmux nvim git bin fish ghostty
 	@echo "All dotfiles have been installed"
 
 # Clean up (unstow everything)
 clean:
-	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config nvim git bin starship
+	$(STOW) $(STOW_FLAGS) -D -t $(HOME) zsh tmux .config nvim git bin starship fish ghostty
 	@echo "All dotfiles have been unlinked"
