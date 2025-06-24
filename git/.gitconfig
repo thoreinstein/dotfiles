@@ -34,6 +34,7 @@
 	wr = worktree remove
 	rewrite = rebase -i
 	l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  wa = "!f() { git worktree add --track -b $1 $1 $2; cd $1; }; f"
   pr = "!f() { git worktree add ../pr/$1 && cd ../pr/$1 && gh pr checkout $1; }; f"
   feature = "!f() { git worktree add ../feature/$1 && cd ../feature/1 && gh pr checkout $1; }; f"
   bugfix = "!f() { git worktree add ../bugfix/$1 && cd ../bugfix/1 && gh pr checkout $1; }; f"

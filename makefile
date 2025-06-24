@@ -8,6 +8,7 @@ all: install
 # Create target directories if they don't exist
 create-dirs:
 	@mkdir -p $(HOME)/.config
+	@mkdir -p $(HOME)/.bin
 
 tmux:
 	@echo "Installing tmux configuration..."

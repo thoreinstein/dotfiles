@@ -2,7 +2,7 @@
 font-family = "JetBrains Mono"
 font-size = 18.0
 
-theme = catppuccin-mocha.conf
+theme = rose-pine
 
 # Window Configuration
 background-opacity = 1.0

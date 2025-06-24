@@ -4,6 +4,10 @@ end
 
 set -gx PATH /opt/homebrew/bin $PATH
 set -gx PATH /Users/myers/.bin $PATH
+set -gx PATH $(brew --prefix)/opt/coreutils/libexec/gnubin $PATH
+
+alias gap='git add -p'
+alias gan='git add -N'
 
 alias vim='nvim'
 
@@ -92,4 +96,10 @@ if command -v fzf > /dev/null
             nvim "$selected"
         end
     end
+end
+
+source (/opt/homebrew/bin/starship init fish --print-full-init | psub)
+
+function fish_greeting
+    fortune
 end
