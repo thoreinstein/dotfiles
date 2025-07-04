@@ -5,11 +5,9 @@ return {
     "sindrets/diffview.nvim", -- optional - Diff integration
     "nvim-telescope/telescope.nvim", -- optional
   },
-  opts = function()
-    return {
-      graph_style = "unicode",
-    }
-  end,
+  opts = {
+    graph_style = "unicode",
+  },
   keys = {
     { "<leader>gg", "<cmd>Neogit<cr>", desc = "Open Neogit" },
   },
