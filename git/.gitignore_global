@@ -57,3 +57,4 @@ credentials.json
 .claude/
 .claude.md
 CLAUDE.md
+.direnv/
