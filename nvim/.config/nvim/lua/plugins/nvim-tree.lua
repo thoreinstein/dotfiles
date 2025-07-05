@@ -1,7 +1,3 @@
-local map = vim.keymap.set
-
-map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "nvimtree toggle window" })
-
 return {
   "nvim-tree/nvim-tree.lua",
   cmd = { "NvimTreeToggle", "NvimTreeFocus" },
@@ -36,5 +32,8 @@ return {
         },
       },
     },
+  },
+  keys = {
+    { "<C-n>", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree Toggle" },
   },
 }
