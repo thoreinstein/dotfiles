@@ -1,0 +1,35 @@
+# SRE Workflow Configuration
+# This file is sourced by the sre script
+
+# Vault configuration
+VAULT_PATH="${VAULT_PATH:-$HOME/Documents/Obsidian}"
+
+# Repository configuration
+REPO_OWNER="${REPO_OWNER:-owner}"
+REPO_NAME="${REPO_NAME:-repo}"
+DEFAULT_BASE_BRANCH="${DEFAULT_BASE_BRANCH:-master}"
+
+# Worktree organization
+# Set to "type" to organize by ticket type (fraas/, cre/, incident/)
+# Set to "flat" to keep all worktrees in the root
+WORKTREE_ORGANIZATION="${WORKTREE_ORGANIZATION:-type}"
+
+# Tmux configuration
+# Sessions are created with a single window at the worktree path
+# Users can create their own window layouts as needed
+
+# Ticket type mappings for Obsidian
+# Format: ticket_type:obsidian_folder
+declare -A TICKET_TYPE_FOLDERS=(
+    [incident]="Incidents"
+    [fraas]="Jira"
+    [cre]="Jira"
+    [default]="Jira"
+)
+
+# Daily note configuration
+DAILY_NOTE_PATH_PATTERN="Daily Notes/%Y-%m-%d.md"
+DAILY_NOTE_LOG_SECTION="## Log"
+
+# Atuin configuration
+ENABLE_ATUIN_TRACKING="${ENABLE_ATUIN_TRACKING:-true}"

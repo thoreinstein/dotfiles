@@ -1,0 +1,261 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Color codes for pretty output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Configuration
+VAULT_PATH="${VAULT_PATH:-$HOME/Documents/Obsidian}"
+REPO_OWNER="${REPO_OWNER:-owner}"
+REPO_NAME="${REPO_NAME:-repo}"
+BARE_REPO_PATH="$HOME/src/$REPO_OWNER/$REPO_NAME"
+DEFAULT_BASE_BRANCH="${DEFAULT_BASE_BRANCH:-master}"
+
+# Function to display usage
+usage() {
+    echo "Usage: $0 [TICKET] [OPTIONS]"
+    echo ""
+    echo "Arguments:"
+    echo "  TICKET                 Ticket number (e.g., cre-123, fraas-25857)"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help             Display this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                     Interactive mode (prompts for ticket)"
+    echo "  $0 cre-123             Direct mode with ticket"
+    exit 1
+}
+
+# Function to get ticket via tmux popup if not provided
+get_ticket_input() {
+    local ticket=""
+    if command -v tmux >/dev/null 2>&1 && [ -n "${TMUX:-}" ]; then
+        # Use tmux popup for input
+        ticket=$(tmux display-popup -E -w 50 -h 10 -T "Enter Ticket Number" bash -c '
+            echo -e "\033[1;34mEnter ticket number (e.g., fraas-25857):\033[0m"
+            read -r ticket
+            echo "$ticket"
+        ')
+    else
+        # Fallback to regular input
+        echo -e "${BLUE}Enter ticket number (e.g., fraas-25857):${NC}"
+        read -r ticket
+    fi
+    echo "$ticket"
+}
+
+# Function to parse ticket type and number
+parse_ticket() {
+    local ticket="$1"
+    if [[ "$ticket" =~ ^([a-zA-Z]+)-([0-9]+)$ ]]; then
+        echo "${BASH_REMATCH[1],,}" # Type in lowercase
+        echo "${BASH_REMATCH[2]}"    # Number
+    else
+        echo -e "${RED}Error: Invalid ticket format. Expected format: TYPE-NUMBER (e.g., fraas-25857)${NC}" >&2
+        exit 1
+    fi
+}
+
+# Function to create or attach to tmux session
+create_tmux_session() {
+    local session_name="$1"
+    local worktree_path="$2"
+    
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        echo -e "${YELLOW}Tmux session '$session_name' exists. Attaching...${NC}"
+        tmux switch-client -t "$session_name" || tmux attach-session -t "$session_name"
+    else
+        echo -e "${GREEN}Creating tmux session '$session_name'...${NC}"
+        # Create a new session with just one window at the worktree path
+        tmux new-session -d -s "$session_name" -c "$worktree_path"
+        
+        # Switch to the session
+        tmux switch-client -t "$session_name" || tmux attach-session -t "$session_name"
+    fi
+}
+
+# Function to create git worktree
+create_git_worktree() {
+    local ticket="$1"
+    local ticket_type="$2"
+    local worktree_path="$BARE_REPO_PATH/$ticket_type/$ticket"
+    
+    # Ensure bare repo exists
+    if [ ! -d "$BARE_REPO_PATH" ]; then
+        echo -e "${RED}Error: Bare repository not found at $BARE_REPO_PATH${NC}" >&2
+        exit 1
+    fi
+    
+    # Create type directory if it doesn't exist
+    mkdir -p "$BARE_REPO_PATH/$ticket_type"
+    
+    # Check if worktree already exists
+    if [ -d "$worktree_path" ]; then
+        echo -e "${YELLOW}Worktree already exists at $worktree_path${NC}"
+    else
+        echo -e "${GREEN}Creating git worktree for $ticket...${NC}"
+        cd "$BARE_REPO_PATH"
+        git worktree add "$ticket_type/$ticket" -b "$ticket" "$DEFAULT_BASE_BRANCH"
+    fi
+    
+    echo "$worktree_path"
+}
+
+# Function to create/touch Obsidian note
+create_obsidian_note() {
+    local ticket_type="$1"
+    local ticket_number="$2"
+    local ticket="$3"
+    
+    # Determine vault subdirectory based on ticket type
+    local vault_subdir=""
+    case "$ticket_type" in
+        incident)
+            vault_subdir="Incidents"
+            ;;
+        *)
+            vault_subdir="Jira"
+            ;;
+    esac
+    
+    local note_path="$VAULT_PATH/Areas/Ping Identity/$vault_subdir/$ticket.md"
+    local note_dir=$(dirname "$note_path")
+    
+    # Create directory if it doesn't exist
+    mkdir -p "$note_dir"
+    
+    # Touch the file to trigger Templater
+    echo -e "${GREEN}Creating Obsidian note at $note_path...${NC}"
+    touch "$note_path"
+}
+
+# Function to update daily note
+update_daily_note() {
+    local ticket="$1"
+    local today=$(date +"%Y-%m-%d")
+    local time=$(date +"%H:%M")
+    local daily_note_path="$VAULT_PATH/Daily Notes/$today.md"
+    
+    if [ ! -f "$daily_note_path" ]; then
+        echo -e "${YELLOW}Daily note for $today not found. Skipping log entry.${NC}"
+        return
+    fi
+    
+    # Create the log entry
+    local log_entry="- [$time] [[$ticket]]"
+    
+    # Use awk to find the ## Log section and append the entry
+    awk -v entry="$log_entry" '
+        /^## Log/ { in_log_section = 1; print; next }
+        /^##[^#]/ && in_log_section { print entry; in_log_section = 0 }
+        { print }
+        END { if (in_log_section) print entry }
+    ' "$daily_note_path" > "$daily_note_path.tmp" && mv "$daily_note_path.tmp" "$daily_note_path"
+    
+    echo -e "${GREEN}Added log entry to daily note${NC}"
+}
+
+# Function to note atuin session info
+setup_atuin_tracking() {
+    local ticket="$1"
+    
+    if command -v atuin >/dev/null 2>&1; then
+        # Atuin tracks commands by session automatically
+        echo -e "${GREEN}Atuin will track commands in this session${NC}"
+        echo -e "${YELLOW}To view commands from this session later:${NC}"
+        echo -e "  1. Use Ctrl-R and cycle to 'session' filter mode"
+        echo -e "  2. Or search by directory: atuin search --filter-mode directory"
+        
+        # Store session ID for potential later use
+        if [ -n "${ATUIN_SESSION:-}" ]; then
+            echo -e "${BLUE}Session ID: $ATUIN_SESSION${NC}"
+            # Could save this to a file if needed for later reference
+            mkdir -p "$HOME/.config/sre/sessions"
+            echo "$ATUIN_SESSION" > "$HOME/.config/sre/sessions/$ticket"
+        fi
+    else
+        echo -e "${YELLOW}Atuin not found. Command history tracking unavailable.${NC}"
+    fi
+}
+
+# Main script
+main() {
+    local ticket=""
+    
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                usage
+                ;;
+            -*)
+                echo -e "${RED}Unknown option: $1${NC}"
+                usage
+                ;;
+            *)
+                # First non-option argument is the ticket
+                if [ -z "$ticket" ]; then
+                    ticket="$1"
+                else
+                    echo -e "${RED}Too many arguments${NC}"
+                    usage
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    # Get ticket if not provided
+    if [ -z "$ticket" ]; then
+        ticket=$(get_ticket_input)
+    fi
+    
+    # Validate ticket
+    if [ -z "$ticket" ]; then
+        echo -e "${RED}Error: No ticket provided${NC}" >&2
+        exit 1
+    fi
+    
+    # Parse ticket components
+    read -r ticket_type ticket_number <<< "$(parse_ticket "$ticket")"
+    
+    echo -e "${BLUE}Starting workflow for ticket: $ticket${NC}"
+    echo -e "  Type: $ticket_type"
+    echo -e "  Number: $ticket_number"
+    
+    # Create git worktree
+    worktree_path=$(create_git_worktree "$ticket" "$ticket_type")
+    
+    # Check if this is a new session or recovery
+    local is_new_session=true
+    if tmux has-session -t "$ticket" 2>/dev/null; then
+        is_new_session=false
+        echo -e "${YELLOW}Recovering existing session for $ticket${NC}"
+    fi
+    
+    # Only do initial setup for new sessions
+    if [ "$is_new_session" = true ]; then
+        # Create Obsidian note
+        create_obsidian_note "$ticket_type" "$ticket_number" "$ticket"
+        
+        # Update daily note
+        update_daily_note "$ticket"
+        
+        # Setup atuin tracking
+        setup_atuin_tracking "$ticket"
+    else
+        echo -e "${GREEN}Skipping initial setup - session already exists${NC}"
+    fi
+    
+    # Create and attach to tmux session
+    create_tmux_session "$ticket" "$worktree_path"
+}
+
+# Run main function
+main "$@"
