@@ -1,0 +1,354 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Color codes for pretty output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Global verbose flag
+VERBOSE=false
+
+# Debug function that only prints if verbose is enabled
+debug() {
+  if [ "$VERBOSE" = true ]; then
+    echo -e "${BLUE}$*${NC}" >&2
+  fi
+}
+
+# Configuration
+VAULT_PATH="${VAULT_PATH:-$HOME/Documents/Second Brain}"
+REPO_OWNER="${REPO_OWNER:-test}"
+REPO_NAME="${REPO_NAME:-test}"
+BARE_REPO_PATH="$HOME/src/$REPO_OWNER/$REPO_NAME"
+DEFAULT_BASE_BRANCH="${DEFAULT_BASE_BRANCH:-main}"
+
+# Function to display usage
+usage() {
+  echo "Usage: $0 [TICKET] [OPTIONS]"
+  echo ""
+  echo "Arguments:"
+  echo "  TICKET                 Ticket number (e.g., cre-123, fraas-25857)"
+  echo ""
+  echo "Options:"
+  echo "  -v, --verbose          Enable verbose debug output"
+  echo "  -h, --help             Display this help message"
+  echo ""
+  echo "Examples:"
+  echo "  $0                     Interactive mode (prompts for ticket)"
+  echo "  $0 cre-123             Direct mode with ticket"
+  echo "  $0 cre-123 -v          With verbose output"
+  exit 1
+}
+
+# Function to get ticket via tmux popup if not provided
+get_ticket_input() {
+  local ticket=""
+  echo -e "${BLUE}Enter ticket number (e.g., fraas-25857):${NC}" >&2
+  read -r ticket
+  if [ -z "$ticket" ]; then
+    return 1
+  fi
+  echo "$ticket"
+}
+
+# Function to parse ticket type and number
+parse_ticket() {
+  local ticket="$1"
+  if [[ "$ticket" =~ ^([a-zA-Z]+)-([0-9]+)$ ]]; then
+    echo "${BASH_REMATCH[1],,}" # Type in lowercase
+    echo "${BASH_REMATCH[2]}"   # Number
+  else
+    echo -e "${RED}Error: Invalid ticket format. Expected format: TYPE-NUMBER (e.g., fraas-25857)${NC}" >&2
+    exit 1
+  fi
+}
+
+# Function to create or attach to tmux session
+create_tmux_session() {
+  local session_name="$1"
+  local worktree_path="$2"
+  local note_path="$3"
+
+  debug "Creating/attaching tmux session with path: $worktree_path"
+
+  if tmux has-session -t "$session_name" 2>/dev/null; then
+    echo -e "${YELLOW}Tmux session '$session_name' exists. Attaching...${NC}"
+    tmux switch-client -t "$session_name" || tmux attach-session -t "$session_name"
+  else
+    echo -e "${GREEN}Creating tmux session '$session_name'...${NC}"
+    # Verify the directory exists
+    if [ ! -d "$worktree_path" ]; then
+      echo -e "${RED}Error: Worktree path does not exist: $worktree_path${NC}"
+      return 1
+    fi
+    
+    # Create a new session with first window at vault path
+    tmux new-session -d -s "$session_name" -c "$VAULT_PATH"
+    
+    # Window 1: Obsidian note (at vault path)
+    tmux rename-window -t "$session_name:1" "note"
+    if [ -n "$note_path" ] && [ -f "$note_path" ]; then
+      tmux send-keys -t "$session_name:1" "nvim '$note_path'" Enter
+    fi
+    
+    # Window 2: Code editor (at worktree path)
+    tmux new-window -t "$session_name:2" -n "code" -c "$worktree_path"
+    tmux send-keys -t "$session_name:2" "nvim" Enter
+    
+    # Window 3: Terminal (at worktree path)
+    tmux new-window -t "$session_name:3" -n "term" -c "$worktree_path"
+    
+    # Start on window 1 (note)
+    tmux select-window -t "$session_name:1"
+
+    # Switch to the session
+    tmux switch-client -t "$session_name" || tmux attach-session -t "$session_name"
+  fi
+}
+
+# Function to create git worktree
+create_git_worktree() {
+  local ticket="$1"
+  local ticket_type="$2"
+  local worktree_path="$BARE_REPO_PATH/$ticket_type/$ticket"
+
+  # Ensure bare repo exists
+  if [ ! -d "$BARE_REPO_PATH" ]; then
+    echo -e "${RED}Error: Bare repository not found at $BARE_REPO_PATH${NC}" >&2
+    exit 1
+  fi
+
+  # Create type directory if it doesn't exist
+  mkdir -p "$BARE_REPO_PATH/$ticket_type"
+
+  # Check if worktree already exists
+  if [ -d "$worktree_path" ]; then
+    echo -e "${YELLOW}Worktree already exists at $worktree_path${NC}" >&2
+  else
+    echo -e "${GREEN}Creating git worktree for $ticket...${NC}" >&2
+    cd "$BARE_REPO_PATH"
+
+    # Check what branches exist
+    local base_branch=""
+    if git show-ref --verify --quiet "refs/heads/$DEFAULT_BASE_BRANCH"; then
+      base_branch="$DEFAULT_BASE_BRANCH"
+    elif git show-ref --verify --quiet "refs/heads/master"; then
+      base_branch="master"
+    elif git show-ref --verify --quiet "refs/heads/main"; then
+      base_branch="main"
+    else
+      # Get the first available branch
+      base_branch=$(git branch -r | grep -v HEAD | head -1 | sed 's/.*origin\///')
+      if [ -z "$base_branch" ]; then
+        echo -e "${RED}Error: No branches found in repository${NC}" >&2
+        echo -e "${YELLOW}Creating initial commit on main branch...${NC}" >&2
+        git switch -c main >&2
+        git commit --allow-empty -m "Initial commit" >&2
+        base_branch="main"
+      fi
+    fi
+
+    debug "Using base branch: $base_branch"
+    git worktree add "$ticket_type/$ticket" -b "$ticket" "$base_branch" >&2
+  fi
+
+  # Only output the path, nothing else
+  echo "$worktree_path"
+}
+
+# Function to create/touch Obsidian note
+create_obsidian_note() {
+  local ticket_type="$1"
+  local ticket_number="$2"
+  local ticket="$3"
+
+  # Debug vault path
+  debug "Vault path: $VAULT_PATH"
+
+  # Determine vault subdirectory based on ticket type
+  local vault_subdir=""
+  case "$ticket_type" in
+  incident)
+    vault_subdir="Incidents"
+    ;;
+  *)
+    vault_subdir="Jira"
+    ;;
+  esac
+
+  # Include ticket type subfolder in path
+  local note_path="$VAULT_PATH/Areas/Ping Identity/$vault_subdir/$ticket_type/$ticket.md"
+  local note_dir=$(dirname "$note_path")
+
+  # Debug full path
+  debug "Full note path: $note_path"
+
+  # Check if vault exists
+  if [ ! -d "$VAULT_PATH" ]; then
+    echo -e "${RED}Error: Vault path not found at $VAULT_PATH${NC}" >&2
+    echo -e "${YELLOW}Set VAULT_PATH environment variable to your Obsidian vault location${NC}" >&2
+    return
+  fi
+
+  # Create directory if it doesn't exist
+  mkdir -p "$note_dir"
+
+  # Check if directory was created
+  if [ ! -d "$note_dir" ]; then
+    echo -e "${RED}Error: Failed to create directory $note_dir${NC}" >&2
+    return
+  fi
+
+  # Touch the file to trigger Templater
+  echo -e "${GREEN}Creating Obsidian note at $note_path...${NC}" >&2
+  touch "$note_path"
+
+  # Verify file was created
+  if [ -f "$note_path" ]; then
+    echo -e "${GREEN}Note created successfully${NC}" >&2
+    echo -e "${YELLOW}Note: Open this file in Obsidian to trigger Templater${NC}" >&2
+    echo "$note_path"
+  else
+    echo -e "${RED}Error: Failed to create note${NC}" >&2
+  fi
+}
+
+# Function to update daily note
+update_daily_note() {
+  local ticket="$1"
+  local today=$(date +"%Y-%m-%d")
+  local time=$(date +"%H:%M")
+  local daily_note_path="$VAULT_PATH/Daily/$today.md"
+
+  # Debug daily note path
+  debug "Looking for daily note at: $daily_note_path"
+
+  if [ ! -f "$daily_note_path" ]; then
+    echo -e "${YELLOW}Daily note for $today not found at $daily_note_path${NC}"
+    # Check if parent directory exists
+    if [ -d "$VAULT_PATH/Daily" ]; then
+      debug "Daily folder exists. Contents:"
+      ls -la "$VAULT_PATH/Daily/" | grep "$today" || echo "No file matching $today found"
+    else
+      echo -e "${RED}Daily folder not found at: $VAULT_PATH/Daily${NC}"
+    fi
+    echo -e "${YELLOW}Skipping log entry. Make sure your daily note exists.${NC}"
+    return
+  fi
+
+  # Create the log entry
+  local log_entry="- [$time] [[$ticket]]"
+
+  # Check if ## Log section exists
+  if ! grep -q "^## Log" "$daily_note_path"; then
+    echo -e "${YELLOW}No '## Log' section found in daily note${NC}"
+    echo -e "${YELLOW}Adding log entry at the end of file${NC}"
+    echo -e "\n## Log\n$log_entry" >>"$daily_note_path"
+  else
+    # Use awk to find the ## Log section and append the entry
+    awk -v entry="$log_entry" '
+            /^## Log/ { in_log_section = 1; print; next }
+            /^##[^#]/ && in_log_section { print entry; in_log_section = 0 }
+            { print }
+            END { if (in_log_section) print entry }
+        ' "$daily_note_path" >"$daily_note_path.tmp" && mv "$daily_note_path.tmp" "$daily_note_path"
+  fi
+
+  echo -e "${GREEN}Added log entry to daily note: $log_entry${NC}"
+}
+
+# Main script
+main() {
+  local ticket=""
+  local verbose=false
+
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -h | --help)
+      usage
+      ;;
+    -v | --verbose)
+      verbose=true
+      shift
+      ;;
+    -*)
+      echo -e "${RED}Unknown option: $1${NC}"
+      usage
+      ;;
+    *)
+      # First non-option argument is the ticket
+      if [ -z "$ticket" ]; then
+        ticket="$1"
+      else
+        echo -e "${RED}Too many arguments${NC}"
+        usage
+      fi
+      shift
+      ;;
+    esac
+  done
+
+  # Get ticket if not provided
+  if [ -z "$ticket" ]; then
+    ticket=$(get_ticket_input)
+    local input_result=$?
+    if [ $input_result -ne 0 ]; then
+      echo -e "${RED}Operation cancelled${NC}" >&2
+      exit 1
+    fi
+  fi
+
+  # Validate ticket
+  if [ -z "$ticket" ]; then
+    echo -e "${RED}Error: No ticket provided${NC}" >&2
+    exit 1
+  fi
+
+  # Set global verbose flag
+  VERBOSE=$verbose
+
+  # Parse ticket components
+  read -r ticket_type ticket_number <<<"$(parse_ticket "$ticket")"
+
+  echo -e "${BLUE}Starting workflow for ticket: $ticket${NC}"
+  debug "  Type: $ticket_type"
+  debug "  Number: $ticket_number"
+
+  # Debug: Check if variables are properly set
+  if [ "$VERBOSE" = true ] && [ -z "$ticket_number" ]; then
+    echo -e "${YELLOW}Warning: Ticket number parsing issue${NC}"
+  fi
+
+  # Create git worktree
+  worktree_path=$(create_git_worktree "$ticket" "$ticket_type")
+
+  # Check if this is a new session or recovery
+  local is_new_session=true
+  if tmux has-session -t "$ticket" 2>/dev/null; then
+    is_new_session=false
+    echo -e "${YELLOW}Recovering existing session for $ticket${NC}"
+  fi
+
+  # Only do initial setup for new sessions
+  local note_path=""
+  if [ "$is_new_session" = true ]; then
+    # Create Obsidian note
+    note_path=$(create_obsidian_note "$ticket_type" "$ticket_number" "$ticket")
+
+    # Update daily note
+    update_daily_note "$ticket"
+  else
+    echo -e "${GREEN}Skipping initial setup - session already exists${NC}"
+  fi
+
+  # Create and attach to tmux session
+  create_tmux_session "$ticket" "$worktree_path" "$note_path"
+}
+
+# Run main function
+main "$@"
