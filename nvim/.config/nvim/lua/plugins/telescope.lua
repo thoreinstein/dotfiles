@@ -31,5 +31,6 @@ return {
     { "<leader>fh", require("telescope.builtin").help_tags, desc = "Telescope Help Tags" },
     { "<leader>ma", require("telescope.builtin").marks, desc = "Telescope Marks" },
     { "<leader>fz", require("telescope.builtin").current_buffer_fuzzy_find, desc = "Telescope Fuzzy Find" },
+    { "<leader>ft", function() require("config.worktree-picker").find_file_in_worktrees() end, desc = "Find file in worktrees" },
   },
 }
