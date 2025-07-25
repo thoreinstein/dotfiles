@@ -1,5 +1,6 @@
 brew "atuin", restart_service: :changed
 brew "bat"
+brew "direnv"
 brew "eza"
 brew "fish"
 brew "fortune"

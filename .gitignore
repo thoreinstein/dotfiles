@@ -29,3 +29,7 @@ zsh/.zsh_sessions/
 **/tokens
 **/secrets
 **/credentials
+
+# Nix
+result
+result-*
