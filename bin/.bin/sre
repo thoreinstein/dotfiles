@@ -160,6 +160,39 @@ create_git_worktree() {
   echo "$worktree_path"
 }
 
+# Function to fetch JIRA details using acli
+fetch_jira_details() {
+  local ticket_number="$1"
+  
+  # Check if acli is available
+  if ! command -v acli &> /dev/null; then
+    debug "acli not found, skipping JIRA details fetch"
+    return 1
+  fi
+  
+  # Fetch JIRA details
+  local jira_output=$(acli jira workitem view "$ticket_number" 2>/dev/null)
+  
+  if [ $? -ne 0 ] || [ -z "$jira_output" ]; then
+    debug "Failed to fetch JIRA details for $ticket_number"
+    return 1
+  fi
+  
+  # Parse the output
+  local type=$(echo "$jira_output" | grep "^Type:" | sed 's/^Type: *//')
+  local summary=$(echo "$jira_output" | grep "^Summary:" | sed 's/^Summary: *//')
+  local status=$(echo "$jira_output" | grep "^Status:" | sed 's/^Status: *//')
+  local description=$(echo "$jira_output" | sed -n '/^Description:/,/^[A-Z]/ { /^Description:/d; /^[A-Z]/d; p }')
+  
+  # Export variables for use in calling function
+  export JIRA_TYPE="$type"
+  export JIRA_SUMMARY="$summary"
+  export JIRA_STATUS="$status"
+  export JIRA_DESCRIPTION="$description"
+  
+  return 0
+}
+
 # Function to create/touch Obsidian note
 create_obsidian_note() {
   local ticket_type="$1"
@@ -203,14 +236,67 @@ create_obsidian_note() {
     return
   fi
 
-  # Touch the file to trigger Templater
-  echo -e "${GREEN}Creating Obsidian note at $note_path...${NC}" >&2
-  touch "$note_path"
+  # For JIRA tickets, fetch details and use template
+  if [ "$ticket_type" != "incident" ]; then
+    # Fetch JIRA details
+    fetch_jira_details "$ticket_number"
+    
+    if [ $? -eq 0 ]; then
+      # Use the Jira template
+      local template_path="$VAULT_PATH/templates/Jira.md"
+      
+      if [ -f "$template_path" ]; then
+        echo -e "${GREEN}Using Jira template with fetched details...${NC}" >&2
+        
+        # Copy template and replace placeholders
+        cp "$template_path" "$note_path"
+        
+        # Replace title placeholder with actual summary
+        if [ -n "$JIRA_SUMMARY" ]; then
+          # Escape special characters for sed
+          local escaped_summary=$(printf '%s\n' "$JIRA_SUMMARY" | sed 's/[[\.*^$()+?{|]/\\&/g')
+          sed -i '' "s/<Insert ticket title or short summary here>/$escaped_summary/" "$note_path"
+        fi
+        
+        # Insert JIRA details after ## Summary section
+        if [ -n "$JIRA_TYPE" ] || [ -n "$JIRA_STATUS" ] || [ -n "$JIRA_DESCRIPTION" ]; then
+          # Create the JIRA details section
+          local jira_section="## JIRA Details\n\n"
+          [ -n "$JIRA_TYPE" ] && jira_section+="**Type:** $JIRA_TYPE\n"
+          [ -n "$JIRA_STATUS" ] && jira_section+="**Status:** $JIRA_STATUS\n"
+          
+          if [ -n "$JIRA_DESCRIPTION" ]; then
+            jira_section+="\n**Description:**\n$JIRA_DESCRIPTION\n"
+          fi
+          
+          # Insert after ## Summary section
+          awk -v section="$jira_section" '
+            /^## Summary/ { print; getline; print; print ""; print section; next }
+            { print }
+          ' "$note_path" > "$note_path.tmp" && mv "$note_path.tmp" "$note_path"
+        fi
+        
+        # Replace the Templater date syntax with actual date
+        local today=$(date +"%Y-%m-%d")
+        sed -i '' "s/<% tp.date.now(\"YYYY-MM-DD\") %>/$today/" "$note_path"
+        
+        echo -e "${GREEN}Note created with JIRA details${NC}" >&2
+      else
+        echo -e "${YELLOW}Jira template not found, creating basic note${NC}" >&2
+        touch "$note_path"
+      fi
+    else
+      echo -e "${YELLOW}Could not fetch JIRA details, creating basic note${NC}" >&2
+      touch "$note_path"
+    fi
+  else
+    # For incidents, just touch the file as before
+    touch "$note_path"
+  fi
 
   # Verify file was created
   if [ -f "$note_path" ]; then
     echo -e "${GREEN}Note created successfully${NC}" >&2
-    echo -e "${YELLOW}Note: Open this file in Obsidian to trigger Templater${NC}" >&2
     echo "$note_path"
   else
     echo -e "${RED}Error: Failed to create note${NC}" >&2
