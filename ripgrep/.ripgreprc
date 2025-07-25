@@ -66,7 +66,7 @@
 --colors=match:style:nobold
 
 # Performance settings
---threads=0  # Use all available CPU cores
+--threads=4
 
 # Encoding
 --encoding=auto
