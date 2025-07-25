@@ -1,6 +1,5 @@
 [user]
 	name = Jim Myers
-	email = myersjim223@gmail.com
 	signingkey = 0x28E7C0B3D41D890F
 
 [core]
@@ -42,3 +41,6 @@
 
 [gpg]
 	program = /opt/homebrew/bin/gpg
+
+[include]
+  path = ~/.gitconfig.local
