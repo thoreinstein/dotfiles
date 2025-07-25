@@ -182,7 +182,7 @@ fetch_jira_details() {
   local type=$(echo "$jira_output" | grep "^Type:" | sed 's/^Type: *//')
   local summary=$(echo "$jira_output" | grep "^Summary:" | sed 's/^Summary: *//')
   local status=$(echo "$jira_output" | grep "^Status:" | sed 's/^Status: *//')
-  local description=$(echo "$jira_output" | sed -n '/^Description:/,/^[A-Z]/ { /^Description:/d; /^[A-Z]/d; p }')
+  local description=$(echo "$jira_output" | sed -n '/^Description:/,/^[A-Z]/{ /^Description:/d; /^[A-Z]/d; p; }')
   
   # Export variables for use in calling function
   export JIRA_TYPE="$type"
@@ -239,7 +239,7 @@ create_obsidian_note() {
   # For JIRA tickets, fetch details and use template
   if [ "$ticket_type" != "incident" ]; then
     # Fetch JIRA details
-    fetch_jira_details "$ticket_number"
+    fetch_jira_details "$ticket"
     
     if [ $? -eq 0 ]; then
       # Use the Jira template
@@ -253,9 +253,11 @@ create_obsidian_note() {
         
         # Replace title placeholder with actual summary
         if [ -n "$JIRA_SUMMARY" ]; then
-          # Escape special characters for sed
-          local escaped_summary=$(printf '%s\n' "$JIRA_SUMMARY" | sed 's/[[\.*^$()+?{|]/\\&/g')
-          sed -i '' "s/<Insert ticket title or short summary here>/$escaped_summary/" "$note_path"
+          # Use awk instead of sed to avoid issues with special characters
+          awk -v summary="$JIRA_SUMMARY" '{
+            gsub(/<Insert ticket title or short summary here>/, summary)
+            print
+          }' "$note_path" > "$note_path.tmp" && mv "$note_path.tmp" "$note_path"
         fi
         
         # Insert JIRA details after ## Summary section

@@ -1,0 +1,5 @@
+# Starship configuration
+
+[gcloud]
+format = '[$symbol$project]($style) '
+symbol = '☁️ '
