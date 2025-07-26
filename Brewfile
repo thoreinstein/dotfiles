@@ -1,11 +1,3 @@
-brew "atuin", restart_service: :changed
-brew "direnv"
-brew "fish"
-brew "fortune"
-brew "pinentry-mac"
-brew "ykman"
-brew "ykpers"
-cask "font-jetbrains-mono-nerd-font"
 cask "ghostty"
 cask "plex"
 cask "spotify"

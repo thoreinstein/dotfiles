@@ -1,4 +1,4 @@
-{ config, pkgs, lib, inputs, username, ... }:
+{ config, pkgs, lib, inputs, username, flakePath, ... }:
 
 {
   # Home Manager needs a bit of information about you and the
@@ -39,6 +39,11 @@
     
     # Fonts
     nerd-fonts.jetbrains-mono
+    
+    # Custom scripts
+    (pkgs.writeShellScriptBin "ts" (builtins.readFile "${flakePath}/bin/.bin/ts"))
+    (pkgs.writeShellScriptBin "ghclone" (builtins.readFile "${flakePath}/bin/.bin/ghclone"))
+    (pkgs.writeShellScriptBin "sre" (builtins.readFile "${flakePath}/bin/.bin/sre"))
   ];
   
   # Git configuration
@@ -327,13 +332,19 @@
   
   # Link your existing nvim configuration
   xdg.configFile."nvim" = {
-    source = ../nvim/.config/nvim;
+    source = "${flakePath}/nvim/.config/nvim";
     recursive = true;
   };
   
   # Eza theme configuration
   xdg.configFile."eza/theme.yml" = {
-    source = ../eza/.config/eza/theme.yml;
+    source = "${flakePath}/eza/.config/eza/theme.yml";
+  };
+  
+  # Ghostty terminal configuration
+  xdg.configFile."ghostty" = {
+    source = "${flakePath}/ghostty/.config/ghostty";
+    recursive = true;
   };
   
   # Tmux configuration

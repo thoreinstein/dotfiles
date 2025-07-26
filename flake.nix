@@ -65,6 +65,7 @@
           home-manager.extraSpecialArgs = { 
             inherit inputs;
             inherit (machineConfig) username hostname;
+            flakePath = self;
           };
         }
       ];
