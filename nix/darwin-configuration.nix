@@ -72,6 +72,10 @@
     
     # Casks for GUI applications
     casks = [
+      {
+        name = "docker-desktop";
+        args = { no_quarantine = true; };
+      }
       "ghostty"
       # We'll migrate more casks here as needed
     ];

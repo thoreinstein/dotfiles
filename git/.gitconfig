@@ -40,7 +40,7 @@
   chore = "!f() { git worktree add ../chore/$1 && cd ../chore/1 && gh pr checkout $1; }; f"
 
 [gpg]
-	program = /opt/homebrew/bin/gpg
+	program = /etc/profiles/per-user/myers/bin/gpg
 
 [include]
   path = ~/.gitconfig.local
