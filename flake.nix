@@ -13,6 +13,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    
   };
 
   outputs = { self, nixpkgs, nix-darwin, home-manager, ... }@inputs: 
@@ -33,6 +34,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users."${username}" = import ./nix/home.nix;
+          home-manager.backupFileExtension = "backup";
           
           # Pass inputs to home-manager modules
           home-manager.extraSpecialArgs = { inherit inputs username; };

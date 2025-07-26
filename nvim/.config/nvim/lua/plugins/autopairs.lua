@@ -1,8 +1,1 @@
-return {
-  "windwp/nvim-autopairs",
-  event = "InsertEnter",
-  opts = {
-    fast_wrap = {},
-    disable_filetype = { "TelescopePrompt", "vim" },
-  },
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/autopairs.lua

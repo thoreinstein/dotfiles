@@ -1,5 +1,1 @@
-return {
-  "kylechui/nvim-surround",
-  version = "^3.0.0",
-  event = "VeryLazy",
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/surround.lua

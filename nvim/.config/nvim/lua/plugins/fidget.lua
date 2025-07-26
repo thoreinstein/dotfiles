@@ -1,6 +1,1 @@
-return {
-  "j-hui/fidget.nvim",
-  opts = {
-    -- options
-  },
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/fidget.lua

@@ -1,15 +1,1 @@
-return {
-  "nvim-treesitter/nvim-treesitter",
-  lazy = false,
-  build = ":TSUpdate",
-  opts = {
-    ensure_installed = { "lua", "luadoc", "printf", "vim", "vimdoc" },
-
-    highlight = {
-      enable = true,
-      use_languagetree = true,
-    },
-
-    indent = { enable = true },
-  },
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/treesitter.lua

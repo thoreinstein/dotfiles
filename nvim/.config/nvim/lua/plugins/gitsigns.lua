@@ -1,6 +1,1 @@
-return {
-  "lewis6991/gitsigns.nvim",
-  opts = {
-    current_line_blame = true,
-  },
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/gitsigns.lua

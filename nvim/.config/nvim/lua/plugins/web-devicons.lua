@@ -1,5 +1,1 @@
-return {
-    "nvim-tree/nvim-web-devicons",
-    opts = function()
-    end,
-  }
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/web-devicons.lua

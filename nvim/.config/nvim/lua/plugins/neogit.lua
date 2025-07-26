@@ -1,14 +1,1 @@
-return {
-  "NeogitOrg/neogit",
-  dependencies = {
-    "nvim-lua/plenary.nvim", -- required
-    "sindrets/diffview.nvim", -- optional - Diff integration
-    "nvim-telescope/telescope.nvim", -- optional
-  },
-  opts = {
-    graph_style = "unicode",
-  },
-  keys = {
-    { "<leader>gg", "<cmd>Neogit<cr>", desc = "Open Neogit" },
-  },
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/neogit.lua

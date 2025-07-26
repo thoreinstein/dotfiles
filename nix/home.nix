@@ -26,7 +26,6 @@
     wget
     
     # Development tools
-    neovim
     tmux
     starship
     direnv
@@ -89,15 +88,63 @@
     ];
   };
   
-  # Fish shell (we'll expand this later)
+  # Fish shell
   programs.fish = {
     enable = true;
-    interactiveShellInit = ''
-      # We'll migrate the fish config here incrementally
-      set -gx GPG_TTY (tty)
-      set -gx SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
-      gpgconf --launch gpg-agent
+    loginShellInit = ''
+      # Ensure Nix paths are available
+      set -gx PATH /etc/profiles/per-user/myers/bin $PATH
+      set -gx PATH $HOME/.nix-profile/bin $PATH
     '';
+    interactiveShellInit = ''
+      # Environment variables
+      set -gx GPG_TTY (tty)
+      set -gx SSH_AUTH_SOCK (${pkgs.gnupg}/bin/gpgconf --list-dirs agent-ssh-socket)
+      ${pkgs.gnupg}/bin/gpgconf --launch gpg-agent
+      
+      set -gx K9S_CONFIG_DIR $HOME/.config/k9s
+      set -gx RIPGREP_CONFIG_PATH "$HOME/.ripgreprc"
+      
+      # Initialize atuin
+      ${pkgs.atuin}/bin/atuin init fish | source
+    '';
+    
+    shellAliases = {
+      # Git aliases
+      gap = "git add -p";
+      gan = "git add -N";
+      vim = "nvim";
+      
+      # Eza aliases (modern ls replacement)
+      ls = "eza";
+      l = "eza -la";
+      ll = "eza -lg";
+      la = "eza -la";
+      lt = "eza --tree";
+      lg = "eza -la --git";
+      lh = "eza -la --header";
+      ld = "eza -lD";  # directories only
+      lf = "eza -lf";  # files only
+      lx = "eza -la --sort=extension";
+      lk = "eza -la --sort=size";
+      lr = "eza -la --sort=modified --reverse";
+      
+      # Ripgrep aliases
+      rga = "rg --text";      # Search all files including binary
+      rgl = "rg -l";          # Only show filenames
+      rgc = "rg -c";          # Show match counts
+      rgi = "rg -i";          # Case-insensitive search
+      rgf = "rg --files";     # List files that would be searched
+      
+      # fd aliases
+      fda = "fd --hidden";    # Include hidden files
+      fde = "fd --extension"; # Search by file extension
+      fdt = "fd --type";      # Search by type (f=file, d=directory, etc)
+      fdx = "fd --exec";      # Execute command on results
+      fdf = "fd --follow";    # Follow symlinks
+      fdd = "fd --type d";    # Find directories only
+      fdfe = "fd --type f --extension"; # Find files by extension
+    };
   };
   
   # Starship prompt
@@ -110,5 +157,91 @@
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
+  };
+  
+  # Neovim - just manage the package, keep your existing config
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    viAlias = true;
+    vimAlias = true;
+  };
+  
+  # Link your existing nvim configuration
+  xdg.configFile."nvim" = {
+    source = ../nvim/.config/nvim;
+    recursive = true;
+  };
+  
+  # Tmux configuration
+  programs.tmux = {
+    enable = true;
+    mouse = true;
+    keyMode = "vi";
+    terminal = "tmux-256color";
+    prefix = "C-Space";
+    baseIndex = 1;
+    escapeTime = 0;
+    
+    extraConfig = ''
+      # True color support
+      set -ag terminal-overrides ",xterm-256color:RGB"
+      
+      # Unbind default prefix and set new one
+      unbind C-b
+      bind C-Space send-prefix
+      
+      # Custom key binding for ts script
+      bind -r f run-shell "~/.bin/ts"
+      
+      # Window and pane settings
+      set-window-option -g aggressive-resize on
+      setw -g pane-base-index 1
+      set -g renumber-windows on
+      
+      # Plugin configurations
+      set -g '@now-playing-status-format' "{icon} {scrollable}"
+      set -g '@now-playing-playing-icon' "♪"
+      set -g '@now-playing-paused-icon' "⏸"
+      set -g '@now-playing-scrollable-format' "{artist} - {title}"
+      set -g '@now-playing-scrollable-threshold' 25
+      
+      # Rose Pine theme settings
+      set -g '@rose_pine_variant' 'main'
+      set -g '@rose_pine_date_time' ""
+      set -g '@rose_pine_directory' 'on'
+      set -g '@rose_pine_bar_bg_disable' 'on'
+      set -g '@rose_pine_bar_bg_disabled_color_option' 'default'
+      set -g '@rose_pine_show_current_program' 'on'
+      set -g '@rose_pine_show_pane_directory' 'on'
+      set -g '@rose_pine_status_right_prepend_section' '#{now_playing} '
+      
+      # Alt+Number window switching (no prefix)
+      bind-key -n M-1 select-window -t 1
+      bind-key -n M-2 select-window -t 2
+      bind-key -n M-3 select-window -t 3
+      bind-key -n M-4 select-window -t 4
+      bind-key -n M-5 select-window -t 5
+      bind-key -n M-6 select-window -t 6
+      bind-key -n M-7 select-window -t 7
+      bind-key -n M-8 select-window -t 8
+      bind-key -n M-9 select-window -t 9
+      
+      # TPM Plugins
+      set -g '@plugin' 'rose-pine/tmux'
+      set -g '@plugin' 'tmux-plugins/tmux-sensible'
+      set -g '@plugin' 'tmux-plugins/tmux-yank'
+      set -g '@plugin' 'tmux-plugins/tmux-prefix-highlight'
+      set -g '@plugin' 'tmux-plugins/tmux-pain-control'
+      set -g '@plugin' 'christoomey/vim-tmux-navigator'
+      set -g '@plugin' 'spywhere/tmux-now-playing'
+      set -g '@plugin' 'b0o/tmux-autoreload'
+      set -g '@plugin' 'laktak/extrakto'
+      set -g '@plugin' 'nhdaly/tmux-better-mouse-mode'
+      set -g '@plugin' 'tmux-plugins/tpm'
+      
+      # Initialize TPM (keep this at the very bottom)
+      run '~/.tmux/plugins/tpm/tpm'
+    '';
   };
 }

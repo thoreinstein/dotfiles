@@ -1,17 +1,1 @@
-return {
-  "mason-org/mason.nvim",
-  cmd = { "Mason", "MasonInstall", "MasonUpdate" },
-  opts = {
-    PATH = "skip",
-
-    ui = {
-      icons = {
-        package_pending = " ",
-        package_installed = " ",
-        package_uninstalled = " ",
-      },
-    },
-
-    max_concurrent_installers = 10,
-  },
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/mason.lua

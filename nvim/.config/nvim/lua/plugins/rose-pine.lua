@@ -1,8 +1,1 @@
--- lua/plugins/rose-pine.lua
-return {
-  "rose-pine/neovim",
-  name = "rose-pine",
-  config = function()
-    vim.cmd "colorscheme rose-pine"
-  end,
-}
+/nix/store/337g0v7fwcz7631x22b5jd8xzq8gmpv4-home-manager-files/.config/nvim/lua/plugins/rose-pine.lua
