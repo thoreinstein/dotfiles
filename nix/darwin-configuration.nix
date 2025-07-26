@@ -1,6 +1,11 @@
-{ config, pkgs, lib, inputs, username, ... }:
+{ config, pkgs, lib, inputs, username, hostname, ... }:
 
 {
+  # Set the hostname
+  networking.hostName = hostname;
+  networking.localHostName = hostname;
+  networking.computerName = hostname;
+  
   # Enable experimental features
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   

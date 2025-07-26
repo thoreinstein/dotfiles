@@ -17,17 +17,11 @@
   home.packages = with pkgs; [
     # Modern CLI tools (migrating from Brewfile)
     atuin
-    bat
-    eza
-    fd
     fzf
     jq
-    ripgrep
     wget
     
     # Development tools
-    starship
-    direnv
     
     # Security tools
     gnupg
@@ -150,7 +144,171 @@
   # Starship prompt
   programs.starship = {
     enable = true;
-    # We'll add the configuration later
+    settings = {
+      gcloud = {
+        format = "[$symbol$project]($style) ";
+        symbol = "☁️ ";
+      };
+    };
+  };
+  
+  # Eza (modern ls replacement)
+  programs.eza = {
+    enable = true;
+    extraOptions = [
+      "--group-directories-first"
+      "--header"
+    ];
+  };
+  
+  # Bat (better cat)
+  programs.bat = {
+    enable = true;
+    config = {
+      theme = "Catppuccin Mocha";
+      style = "numbers,changes,header";
+      italic-text = "always";
+      paging = "auto";
+      wrap = "auto";
+      map-syntax = [
+        "*.ino:C++"
+        "*.yml:YAML"
+        "*.yaml:YAML"
+        "*.json:JSON"
+      ];
+    };
+    themes = {
+      "Catppuccin Mocha" = {
+        src = ../bat/.config/bat/themes;
+        file = "Catppuccin Mocha.tmTheme";
+      };
+    };
+  };
+  
+  # Ripgrep (better grep)
+  programs.ripgrep = {
+    enable = true;
+    arguments = [
+      "--max-columns=150"
+      "--max-columns-preview"
+      "--hidden"
+      "--smart-case"
+      "--glob=!.git/"
+      "--glob=!node_modules/"
+      "--glob=!*.min.js"
+      "--glob=!*.map"
+      "--glob=!dist/"
+      "--glob=!build/"
+      "--glob=!coverage/"
+      "--glob=!vendor/"
+      "--glob=!*.lock"
+      "--glob=!package-lock.json"
+      "--glob=!yarn.lock"
+      "--glob=!pnpm-lock.yaml"
+      "--glob=!.svn/"
+      "--glob=!.hg/"
+      "--glob=!.sass-cache/"
+      "--glob=!*.swp"
+      "--glob=!*.swo"
+      "--glob=!*~"
+      "--glob=!.DS_Store"
+      "--glob=!target/"
+      "--glob=!.cargo/"
+      "--glob=!*.pyc"
+      "--glob=!__pycache__/"
+      "--glob=!.pytest_cache/"
+      "--glob=!.mypy_cache/"
+      "--glob=!.ruff_cache/"
+      "--glob=!.cache/"
+      "--glob=!.idea/"
+      "--glob=!.vscode/"
+      "--glob=!*.class"
+      "--glob=!*.o"
+      "--glob=!*.so"
+      "--glob=!*.dylib"
+      "--glob=!*.dll"
+      "--glob=!*.exe"
+      "--type-add=web:*.{html,htm,css,scss,sass,less,js,jsx,ts,tsx,json,vue,svelte}"
+      "--type-add=config:*.{json,yml,yaml,toml,ini,conf,config}"
+      "--type-add=docs:*.{md,markdown,txt,rst,adoc,org}"
+      "--type-add=shell:*.{sh,bash,zsh,fish}"
+      "--type-add=code:*.{py,js,ts,go,rs,c,cpp,h,hpp,java,rb,php,swift,kt,scala,clj}"
+      "--type-add=data:*.{csv,tsv,xml,sql}"
+      "--colors=path:fg:green"
+      "--colors=path:style:bold"
+      "--colors=line:fg:yellow"
+      "--colors=line:style:bold"
+      "--colors=match:fg:black"
+      "--colors=match:bg:yellow"
+      "--colors=match:style:nobold"
+      "--threads=4"
+      "--encoding=auto"
+      "--sort=path"
+    ];
+  };
+  
+  # fd (better find)
+  programs.fd = {
+    enable = true;
+    ignores = [
+      ".git/"
+      ".hg/"
+      ".svn/"
+      "node_modules/"
+      "bower_components/"
+      "vendor/"
+      ".cargo/"
+      "target/"
+      "*.egg-info/"
+      ".tox/"
+      ".venv/"
+      "venv/"
+      "env/"
+      "virtualenv/"
+      "dist/"
+      "build/"
+      "out/"
+      "*.o"
+      "*.so"
+      "*.dylib"
+      "*.dll"
+      "*.exe"
+      "*.class"
+      "*.pyc"
+      "__pycache__/"
+      ".pytest_cache/"
+      ".mypy_cache/"
+      ".ruff_cache/"
+      ".idea/"
+      ".vscode/"
+      "*.swp"
+      "*.swo"
+      "*~"
+      ".DS_Store"
+      ".cache/"
+      ".sass-cache/"
+      "*.log"
+      "*.tmp"
+      ".temp/"
+      "tmp/"
+      "coverage/"
+      "htmlcov/"
+      ".coverage"
+      "*.cover"
+      ".hypothesis/"
+      ".nyc_output/"
+      "docs/_build/"
+      "site/"
+      "*.zip"
+      "*.tar"
+      "*.tar.gz"
+      "*.tgz"
+      "*.rar"
+      "*.7z"
+      "*.min.js"
+      "*.min.css"
+      "*.map"
+    ];
   };
   
   # Enable direnv
@@ -171,6 +329,11 @@
   xdg.configFile."nvim" = {
     source = ../nvim/.config/nvim;
     recursive = true;
+  };
+  
+  # Eza theme configuration
+  xdg.configFile."eza/theme.yml" = {
+    source = ../eza/.config/eza/theme.yml;
   };
   
   # Tmux configuration

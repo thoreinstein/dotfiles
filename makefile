@@ -69,19 +69,22 @@ clean:
 # Nix darwin commands
 darwin: switch
 
+# Auto-detect hostname
+HOSTNAME := $(shell hostname -s)
+
 # Build only (no activation)
 build:
-	@echo "Building nix-darwin configuration..."
-	@nix build .#darwinConfigurations.Jims-Mac-mini.system
+	@echo "Building nix-darwin configuration for $(HOSTNAME)..."
+	@nix build .#darwinConfigurations.$(HOSTNAME).system
 
 switch:
-	@echo "Activating nix-darwin configuration..."
+	@echo "Activating nix-darwin configuration for $(HOSTNAME)..."
 	@if [ ! -f "/run/current-system/sw/bin/darwin-rebuild" ]; then \
 		echo "First time activation - using result/sw/bin/darwin-rebuild"; \
 		echo "You'll be prompted for your password."; \
-		sudo ./result/sw/bin/darwin-rebuild switch --flake .; \
+		sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(HOSTNAME); \
 	else \
 		echo "Using existing darwin-rebuild"; \
 		echo "You'll be prompted for your password."; \
-		sudo /run/current-system/sw/bin/darwin-rebuild switch --flake .; \
+		sudo /run/current-system/sw/bin/darwin-rebuild switch --flake .#$(HOSTNAME); \
 	fi

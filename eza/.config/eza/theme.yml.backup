@@ -1,0 +1,226 @@
+# Eza theme configuration - Catppuccin Mocha
+# Official colors from https://catppuccin.com/palette/
+
+filenames:
+  normal:
+    foreground: "#cdd6f4"  # Text
+  directory:
+    foreground: "#89b4fa"  # Blue
+    is_bold: true
+  symlink:
+    foreground: "#cba6f7"  # Mauve
+  executable:
+    foreground: "#a6e3a1"  # Green
+    is_bold: true
+  pipe:
+    foreground: "#f2cdcd"  # Flamingo
+  socket:
+    foreground: "#f5e0dc"  # Rosewater
+  block_device:
+    foreground: "#fab387"  # Peach
+  char_device:
+    foreground: "#fab387"  # Peach
+  broken_symlink:
+    foreground: "#f38ba8"  # Red
+    background: "#1e1e2e"  # Base
+  missing_symlink_target:
+    foreground: "#f38ba8"  # Red
+    background: "#1e1e2e"  # Base
+  setuid:
+    foreground: "#f9e2af"  # Yellow
+    is_bold: true
+  setgid:
+    foreground: "#f9e2af"  # Yellow
+    is_bold: true
+  sticky:
+    foreground: "#89dceb"  # Sky
+    is_bold: true
+  other_writable:
+    foreground: "#89dceb"  # Sky
+    is_bold: true
+  sticky_other_writable:
+    foreground: "#89dceb"  # Sky
+    background: "#1e1e2e"  # Base
+    is_bold: true
+
+extensions:
+  # Archives
+  zip:
+    foreground: "#f38ba8"  # Red
+  tar:
+    foreground: "#f38ba8"  # Red
+  gz:
+    foreground: "#f38ba8"  # Red
+  bz2:
+    foreground: "#f38ba8"  # Red
+  xz:
+    foreground: "#f38ba8"  # Red
+  7z:
+    foreground: "#f38ba8"  # Red
+  rar:
+    foreground: "#f38ba8"  # Red
+
+  # Documents
+  pdf:
+    foreground: "#fab387"  # Peach
+  doc:
+    foreground: "#fab387"  # Peach
+  docx:
+    foreground: "#fab387"  # Peach
+  odt:
+    foreground: "#fab387"  # Peach
+  md:
+    foreground: "#f9e2af"  # Yellow
+  txt:
+    foreground: "#cdd6f4"  # Text
+
+  # Images
+  jpg:
+    foreground: "#f5e0dc"  # Rosewater
+  jpeg:
+    foreground: "#f5e0dc"  # Rosewater
+  png:
+    foreground: "#f5e0dc"  # Rosewater
+  gif:
+    foreground: "#f5e0dc"  # Rosewater
+  svg:
+    foreground: "#f5e0dc"  # Rosewater
+  webp:
+    foreground: "#f5e0dc"  # Rosewater
+
+  # Code
+  py:
+    foreground: "#a6e3a1"  # Green
+  js:
+    foreground: "#f9e2af"  # Yellow
+  ts:
+    foreground: "#74c7ec"  # Sapphire
+  jsx:
+    foreground: "#89dceb"  # Sky
+  tsx:
+    foreground: "#89dceb"  # Sky
+  rs:
+    foreground: "#fab387"  # Peach
+  go:
+    foreground: "#74c7ec"  # Sapphire
+  c:
+    foreground: "#74c7ec"  # Sapphire
+  cpp:
+    foreground: "#74c7ec"  # Sapphire
+  h:
+    foreground: "#94e2d5"  # Teal
+  hpp:
+    foreground: "#94e2d5"  # Teal
+  java:
+    foreground: "#fab387"  # Peach
+  rb:
+    foreground: "#f38ba8"  # Red
+  php:
+    foreground: "#cba6f7"  # Mauve
+  lua:
+    foreground: "#74c7ec"  # Sapphire
+  vim:
+    foreground: "#a6e3a1"  # Green
+  sh:
+    foreground: "#a6e3a1"  # Green
+  fish:
+    foreground: "#a6e3a1"  # Green
+  bash:
+    foreground: "#a6e3a1"  # Green
+  zsh:
+    foreground: "#a6e3a1"  # Green
+
+  # Config
+  json:
+    foreground: "#fab387"  # Peach
+  yaml:
+    foreground: "#fab387"  # Peach
+  yml:
+    foreground: "#fab387"  # Peach
+  toml:
+    foreground: "#fab387"  # Peach
+  ini:
+    foreground: "#fab387"  # Peach
+  conf:
+    foreground: "#fab387"  # Peach
+  config:
+    foreground: "#fab387"  # Peach
+
+  # Git
+  gitignore:
+    foreground: "#6c7086"  # Overlay0
+  gitmodules:
+    foreground: "#6c7086"  # Overlay0
+  gitattributes:
+    foreground: "#6c7086"  # Overlay0
+
+permissions:
+  user_read:
+    foreground: "#f9e2af"  # Yellow
+  user_write:
+    foreground: "#f38ba8"  # Red
+  user_execute:
+    foreground: "#a6e3a1"  # Green
+  group_read:
+    foreground: "#f9e2af"  # Yellow
+  group_write:
+    foreground: "#f38ba8"  # Red
+  group_execute:
+    foreground: "#a6e3a1"  # Green
+  other_read:
+    foreground: "#f9e2af"  # Yellow
+  other_write:
+    foreground: "#f38ba8"  # Red
+  other_execute:
+    foreground: "#a6e3a1"  # Green
+  special_bit:
+    foreground: "#f5e0dc"  # Rosewater
+
+size:
+  major:
+    foreground: "#b4befe"  # Lavender
+  minor:
+    foreground: "#94e2d5"  # Teal
+
+users:
+  user_you:
+    foreground: "#f9e2af"  # Yellow
+    is_bold: true
+  user_other:
+    foreground: "#cdd6f4"  # Text
+  group_yours:
+    foreground: "#a6e3a1"  # Green
+    is_bold: true
+  group_other:
+    foreground: "#cdd6f4"  # Text
+
+links:
+  normal:
+    foreground: "#f5e0dc"  # Rosewater
+  multi_link_file:
+    foreground: "#89dceb"  # Sky
+
+git:
+  new:
+    foreground: "#a6e3a1"  # Green
+  modified:
+    foreground: "#f9e2af"  # Yellow
+  deleted:
+    foreground: "#f38ba8"  # Red
+  renamed:
+    foreground: "#74c7ec"  # Sapphire
+  ignored:
+    foreground: "#6c7086"  # Overlay0
+  conflicted:
+    foreground: "#fab387"  # Peach
+  unchanged:
+    foreground: "#cdd6f4"  # Text
+
+details:
+  major:
+    foreground: "#cba6f7"  # Mauve
+  minor:
+    foreground: "#94e2d5"  # Teal
+
+punctuation:
+  foreground: "#6c7086"  # Overlay0
