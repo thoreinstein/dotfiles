@@ -236,6 +236,12 @@ create_obsidian_note() {
     return
   fi
 
+  # Check if note already exists
+  if [ -f "$note_path" ]; then
+    echo "$note_path"
+    return
+  fi
+
   # For JIRA tickets, fetch details and use template
   if [ "$ticket_type" != "incident" ]; then
     # Fetch JIRA details
@@ -431,7 +437,8 @@ main() {
     # Update daily note
     update_daily_note "$ticket"
   else
-    echo -e "${GREEN}Skipping initial setup - session already exists${NC}"
+    # For existing sessions, still find the note path for tmux session
+    note_path=$(create_obsidian_note "$ticket_type" "$ticket_number" "$ticket")
   fi
 
   # Create and attach to tmux session
