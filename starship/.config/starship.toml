@@ -1,0 +1,29 @@
+# Starship configuration
+
+# ~/.config/starship.toml
+
+[gcloud]
+disabled = true
+
+[ruby]
+disabled = true
+
+[golang]
+disabled = true
+
+[git_branch]
+symbol = " "
+
+[directory]
+truncate_to_repo = false
+truncation_symbol = " "
+
+[terraform]
+disabled = true
+
+[custom.gcloud]
+command = "echo $PROJECT_NAME"
+when = '[ -n "$PROJECT_NAME" ]'
+symbol = "󱇶 "
+style = "bold blue"
+format = "in [$symbol($output)]($style) "
