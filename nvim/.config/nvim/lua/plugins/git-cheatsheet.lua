@@ -1,0 +1,105 @@
+-- ============================================================================
+-- GIT WORKFLOW CHEATSHEET
+-- ============================================================================
+--
+-- This file is documentation only (returns empty spec).
+-- Use :help <plugin> for full documentation.
+--
+-- ============================================================================
+-- DIFFVIEW - GitHub-style side-by-side diffs
+-- ============================================================================
+--
+-- OPEN DIFF VIEWS:
+--   <leader>gd    Open project diff (working tree vs HEAD)
+--   <leader>gD    Diff current file only vs HEAD
+--   <leader>gs    Diff staged changes vs HEAD
+--   <leader>gh    File history (current file)
+--   <leader>gH    File history (entire repo)
+--   <leader>gc    Close diff view
+--
+-- INSIDE DIFF VIEW:
+--   ]d / [d       Next/previous file
+--   ]c / [c       Next/previous hunk/change
+--   <Tab>         Toggle file panel
+--   <CR>          Open file / select entry
+--   gf            Go to file (new tab)
+--   -             Toggle staging of entry
+--   S             Stage all
+--   U             Unstage all
+--   X             Discard changes (restore file)
+--   q             Close diff view
+--
+-- ============================================================================
+-- GITSIGNS - Inline signs and hunk operations
+-- ============================================================================
+--
+-- HUNK NAVIGATION:
+--   ]h / [h       Next/previous hunk
+--
+-- HUNK OPERATIONS:
+--   <leader>hp    Preview hunk (floating window)
+--   <leader>hs    Stage hunk (works in visual mode too)
+--   <leader>hu    Undo stage hunk
+--   <leader>hr    Reset hunk (works in visual mode too)
+--   <leader>hS    Stage entire buffer
+--   <leader>hR    Reset entire buffer
+--
+-- BLAME:
+--   <leader>hb    Blame line (full commit info)
+--   <leader>hB    Toggle inline blame
+--
+-- DIFF:
+--   <leader>hd    Diff this file
+--
+-- TEXT OBJECT:
+--   ih            Inner hunk (e.g., dih = delete hunk, vih = select hunk)
+--
+-- ============================================================================
+-- NEOGIT - Full git UI (like Magit)
+-- ============================================================================
+--
+-- OPEN:
+--   <leader>gg    Open Neogit status
+--
+-- INSIDE NEOGIT:
+--   s             Stage file/hunk
+--   u             Unstage file/hunk
+--   c             Commit popup
+--   p             Push popup
+--   P             Pull popup
+--   d             Open diff in diffview (side-by-side)
+--   <Tab>         Toggle section / inline diff
+--   <CR>          Open file
+--   ?             Show all keybindings
+--   q             Close Neogit
+--
+-- ============================================================================
+-- TYPICAL WORKFLOWS
+-- ============================================================================
+--
+-- REVIEW ALL CHANGES BEFORE COMMIT:
+--   1. <leader>gd         Open project diff
+--   2. ]d / [d            Navigate between files
+--   3. ]c / [c            Navigate between hunks
+--   4. q                  Close when done
+--   5. <leader>gg         Open Neogit to commit
+--
+-- QUICK HUNK STAGING:
+--   1. ]h / [h            Jump to hunk
+--   2. <leader>hp         Preview it
+--   3. <leader>hs         Stage it (or <leader>hr to discard)
+--
+-- REVIEW STAGED CHANGES:
+--   1. <leader>gs         Open staged diff view
+--
+-- CHECK FILE HISTORY:
+--   1. <leader>gh         History for current file
+--   2. <CR> on commit     See that version's diff
+--
+-- PARTIAL LINE STAGING:
+--   1. V to select lines
+--   2. <leader>hs         Stage only selected lines
+--
+-- ============================================================================
+
+return {}
