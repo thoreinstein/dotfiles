@@ -24,6 +24,13 @@ return {
     extensions_list = {},
     extensions = {},
   },
+  config = function(_, opts)
+    require("telescope").setup(opts)
+
+    -- Override telescope highlights for better visibility
+    vim.api.nvim_set_hl(0, "TelescopeSelection", { bg = "#3e4451", fg = "#abb2bf", bold = true })
+    vim.api.nvim_set_hl(0, "TelescopeSelectionCaret", { fg = "#61afef", bg = "#3e4451" })
+  end,
   keys = {
     { "<leader>ff", require("telescope.builtin").find_files, desc = "Telescope Find Files" },
     { "<leader>fw", require("telescope.builtin").live_grep, desc = "Telescope Live Grep" },
