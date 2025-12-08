@@ -80,6 +80,7 @@ return {
         gopls = {
           completeUnimported = true,
           usePlaceholders = true,
+          buildFlags = { "-tags=promotion,paasimmutable,passmutable,engineer_commit_tag,infra" },
           analyses = {
             unusedparams = true,
             unreachable = true,

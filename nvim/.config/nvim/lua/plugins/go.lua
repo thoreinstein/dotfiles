@@ -11,6 +11,7 @@ return {
       lsp_cfg = {
         settings = {
           gopls = {
+            buildFlags = { "-tags=promotion,paasimmutable,paasmutable,engineer_commit_tag,infra" },
             analyses = {
               unusedparams = true,
             },
