@@ -8,6 +8,8 @@ set -gx PATH $(brew --prefix)/opt/coreutils/libexec/gnubin $PATH
 set -gx PATH $HOME/go/bin $PATH
 set -gx K9S_CONFIG_DIR $HOME/.config/k9s
 
+alias k='kubectl'
+
 alias gap='git add -p'
 alias gan='git add -N'
 
@@ -107,3 +109,6 @@ end
 
 direnv hook fish | source
 
+function ccode
+    env SHELL=/bin/bash claude $argv
+end
