@@ -33,7 +33,7 @@ return {
       typescript = { "prettier" },
       typescriptreact = { "prettier" },
       vue = { "prettier" },
-      yaml = { "yamlfmt" },
+      -- yaml = { "prettier" },
     },
     format_on_save = function(bufnr)
       local filepath = vim.api.nvim_buf_get_name(bufnr)
