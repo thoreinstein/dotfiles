@@ -26,6 +26,7 @@ This will:
 - `tmux/`: Tmux terminal multiplexer configuration
 - `ghostty/`: Ghostty terminal configuration
 - `git/`: Git configuration
+- `markdown/`: Markdownlint configuration
 - `bat/`: Bat (cat replacement) configuration
 - `eza/`: Eza (ls replacement) configuration
 - `ripgrep/`: Ripgrep configuration
