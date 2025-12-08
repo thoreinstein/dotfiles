@@ -21,10 +21,10 @@ debug() {
 
 # Configuration
 VAULT_PATH="${VAULT_PATH:-$HOME/Documents/Second Brain}"
-REPO_OWNER="${REPO_OWNER:-test}"
-REPO_NAME="${REPO_NAME:-test}"
+REPO_OWNER="${REPO_OWNER:-forgecloud}"
+REPO_NAME="${REPO_NAME:-saas}"
 BARE_REPO_PATH="$HOME/src/$REPO_OWNER/$REPO_NAME"
-DEFAULT_BASE_BRANCH="${DEFAULT_BASE_BRANCH:-main}"
+DEFAULT_BASE_BRANCH="${DEFAULT_BASE_BRANCH:-master}"
 
 # Function to display usage
 usage() {
@@ -85,23 +85,23 @@ create_tmux_session() {
       echo -e "${RED}Error: Worktree path does not exist: $worktree_path${NC}"
       return 1
     fi
-    
+
     # Create a new session with first window at vault path
     tmux new-session -d -s "$session_name" -c "$VAULT_PATH"
-    
+
     # Window 1: Obsidian note (at vault path)
     tmux rename-window -t "$session_name:1" "note"
     if [ -n "$note_path" ] && [ -f "$note_path" ]; then
       tmux send-keys -t "$session_name:1" "nvim '$note_path'" Enter
     fi
-    
+
     # Window 2: Code editor (at worktree path)
     tmux new-window -t "$session_name:2" -n "code" -c "$worktree_path"
     tmux send-keys -t "$session_name:2" "nvim" Enter
-    
+
     # Window 3: Terminal (at worktree path)
     tmux new-window -t "$session_name:3" -n "term" -c "$worktree_path"
-    
+
     # Start on window 1 (note)
     tmux select-window -t "$session_name:1"
 
@@ -163,33 +163,33 @@ create_git_worktree() {
 # Function to fetch JIRA details using acli
 fetch_jira_details() {
   local ticket_number="$1"
-  
+
   # Check if acli is available
-  if ! command -v acli &> /dev/null; then
+  if ! command -v acli &>/dev/null; then
     debug "acli not found, skipping JIRA details fetch"
     return 1
   fi
-  
+
   # Fetch JIRA details
   local jira_output=$(acli jira workitem view "$ticket_number" 2>/dev/null)
-  
+
   if [ $? -ne 0 ] || [ -z "$jira_output" ]; then
     debug "Failed to fetch JIRA details for $ticket_number"
     return 1
   fi
-  
+
   # Parse the output
   local type=$(echo "$jira_output" | grep "^Type:" | sed 's/^Type: *//')
   local summary=$(echo "$jira_output" | grep "^Summary:" | sed 's/^Summary: *//')
   local status=$(echo "$jira_output" | grep "^Status:" | sed 's/^Status: *//')
   local description=$(echo "$jira_output" | sed -n '/^Description:/,/^[A-Z]/{ /^Description:/d; /^[A-Z]/d; p; }')
-  
+
   # Export variables for use in calling function
   export JIRA_TYPE="$type"
   export JIRA_SUMMARY="$summary"
   export JIRA_STATUS="$status"
   export JIRA_DESCRIPTION="$description"
-  
+
   return 0
 }
 
@@ -236,52 +236,58 @@ create_obsidian_note() {
     return
   fi
 
+  # Check if note already exists
+  if [ -f "$note_path" ]; then
+    echo "$note_path"
+    return
+  fi
+
   # For JIRA tickets, fetch details and use template
   if [ "$ticket_type" != "incident" ]; then
     # Fetch JIRA details
     fetch_jira_details "$ticket"
-    
+
     if [ $? -eq 0 ]; then
       # Use the Jira template
-      local template_path="$VAULT_PATH/templates/Jira.md"
-      
+      local template_path="$VAULT_PATH/Templates/Jira.md"
+
       if [ -f "$template_path" ]; then
         echo -e "${GREEN}Using Jira template with fetched details...${NC}" >&2
-        
+
         # Copy template and replace placeholders
         cp "$template_path" "$note_path"
-        
+
         # Replace title placeholder with actual summary
         if [ -n "$JIRA_SUMMARY" ]; then
           # Use awk instead of sed to avoid issues with special characters
           awk -v summary="$JIRA_SUMMARY" '{
             gsub(/<Insert ticket title or short summary here>/, summary)
             print
-          }' "$note_path" > "$note_path.tmp" && mv "$note_path.tmp" "$note_path"
+          }' "$note_path" >"$note_path.tmp" && mv "$note_path.tmp" "$note_path"
         fi
-        
+
         # Insert JIRA details after ## Summary section
         if [ -n "$JIRA_TYPE" ] || [ -n "$JIRA_STATUS" ] || [ -n "$JIRA_DESCRIPTION" ]; then
           # Create the JIRA details section
           local jira_section="## JIRA Details\n\n"
           [ -n "$JIRA_TYPE" ] && jira_section+="**Type:** $JIRA_TYPE\n"
           [ -n "$JIRA_STATUS" ] && jira_section+="**Status:** $JIRA_STATUS\n"
-          
+
           if [ -n "$JIRA_DESCRIPTION" ]; then
             jira_section+="\n**Description:**\n$JIRA_DESCRIPTION\n"
           fi
-          
+
           # Insert after ## Summary section
           awk -v section="$jira_section" '
             /^## Summary/ { print; getline; print; print ""; print section; next }
             { print }
-          ' "$note_path" > "$note_path.tmp" && mv "$note_path.tmp" "$note_path"
+          ' "$note_path" >"$note_path.tmp" && mv "$note_path.tmp" "$note_path"
         fi
-        
+
         # Replace the Templater date syntax with actual date
         local today=$(date +"%Y-%m-%d")
         sed -i '' "s/<% tp.date.now(\"YYYY-MM-DD\") %>/$today/" "$note_path"
-        
+
         echo -e "${GREEN}Note created with JIRA details${NC}" >&2
       else
         echo -e "${YELLOW}Jira template not found, creating basic note${NC}" >&2
@@ -431,7 +437,8 @@ main() {
     # Update daily note
     update_daily_note "$ticket"
   else
-    echo -e "${GREEN}Skipping initial setup - session already exists${NC}"
+    # For existing sessions, still find the note path for tmux session
+    note_path=$(create_obsidian_note "$ticket_type" "$ticket_number" "$ticket")
   fi
 
   # Create and attach to tmux session
