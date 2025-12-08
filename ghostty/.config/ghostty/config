@@ -2,7 +2,7 @@
 font-family = "JetBrains Mono Nerd Font"
 font-size = 18.0
 
-theme = rose-pine
+theme = Rose Pine
 
 # Window Configuration
 background-opacity = 1.0
@@ -17,4 +17,3 @@ confirm-close-surface = false
 # Shell Integration
 shell-integration = fish
 shell-integration-features = cursor,sudo,title
-keybind = shift+enter=text:\n
