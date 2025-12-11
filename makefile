@@ -85,4 +85,5 @@ force: create-dirs
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fd
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) eza
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) starship
+	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) zsh
 	@echo "All dotfiles have been force reinstalled"
