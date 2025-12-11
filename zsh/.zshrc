@@ -33,6 +33,7 @@ export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
 
 # Environment
+export EDITOR="nvim"
 export K9S_CONFIG_DIR="$HOME/.config/k9s"
 export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
