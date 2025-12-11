@@ -2,6 +2,10 @@
 
 # ghclone - Clone GitHub repositories with organization-based directory structure
 # Usage: ghclone <github-url>
+#
+# Clones GitHub repositories into ~/src/<org>/<repo> structure.
+# SSH URLs are cloned as bare repos with worktrees for the default branch.
+# HTTPS URLs are cloned normally.
 
 set -euo pipefail
 
@@ -10,6 +14,9 @@ error() {
     echo "Error: $1" >&2
     exit 1
 }
+
+# Check for required commands
+command -v git >/dev/null 2>&1 || error "git is required but not installed"
 
 # Function to extract org/owner and repo name from GitHub URL
 parse_github_url() {
@@ -73,8 +80,10 @@ main() {
     
     # Clone based on type
     if [[ "$clone_type" == "https" ]]; then
-        echo "Cloning via HTTPS: $github_url"
-        git clone "$github_url" "$repo"
+        # Construct full HTTPS URL in case short format was provided
+        local clone_url="https://github.com/${org}/${repo}.git"
+        echo "Cloning via HTTPS: $clone_url"
+        git clone "$clone_url" "$repo"
         echo "Successfully cloned to: $repo_dir"
     else
         # SSH clone with bare repo and worktree
@@ -86,11 +95,22 @@ main() {
         
         # Get the default branch name
         local default_branch
-        default_branch=$(git symbolic-ref HEAD | sed 's|refs/heads/||')
+        if ! default_branch=$(git symbolic-ref HEAD 2>/dev/null | sed 's|refs/heads/||'); then
+            # Fallback: try to determine from remote HEAD
+            default_branch=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | xargs) || default_branch="main"
+        fi
+        
+        if [[ -z "$default_branch" ]]; then
+            default_branch="main"
+        fi
         
         # Create worktree for the default branch
         echo "Creating worktree for branch: $default_branch"
-        git worktree add "$default_branch" "$default_branch"
+        if ! git worktree add "$default_branch" "$default_branch" 2>/dev/null; then
+            # Branch might not exist yet, try creating from HEAD
+            git worktree add "$default_branch" HEAD -b "$default_branch" 2>/dev/null || \
+                error "Failed to create worktree for branch: $default_branch"
+        fi
         
         echo "Successfully cloned to: $repo_dir (bare) with worktree at: $repo_dir/$default_branch"
     fi

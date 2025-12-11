@@ -1,10 +1,28 @@
 #!/usr/bin/env bash
+#
+# ts - Tmux Session Switcher
+#
+# A fast project switcher for tmux that finds Git repositories and worktrees
+# under BASE_DIR and presents them via fzf for quick session switching.
+#
+# Usage: ts [OPTIONS]
+#   -u, --update    Force update the repository cache
+#   -h, --help      Show help message
+#
+# Environment:
+#   TS_BASE_DIR     Override default base directory (default: ~/src)
+#   TS_CACHE_FILE   Override cache file location
+#   TS_CACHE_AGE    Override cache max age in seconds (default: 3600)
 
 set -euo pipefail
 
-BASE_DIR="${HOME}/src"
-CACHE_FILE="${HOME}/.cache/ts_repos.cache"
-CACHE_MAX_AGE=3600  # 1 hour in seconds
+# Save original directory to restore later
+ORIGINAL_DIR="$PWD"
+trap 'cd "$ORIGINAL_DIR" 2>/dev/null || true' EXIT
+
+BASE_DIR="${TS_BASE_DIR:-${HOME}/src}"
+CACHE_FILE="${TS_CACHE_FILE:-${HOME}/.cache/ts_repos.cache}"
+CACHE_MAX_AGE="${TS_CACHE_AGE:-3600}"  # 1 hour in seconds
 
 # Parse command line arguments
 UPDATE_CACHE=false
@@ -50,7 +68,8 @@ is_cache_valid() {
   fi
   
   local cache_time
-  cache_time=$(stat -c %Y "$CACHE_FILE" 2>/dev/null || stat -f %m "$CACHE_FILE" 2>/dev/null || echo 0)
+  # GNU coreutils stat (requires: brew install coreutils)
+  cache_time=$(stat -c "%Y" -- "$CACHE_FILE" 2>/dev/null || echo 0)
   local current_time
   current_time=$(date +%s)
   local age=$((current_time - cache_time))
@@ -65,52 +84,58 @@ build_repo_list() {
   echo "Scanning repositories in $BASE_DIR..." >&2
   
   # Find all Git repositories
-  while IFS= read -r -d '' repo_path; do
+  # We look for:
+  #   1. Regular repos: directories containing .git subdirectory
+  #   2. Bare repos: directories containing both objects/ and refs/ subdirectories
+  while IFS= read -r repo_path; do
+    [[ -z "$repo_path" ]] && continue
+    
     if [[ -d "$repo_path/.git" ]]; then
       # Regular Git repository
       repo_name=$(basename "$repo_path")
       
-      if cd "$repo_path" 2>/dev/null; then
-        # Get current branch
-        if ! branch_name=$(git branch --show-current 2>/dev/null); then
-          branch_name="detached"
-        fi
-        
-        # Get git status
-        status=$(get_regular_git_status "$repo_path")
-        
-        # Get remote info
-        remote_info=$(get_regular_remote_info "$repo_path")
-        
-        # Truncate long values for better table formatting
-        truncated_remote=$(truncate_string "$remote_info" 25)
-        truncated_repo=$(truncate_string "$repo_name" 18)
-        truncated_branch=$(truncate_string "$branch_name" 20)
-        truncated_worktree=$(truncate_string "$repo_name" 15)
-        
-        # Format the display line
-        option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
-          "$truncated_remote" \
-          "$truncated_repo" \
-          "$truncated_worktree" \
-          "$truncated_branch" \
-          "$status" \
-          "$repo_name" \
-          "$repo_name" \
-          "$repo_path")
+      # Get current branch (run in subshell to avoid cd side effects)
+      branch_name=$(cd "$repo_path" 2>/dev/null && git branch --show-current 2>/dev/null) || branch_name=""
+      [[ -z "$branch_name" ]] && branch_name="detached"
+      
+      # Get git status
+      status=$(get_regular_git_status "$repo_path")
+      
+      # Get remote info
+      remote_info=$(get_regular_remote_info "$repo_path")
+      
+      # Truncate long values for better table formatting
+      truncated_remote=$(truncate_string "$remote_info" 25)
+      truncated_repo=$(truncate_string "$repo_name" 18)
+      truncated_branch=$(truncate_string "$branch_name" 20)
+      truncated_worktree=$(truncate_string "$repo_name" 15)
+      
+      # Format the display line
+      option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
+        "$truncated_remote" \
+        "$truncated_repo" \
+        "$truncated_worktree" \
+        "$truncated_branch" \
+        "$status" \
+        "$repo_name" \
+        "$repo_name" \
+        "$repo_path")
 
-        temp_options+=("$option_line")
-      fi
-    elif [[ -d "$repo_path/objects" ]] && [[ -d "$repo_path/refs" ]]; then
-      # Bare repository with worktrees
+      temp_options+=("$option_line")
+      
+    elif [[ -d "$repo_path/objects" ]] && [[ -d "$repo_path/refs" ]] && [[ -f "$repo_path/HEAD" ]]; then
+      # Bare repository with worktrees (also check for HEAD file to confirm it's a git dir)
       repo_name=$(basename "$repo_path")
       
       # Safely get worktree list
       if worktrees=$(git --git-dir="$repo_path" worktree list 2>/dev/null); then
         while IFS= read -r line; do
-          if [[ "$line" =~ ^([^\ ]+)[\ ]+([0-9a-f]{7,})[\ ]*(\[[^\]]+\])? ]]; then
+          [[ -z "$line" ]] && continue
+          # Parse worktree list output: /path/to/worktree  abc1234 [branch]
+          # The format uses spaces, not tabs
+          if [[ "$line" =~ ^([^[:space:]]+)[[:space:]]+([0-9a-f]{7,})[[:space:]]*(\[.+\])?$ ]]; then
             worktree_path="${BASH_REMATCH[1]}"
-            branch_info="${BASH_REMATCH[3]}"
+            branch_info="${BASH_REMATCH[3]:-}"
             
             worktree_name=$(basename "$worktree_path")
             
@@ -118,14 +143,10 @@ build_repo_list() {
             if [[ -n "$branch_info" ]]; then
               branch_name="${branch_info//[\[\]]/}"
             else
-              # Get current branch for main repo
-              if cd "$worktree_path" 2>/dev/null; then
-                if ! branch_name=$(git --git-dir="$repo_path" --work-tree="$worktree_path" branch --show-current 2>/dev/null); then
-                  branch_name="detached"
-                fi
-              else
-                branch_name="error"
-              fi
+              # Get current branch for detached HEAD or bare repo main worktree
+              branch_name=$(cd "$worktree_path" 2>/dev/null && \
+                git --git-dir="$repo_path" --work-tree="$worktree_path" branch --show-current 2>/dev/null) || branch_name=""
+              [[ -z "$branch_name" ]] && branch_name="detached"
             fi
             
             # Get git status
@@ -156,14 +177,19 @@ build_repo_list() {
         done <<< "$worktrees"
       fi
     fi
-  done < <(find -L "$BASE_DIR" -type d \( -name ".git" -o \( -name "objects" -a -d \) \) -exec dirname {} \; | sort -u | tr '\n' '\0')
+  done < <(find "$BASE_DIR" -maxdepth 4 -type d -name ".git" -exec dirname {} \; 2>/dev/null; \
+           find "$BASE_DIR" -maxdepth 4 -type d -name "objects" -exec dirname {} \; 2>/dev/null | sort -u)
   
-  # Save to cache
-  printf '%s\n' "${temp_options[@]}" > "$CACHE_FILE"
+  # Save to cache (handle empty array case)
+  if [[ ${#temp_options[@]} -gt 0 ]]; then
+    printf '%s\n' "${temp_options[@]}" > "$CACHE_FILE"
+  else
+    : > "$CACHE_FILE"  # Create empty cache file
+  fi
   echo "Repository cache updated (${#temp_options[@]} repositories found)" >&2
   
   # Return the options
-  options=("${temp_options[@]}")
+  options=("${temp_options[@]+"${temp_options[@]}"}")
 }
 
 # Helper function to truncate strings with ellipsis
@@ -179,15 +205,18 @@ truncate_string() {
 }
 
 switch_to() {
-  if [[ -z $TMUX ]]; then
-    tmux attach-session -t "$1"
+  local session_name="$1"
+  if [[ -z "${TMUX:-}" ]]; then
+    tmux attach-session -t "=$session_name"
   else
-    tmux switch-client -t "$1"
+    tmux switch-client -t "=$session_name"
   fi
 }
 
 has_session() {
-  tmux list-sessions | grep -q "^$1:"
+  local session_name="$1"
+  # Use exact match with = prefix to avoid regex issues with special chars like [ ]
+  tmux has-session -t "=$session_name" 2>/dev/null
 }
 
 get_git_status() {
@@ -199,18 +228,21 @@ get_git_status() {
     return
   fi
   
-  if ! cd "$worktree_path" 2>/dev/null; then
+  # Run git commands with explicit paths (no cd needed)
+  local porcelain_output
+  porcelain_output=$(git --git-dir="$git_dir" --work-tree="$worktree_path" status --porcelain 2>/dev/null) || {
     echo "Error"
     return
-  fi
+  }
   
-  # Check if there are uncommitted changes
-  if ! git --git-dir="$git_dir" --work-tree="$worktree_path" diff-index --quiet HEAD -- 2>/dev/null; then
-    echo "Dirty"
-  elif [[ -n $(git --git-dir="$git_dir" --work-tree="$worktree_path" status --porcelain 2>/dev/null) ]]; then
+  if [[ -z "$porcelain_output" ]]; then
+    echo "Clean"
+  elif echo "$porcelain_output" | grep -q '^[MADRC]'; then
+    # Staged changes (first column has status letter)
     echo "Staged"
   else
-    echo "Clean"
+    # Unstaged changes or untracked files
+    echo "Dirty"
   fi
 }
 
@@ -218,28 +250,27 @@ get_remote_info() {
   local git_dir="$1"
   local worktree_path="$2"
   
-  if ! cd "$worktree_path" 2>/dev/null; then
-    echo "unknown/unknown"
-    return
-  fi
-  
-  # Get the remote URL
+  # Get the remote URL (no cd needed with explicit git-dir)
   local remote_url
-  remote_url=$(git --git-dir="$git_dir" --work-tree="$worktree_path" remote get-url origin 2>/dev/null)
+  remote_url=$(git --git-dir="$git_dir" remote get-url origin 2>/dev/null) || remote_url=""
   
   if [[ -z "$remote_url" ]]; then
     echo "local/local"
     return
   fi
   
-  # Parse GitHub URL (supports both SSH and HTTPS)
-  if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/]+)(\.git)?$ ]]; then
-    local org="${BASH_REMATCH[1]}"
-    local repo="${BASH_REMATCH[2]}"
+  # Parse GitHub/GitLab/etc URL (supports both SSH and HTTPS)
+  # SSH: git@github.com:org/repo.git
+  # HTTPS: https://github.com/org/repo.git
+  if [[ "$remote_url" =~ (github|gitlab|bitbucket)\.com[:/]([^/]+)/([^/.]+) ]]; then
+    local org="${BASH_REMATCH[2]}"
+    local repo="${BASH_REMATCH[3]}"
     echo "$org/$repo"
   else
     # For non-GitHub or unrecognized URLs
-    echo "unknown/$(basename "$remote_url" .git)"
+    local basename_repo
+    basename_repo=$(basename "$remote_url" .git)
+    echo "other/$basename_repo"
   fi
 }
 
@@ -247,18 +278,21 @@ get_remote_info() {
 get_regular_git_status() {
   local repo_path="$1"
   
-  if ! cd "$repo_path" 2>/dev/null; then
+  # Run git commands with explicit work-tree (no cd needed)
+  local porcelain_output
+  porcelain_output=$(git -C "$repo_path" status --porcelain 2>/dev/null) || {
     echo "Error"
     return
-  fi
+  }
   
-  # Check if there are uncommitted changes
-  if ! git diff-index --quiet HEAD -- 2>/dev/null; then
-    echo "Dirty"
-  elif [[ -n $(git status --porcelain 2>/dev/null) ]]; then
+  if [[ -z "$porcelain_output" ]]; then
+    echo "Clean"
+  elif echo "$porcelain_output" | grep -q '^[MADRC]'; then
+    # Staged changes (first column has status letter)
     echo "Staged"
   else
-    echo "Clean"
+    # Unstaged changes or untracked files
+    echo "Dirty"
   fi
 }
 
@@ -266,28 +300,25 @@ get_regular_git_status() {
 get_regular_remote_info() {
   local repo_path="$1"
   
-  if ! cd "$repo_path" 2>/dev/null; then
-    echo "unknown/unknown"
-    return
-  fi
-  
-  # Get the remote URL
+  # Get the remote URL (no cd needed with -C)
   local remote_url
-  remote_url=$(git remote get-url origin 2>/dev/null)
+  remote_url=$(git -C "$repo_path" remote get-url origin 2>/dev/null) || remote_url=""
   
   if [[ -z "$remote_url" ]]; then
     echo "local/local"
     return
   fi
   
-  # Parse GitHub URL (supports both SSH and HTTPS)
-  if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/]+)(\.git)?$ ]]; then
-    local org="${BASH_REMATCH[1]}"
-    local repo="${BASH_REMATCH[2]}"
+  # Parse GitHub/GitLab/etc URL (supports both SSH and HTTPS)
+  if [[ "$remote_url" =~ (github|gitlab|bitbucket)\.com[:/]([^/]+)/([^/.]+) ]]; then
+    local org="${BASH_REMATCH[2]}"
+    local repo="${BASH_REMATCH[3]}"
     echo "$org/$repo"
   else
     # For non-GitHub or unrecognized URLs
-    echo "unknown/$(basename "$remote_url" .git)"
+    local basename_repo
+    basename_repo=$(basename "$remote_url" .git)
+    echo "other/$basename_repo"
   fi
 }
 
@@ -342,9 +373,14 @@ worktree=$(echo "$worktree_name" | xargs)
 # Construct the session name as 'repo_name [worktree_name]'
 selected_name="${repo_name} [${worktree}]"
 
-tmux_running=$(pgrep tmux 2>/dev/null || true)
+# Check if tmux server is running
+tmux_running=false
+if tmux list-sessions &>/dev/null; then
+  tmux_running=true
+fi
 
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+if [[ -z "${TMUX:-}" ]] && [[ "$tmux_running" == "false" ]]; then
+  # No tmux session exists and we're not inside tmux - create and attach
   if ! tmux new-session -s "$selected_name" -c "$selected_path"; then
     echo "Error: Failed to create new tmux session" >&2
     exit 1
@@ -352,6 +388,7 @@ if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
   exit 0
 fi
 
+# Create session if it doesn't exist
 if ! has_session "$selected_name"; then
   if ! tmux new-session -ds "$selected_name" -c "$selected_path"; then
     echo "Error: Failed to create detached tmux session" >&2
@@ -359,7 +396,8 @@ if ! has_session "$selected_name"; then
   fi
 fi
 
+# Switch to the session
 if ! switch_to "$selected_name"; then
-  echo "Error: Failed to switch to tmux session" >&2
+  echo "Error: Failed to switch to tmux session '$selected_name'" >&2
   exit 1
 fi
