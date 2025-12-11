@@ -158,28 +158,23 @@ install_tpm() {
     log_success "Tmux plugins installed"
 }
 
-# Configure Fish shell
-configure_fish() {
-    log_info "Configuring Fish shell..."
+# Configure Zsh shell
+configure_zsh() {
+    log_info "Configuring Zsh shell..."
     
-    # Add Fish to valid shells if not already there
-    if ! grep -q "$(command -v fish)" /etc/shells; then
-        log_info "Adding Fish to valid shells..."
-        echo "$(command -v fish)" | sudo tee -a /etc/shells
-    fi
-
-    # Set Fish as default shell if user confirms
-    if [[ "$SHELL" != "$(command -v fish)" ]]; then
-        read -p "Do you want to set Fish as your default shell? (y/n) " -n 1 -r
+    # Zsh should already be in /etc/shells on macOS
+    # Set Zsh as default shell if user confirms
+    if [[ "$SHELL" != "/bin/zsh" ]]; then
+        read -p "Do you want to set Zsh as your default shell? (y/n) " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            chsh -s "$(command -v fish)"
-            log_success "Fish set as default shell (will take effect on next login)"
+            chsh -s /bin/zsh
+            log_success "Zsh set as default shell (will take effect on next login)"
         else
             log_info "Keeping current shell"
         fi
     else
-        log_info "Fish is already the default shell"
+        log_info "Zsh is already the default shell"
     fi
 }
 
@@ -206,17 +201,13 @@ show_post_install() {
     echo "   - Import your GPG keys"
     echo "   - Configure git with your signing key"
     echo
-    echo "2. Create ~/.tokens file for sensitive data:"
-    echo "   - Add API tokens, passwords, etc."
-    echo "   - This file is automatically sourced by Fish"
+    echo "2. Restart your terminal or run:"
+    echo "   source ~/.zshrc"
     echo
-    echo "3. Restart your terminal or run:"
-    echo "   source ~/.config/fish/config.fish"
-    echo
-    echo "4. In tmux, press Ctrl+Space then I to install plugins"
+    echo "3. In tmux, press Ctrl+Space then I to install plugins"
     echo "   (if automatic installation didn't work)"
     echo
-    echo "5. Configure Ghostty terminal settings if needed"
+    echo "4. Configure Ghostty terminal settings if needed"
     echo
     echo "========================================"
 }
@@ -251,9 +242,9 @@ main() {
     log_info "Step 5/7: Tmux plugins"
     install_tpm
 
-    # Configure Fish
-    log_info "Step 6/7: Fish shell"
-    configure_fish
+    # Configure Zsh
+    log_info "Step 6/7: Zsh shell"
+    configure_zsh
 
     # Configure Neovim
     log_info "Step 7/7: Neovim"

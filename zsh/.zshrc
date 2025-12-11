@@ -1,0 +1,89 @@
+# Zsh Options (fish-like behavior)
+setopt autocd              # cd by typing directory name
+setopt correct             # spelling correction
+setopt hist_ignore_all_dups # no duplicate history entries
+setopt share_history       # share history between sessions
+setopt extended_glob       # extended globbing
+setopt interactive_comments # allow comments in interactive shell
+setopt no_beep             # no beeping
+
+# History
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+
+# Emacs keybindings
+bindkey -e
+
+# Completion system (fish-like)
+autoload -Uz compinit && compinit
+zstyle ':completion:*' menu select                    # menu selection
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # case-insensitive
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS} # colored completions
+zstyle ':completion:*:descriptions' format '%B%d%b'   # bold descriptions
+
+# Fish-like autosuggestions and syntax highlighting (via brew packages)
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# PATH
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="$HOME/.bin:$PATH"
+export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
+
+# Environment
+export K9S_CONFIG_DIR="$HOME/.config/k9s"
+export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
+
+# GPG/SSH
+export GPG_TTY=$(tty)
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+gpgconf --launch gpg-agent
+
+# FZF
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# Aliases - tools
+alias code='opencode'
+alias k='kubectl'
+alias vim='nvim'
+alias gap='git add -p'
+alias gan='git add -N'
+
+# Aliases - eza
+alias ls='eza'
+alias l='eza -la'
+alias ll='eza -lg'
+alias la='eza -la'
+alias lt='eza --tree'
+alias lg='eza -la --git'
+alias lh='eza -la --header'
+alias ld='eza -lD'
+alias lf='eza -lf'
+alias lx='eza -la --sort=extension'
+alias lk='eza -la --sort=size'
+alias lm='eza -la --sort=modified'
+alias lr='eza -la --sort=modified --reverse'
+
+# Aliases - ripgrep
+alias rga='rg --text'
+alias rgl='rg -l'
+alias rgc='rg -c'
+alias rgi='rg -i'
+alias rgf='rg --files'
+
+# Aliases - fd
+alias fda='fd --hidden'
+alias fde='fd --extension'
+alias fdt='fd --type'
+alias fdx='fd --exec'
+alias fdf='fd --follow'
+alias fdd='fd --type d'
+alias fdfe='fd --type f --extension'
+
+# Integrations
+eval "$(starship init zsh)"
+eval "$(atuin init zsh)"
+eval "$(direnv hook zsh)"
