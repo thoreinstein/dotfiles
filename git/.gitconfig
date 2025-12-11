@@ -42,8 +42,6 @@
   path = ~/.gitconfig.local
 [rerere]
 	enabled = true
-[credential "https://source.developers.google.com"]
-	helper = gcloud.sh
 
 [merge]
   tool = diffview
