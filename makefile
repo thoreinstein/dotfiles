@@ -1,4 +1,4 @@
-.PHONY: all tmux nvim git install clean create-dirs fish ghostty ripgrep bat fd eza bin starship force
+.PHONY: all tmux nvim git install clean create-dirs ghostty ripgrep bat fd eza bin starship zsh force
 
 STOW := stow
 STOW_FLAGS :=
@@ -26,10 +26,6 @@ git:
 bin:
 	@echo "Installing bin scripts..."
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
-
-fish: create-dirs
-	@echo "Installing fish configuration..."
-	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fish
 
 ghostty: create-dirs
 	@echo "Installing ghostty configuration..."
@@ -62,13 +58,13 @@ zsh:
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) zsh
 
 # Install all configurations
-install: create-dirs tmux nvim git bin fish ghostty ripgrep bat fd eza starship zsh
+install: create-dirs tmux nvim git bin ghostty ripgrep bat fd eza starship zsh
 	@echo "All dotfiles have been installed"
 
 # Clean up (unstow everything)
 clean:
 	@echo "Removing all dotfile symlinks..."
-	@$(STOW) $(STOW_FLAGS) -D -t $(HOME) tmux nvim git bin fish ghostty ripgrep bat fd eza starship zsh
+	@$(STOW) $(STOW_FLAGS) -D -t $(HOME) tmux nvim git bin ghostty ripgrep bat fd eza starship zsh
 	@echo "All dotfiles have been unlinked"
 
 # Force reinstall - remove stale symlinks and restow
@@ -82,7 +78,6 @@ force: create-dirs
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) nvim
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) git
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bin
-	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) fish
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) ghostty
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) ripgrep
 	@$(STOW) $(STOW_FLAGS) --adopt -t $(HOME) bat

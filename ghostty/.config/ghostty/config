@@ -15,5 +15,5 @@ mouse-hide-while-typing = true
 confirm-close-surface = false
 
 # Shell Integration
-shell-integration = fish
+shell-integration = zsh
 shell-integration-features = cursor,sudo,title

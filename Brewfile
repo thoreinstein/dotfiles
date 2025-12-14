@@ -1,10 +1,10 @@
 brew "atuin", restart_service: :changed
 brew "bat"
+brew "coreutils"
+brew "direnv"
 brew "eza"
 brew "fd"
-brew "fish"
 brew "fortune"
-brew "fzf"
 brew "git"
 brew "gnupg"
 brew "go"

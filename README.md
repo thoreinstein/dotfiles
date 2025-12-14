@@ -16,13 +16,13 @@ This will:
 3. Install all packages from Brewfile
 4. Deploy dotfiles using GNU Stow
 5. Install Tmux Plugin Manager
-6. Configure Fish shell
+6. Configure Zsh shell
 7. Set up Neovim with plugins
 
 ## Structure
 
 - `nvim/`: Neovim configuration with LSP support
-- `fish/`: Fish shell configuration
+- `zsh/`: Zsh shell configuration
 - `tmux/`: Tmux terminal multiplexer configuration
 - `ghostty/`: Ghostty terminal configuration
 - `git/`: Git configuration
@@ -55,6 +55,20 @@ This will:
    stow -t ~/.config starship
    stow -t ~ nvim
    ```
+
+## Shell
+
+This setup uses **Zsh** for POSIX portability and server compatibility.
+
+**Why Zsh over Fish:**
+- POSIX-compatible (works on any server without installing Fish)
+- Available by default on macOS and most Linux distros
+- Better job control and scripting capabilities
+
+**Fish-like features via plugins:**
+- Autosuggestions (`zsh-autosuggestions`)
+- Syntax highlighting (`zsh-syntax-highlighting`)
+- Modern prompt (`starship`)
 
 ## Security Note
 
