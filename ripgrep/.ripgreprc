@@ -71,5 +71,6 @@
 # Encoding
 --encoding=auto
 
-# Sort results by path
---sort=path
+# Sort results by path (DISABLED: breaks parallelism, slows searches 10x)
+# Use `rg --sort=path` when you need sorted output
+# --sort=path

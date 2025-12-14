@@ -22,29 +22,36 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # case-insensitive
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS} # colored completions
 zstyle ':completion:*:descriptions' format '%B%d%b'   # bold descriptions
 
-# Fish-like autosuggestions and syntax highlighting (via brew packages)
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Load Homebrew and shell plugins (cross-platform)
+source ~/.zsh/00-homebrew.zsh
 
-# PATH
-export PATH="/opt/homebrew/bin:$PATH"
-export PATH="$HOME/.bin:$PATH"
-export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
-export PATH="$HOME/go/bin:$PATH"
+# Build PATH with unique entries only
+typeset -U path
+path=(
+  $HOME/.bin
+  $(brew --prefix 2>/dev/null)/opt/coreutils/libexec/gnubin
+  $HOME/go/bin
+  $path
+)
+export PATH
 
 # Environment
 export EDITOR="nvim"
 export K9S_CONFIG_DIR="$HOME/.config/k9s"
 export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
-# GPG/SSH
+# GPG/SSH - only launch agent if not already running
 export GPG_TTY=$(tty)
 export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-gpgconf --launch gpg-agent
+if ! pgrep -x gpg-agent >/dev/null 2>&1; then
+  gpgconf --launch gpg-agent
+fi
 
-# FZF
-export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+# FZF - use ripgrep if available
+if command -v rg >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
 
 # Aliases - tools
 alias code='opencode'

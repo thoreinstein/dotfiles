@@ -75,12 +75,14 @@ return {
         },
       }
 
-      -- ADD GOPLS SETTINGS HERE
+      -- Gopls settings
+      -- Note: Project-specific build flags should go in .envrc or project-local .nvim.lua
+      -- Example in .envrc: export GOFLAGS="-tags=your_tags_here"
       local gopls_settings = {
         gopls = {
           completeUnimported = true,
           usePlaceholders = true,
-          buildFlags = { "-tags=promotion,paasimmutable,passmutable,engineer_commit_tag,infra" },
+          buildFlags = {},  -- Project-specific flags go in .envrc or .nvim.lua
           analyses = {
             unusedparams = true,
             unreachable = true,

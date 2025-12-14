@@ -36,7 +36,7 @@
   pr = "!f() { git worktree add ../pr/$1 && cd ../pr/$1 && gh pr checkout $1; }; f"
 
 [gpg]
-	program = /opt/homebrew/bin/gpg
+	program = gpg  # Let PATH resolve it (works on macOS and Linux)
 
 [include]
   path = ~/.gitconfig.local

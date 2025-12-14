@@ -3,7 +3,18 @@ return {
   lazy = false,
   build = ":TSUpdate",
   opts = {
-    ensure_installed = { "lua", "luadoc", "printf", "vim", "vimdoc" },
+    ensure_installed = {
+      -- Neovim/Lua
+      "lua", "luadoc", "printf", "vim", "vimdoc",
+      -- Active languages (unrss stack)
+      "go", "typescript", "tsx", "javascript", "json", "yaml",
+      -- Shell/Config
+      "bash", "toml", "dockerfile",
+      -- Git
+      "git_config", "git_rebase", "gitcommit", "gitignore",
+      -- Documentation
+      "markdown", "markdown_inline",
+    },
 
     highlight = {
       enable = true,
