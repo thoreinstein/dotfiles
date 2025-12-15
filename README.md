@@ -1,79 +1,178 @@
 # Dotfiles
 
-This repository contains my personal dotfiles for various tools and applications. It's organized to work with GNU Stow for easy deployment.
+Personal dotfiles for macOS, managed with GNU Stow.
 
 ## Quick Install
 
-For a fresh macOS installation, you can use the automated install script:
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/thoreinstein/dotfiles/main/install.sh | bash
+git clone git@github.com:thoreinstein/dotfiles.git ~/src/thoreinstein/dotfiles
+cd ~/src/thoreinstein/dotfiles
+./install.sh
 ```
 
-This will:
-1. Install Homebrew
-2. Clone this repository
-3. Install all packages from Brewfile
-4. Deploy dotfiles using GNU Stow
-5. Install Tmux Plugin Manager
-6. Configure Zsh shell
-7. Set up Neovim with plugins
+## What's Included
+
+| Tool | Description |
+|------|-------------|
+| **Neovim** | LSP, Treesitter, Telescope, Lazy.nvim |
+| **Zsh** | Fish-like experience with autosuggestions & syntax highlighting |
+| **Tmux** | Rose Pine theme, vim-tmux-navigator |
+| **Starship** | Minimal prompt with git status & cmd duration |
+| **Git** | GPG signing, worktree aliases, Diffview merge tool |
+| **Ghostty** | Catppuccin Mocha theme |
+| **CLI Tools** | bat, eza, fd, ripgrep, fzf, atuin |
 
 ## Structure
 
-- `nvim/`: Neovim configuration with LSP support
-- `zsh/`: Zsh shell configuration
-- `tmux/`: Tmux terminal multiplexer configuration
-- `ghostty/`: Ghostty terminal configuration
-- `git/`: Git configuration
-- `markdown/`: Markdownlint configuration
-- `bat/`: Bat (cat replacement) configuration
-- `eza/`: Eza (ls replacement) configuration
-- `ripgrep/`: Ripgrep configuration
-- `fd/`: Fd (find replacement) configuration
-- `bin/`: Custom scripts
+```
+dotfiles/
+├── nvim/        # Neovim config (Lazy.nvim, LSP, Treesitter)
+├── zsh/         # Zsh shell config
+├── tmux/        # Tmux config
+├── git/         # Git config (uses ~/.gitconfig.local for identity)
+├── starship/    # Starship prompt
+├── ghostty/     # Ghostty terminal
+├── bat/         # Bat themes
+├── eza/         # Eza theme
+├── ripgrep/     # Ripgrep config
+├── fd/          # Fd ignore patterns
+├── bin/         # Custom scripts (ts, ghclone, git-cleanup)
+└── Brewfile     # All Homebrew packages
+```
 
-## Manual Setup
+## Manual Deployment
 
-1. Clone the repository:
-   ```bash
-   git clone git@github.com:thoreinstein/dotfiles.git ~/src/thoreinstein/dotfiles
-   cd ~/src/thoreinstein/dotfiles
-   git worktree add main
-   cd main
-   ```
+Deploy specific configs with make:
 
-2. Install GNU Stow:
-   ```bash
-   brew install stow
-   ```
+```bash
+make nvim      # Deploy Neovim config
+make zsh       # Deploy Zsh config
+make git       # Deploy Git config
+make install   # Deploy everything
+make clean     # Remove all symlinks
+```
 
-3. Use Stow to symlink configurations:
-   ```bash
-   cd ~/src/thoreinstein/dotfiles/main
-   stow -t ~ zsh tmux git
-   stow -t ~/.config starship
-   stow -t ~ nvim
-   ```
+## Key Bindings
+
+### Neovim
+
+| Key | Action |
+|-----|--------|
+| `<Space>` | Leader key |
+| `<leader>ff` | Find files |
+| `<leader>fw` | Live grep |
+| `<leader>fb` | Buffers |
+| `gd` | Go to definition |
+| `gr` | References |
+| `<leader>ca` | Code action |
+| `<leader>rn` | Rename |
+| `S-h` / `S-l` | Previous/Next buffer |
+| `jk` or `jj` | Exit insert mode |
+
+### Tmux
+
+| Key | Action |
+|-----|--------|
+| `C-Space` | Prefix |
+| `<prefix>f` | Tmux session switcher (ts) |
+| `<prefix>\|` | Split vertical |
+| `<prefix>-` | Split horizontal |
+| `C-h/j/k/l` | Navigate panes (vim-style) |
+| `Alt-1..9` | Switch windows |
+
+## Git Workflow
+
+Identity is stored in `~/.gitconfig.local` (not tracked):
+
+```gitconfig
+[user]
+  name = Your Name
+  email = your@email.com
+  signingkey = 0xYOURKEYID
+```
+
+Useful aliases:
+
+```bash
+git wl          # List worktrees
+git wa <branch> # Add worktree
+git pr <number> # Checkout PR in worktree
+git l           # Pretty log
+```
+
+## Pre-commit Hooks
+
+This repo uses pre-commit for code quality:
+
+```bash
+pre-commit install          # Install hooks (done automatically)
+pre-commit run --all-files  # Run on all files
+```
+
+Hooks include:
+- Large file detection
+- Private key detection
+- YAML validation
+- Shellcheck for shell scripts
+- StyLua for Lua formatting
 
 ## Shell
 
-This setup uses **Zsh** for POSIX portability and server compatibility.
+Uses **Zsh** with fish-like features:
 
-**Why Zsh over Fish:**
-- POSIX-compatible (works on any server without installing Fish)
-- Available by default on macOS and most Linux distros
-- Better job control and scripting capabilities
+- **Autosuggestions** via zsh-autosuggestions
+- **Syntax highlighting** via zsh-syntax-highlighting
+- **History search** via Atuin (Ctrl+R)
+- **Prompt** via Starship
 
-**Fish-like features via plugins:**
-- Autosuggestions (`zsh-autosuggestions`)
-- Syntax highlighting (`zsh-syntax-highlighting`)
-- Modern prompt (`starship`)
+## Custom Scripts
 
-## Security Note
+### `ts` - Tmux Session Switcher
 
-Sensitive information like API tokens and passwords should not be stored in dotfiles. Instead:
+Fuzzy-find and switch between git repos as tmux sessions:
 
-1. Create a `~/.tokens` file for sensitive environment variables
-2. Keep this file out of version control
-3. Source it from `.zshrc` using: `[ -f ~/.tokens ] && source ~/.tokens`
+```bash
+ts              # Interactive picker
+<prefix>f       # From within tmux
+```
+
+### `ghclone` - GitHub Clone Helper
+
+Clone repos into organized directory structure:
+
+```bash
+ghclone https://github.com/user/repo
+# Clones to ~/src/user/repo
+```
+
+## Troubleshooting
+
+### Neovim plugins not loading
+
+```bash
+nvim --headless "+Lazy! sync" +qa
+```
+
+### Tmux plugins not loading
+
+```bash
+~/.tmux/plugins/tpm/bin/install_plugins
+```
+
+### GPG signing fails
+
+```bash
+# Restart GPG agent
+gpgconf --kill gpg-agent
+gpgconf --launch gpg-agent
+```
+
+### Starship prompt not showing
+
+```bash
+# Verify starship is in PATH
+which starship
+
+# Reinitialize
+eval "$(starship init zsh)"
+```
