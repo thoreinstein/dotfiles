@@ -29,7 +29,10 @@ return {
       map("n", "<leader>q", vim.diagnostic.setloclist, opts "Diagnostic loclist")
     end
 
-    -- disable semanticTokens
+    -- Disable LSP semantic tokens in favor of Treesitter highlighting
+    -- Rationale: Treesitter provides faster, more consistent highlighting.
+    -- Semantic tokens can cause flickering and override Treesitter colors.
+    -- Re-enable if you need language-specific semantic highlighting (e.g., for Rust).
     M.on_init = function(client, _)
       if client.supports_method "textDocument/semanticTokens" then
         client.server_capabilities.semanticTokensProvider = nil
@@ -82,7 +85,7 @@ return {
         gopls = {
           completeUnimported = true,
           usePlaceholders = true,
-          buildFlags = {},  -- Project-specific flags go in .envrc or .nvim.lua
+          buildFlags = {}, -- Project-specific flags go in .envrc or .nvim.lua
           analyses = {
             unusedparams = true,
             unreachable = true,
