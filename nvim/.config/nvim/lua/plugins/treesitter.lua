@@ -5,15 +5,42 @@ return {
   opts = {
     ensure_installed = {
       -- Neovim/Lua
-      "lua", "luadoc", "printf", "vim", "vimdoc",
-      -- Active languages (unrss stack)
-      "go", "typescript", "tsx", "javascript", "json", "yaml",
+      "lua",
+      "luadoc",
+      "printf",
+      "vim",
+      "vimdoc",
+      -- Active languages
+      "go",
+      "gomod",
+      "gosum",
+      "gowork",
+      "typescript",
+      "tsx",
+      "javascript",
+      "json",
+      "yaml",
       -- Shell/Config
-      "bash", "toml", "dockerfile",
+      "bash",
+      "fish",
+      "toml",
+      "dockerfile",
+      -- Infrastructure
+      "terraform",
+      "hcl",
+      "sql",
       -- Git
-      "git_config", "git_rebase", "gitcommit", "gitignore",
+      "git_config",
+      "git_rebase",
+      "gitcommit",
+      "gitignore",
+      "diff",
       -- Documentation
-      "markdown", "markdown_inline",
+      "markdown",
+      "markdown_inline",
+      -- Web
+      "html",
+      "css",
     },
 
     highlight = {
