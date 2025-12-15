@@ -37,6 +37,7 @@ brew "overmind"
 brew "pre-commit"
 brew "redis"
 brew "stripe-cli"
+brew "stylua"
 brew "terraform"
 brew "uv"
 
