@@ -1,3 +1,4 @@
+# shellcheck shell=bash disable=SC1090,SC2034,SC2206,SC2207,SC2155,SC2296
 # Zsh Options (fish-like behavior)
 setopt autocd              # cd by typing directory name
 setopt correct             # spelling correction
@@ -47,7 +48,7 @@ if ! pgrep -x gpg-agent >/dev/null 2>&1; then
   gpgconf --launch gpg-agent
 fi
 
-# FZF - use ripgrep if available
+# FZF - use ripgrep if available (Atuin handles Ctrl+R history)
 if command -v rg >/dev/null 2>&1; then
   export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
