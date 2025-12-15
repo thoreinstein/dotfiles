@@ -27,9 +27,12 @@ return {
   config = function(_, opts)
     require("telescope").setup(opts)
 
-    -- Override telescope highlights for better visibility
-    vim.api.nvim_set_hl(0, "TelescopeSelection", { bg = "#3e4451", fg = "#abb2bf", bold = true })
-    vim.api.nvim_set_hl(0, "TelescopeSelectionCaret", { fg = "#61afef", bg = "#3e4451" })
+    -- Link telescope highlights to theme groups for consistency
+    -- Colors adapt automatically when switching themes
+    vim.api.nvim_set_hl(0, "TelescopeSelection", { link = "Visual" })
+    vim.api.nvim_set_hl(0, "TelescopeSelectionCaret", { link = "CursorLineNr" })
+    vim.api.nvim_set_hl(0, "TelescopePromptPrefix", { link = "Identifier" })
+    vim.api.nvim_set_hl(0, "TelescopeMatching", { link = "Search" })
   end,
   keys = {
     { "<leader>ff", require("telescope.builtin").find_files, desc = "Telescope Find Files" },
@@ -38,6 +41,12 @@ return {
     { "<leader>fh", require("telescope.builtin").help_tags, desc = "Telescope Help Tags" },
     { "<leader>ma", require("telescope.builtin").marks, desc = "Telescope Marks" },
     { "<leader>fz", require("telescope.builtin").current_buffer_fuzzy_find, desc = "Telescope Fuzzy Find" },
-    { "<leader>ft", function() require("config.worktree-picker").find_file_in_worktrees() end, desc = "Find file in worktrees" },
+    {
+      "<leader>ft",
+      function()
+        require("config.worktree-picker").find_file_in_worktrees()
+      end,
+      desc = "Find file in worktrees",
+    },
   },
 }
