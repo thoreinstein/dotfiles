@@ -25,6 +25,7 @@ zstyle ':completion:*:descriptions' format '%B%d%b'   # bold descriptions
 
 # Load Homebrew and shell plugins (cross-platform)
 source ~/.zsh/00-homebrew.zsh
+source ~/.zsh/01-aliases.zsh
 
 # Build PATH with unique entries only
 typeset -U path
@@ -54,45 +55,8 @@ if command -v rg >/dev/null 2>&1; then
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
 
-# Aliases - tools
-alias code='opencode'
-alias k='kubectl'
-alias vim='nvim'
-alias gap='git add -p'
-alias gan='git add -N'
-
-# Aliases - eza
-alias ls='eza'
-alias l='eza -la'
-alias ll='eza -lg'
-alias la='eza -la'
-alias lt='eza --tree'
-alias lg='eza -la --git'
-alias lh='eza -la --header'
-alias ld='eza -lD'
-alias lf='eza -lf'
-alias lx='eza -la --sort=extension'
-alias lk='eza -la --sort=size'
-alias lm='eza -la --sort=modified'
-alias lr='eza -la --sort=modified --reverse'
-
-# Aliases - ripgrep
-alias rga='rg --text'
-alias rgl='rg -l'
-alias rgc='rg -c'
-alias rgi='rg -i'
-alias rgf='rg --files'
-
-# Aliases - fd
-alias fda='fd --hidden'
-alias fde='fd --extension'
-alias fdt='fd --type'
-alias fdx='fd --exec'
-alias fdf='fd --follow'
-alias fdd='fd --type d'
-alias fdfe='fd --type f --extension'
-
 # Integrations
 eval "$(starship init zsh)"
 eval "$(atuin init zsh)"
 eval "$(direnv hook zsh)"
+eval "$(zoxide init zsh --cmd cd)"
