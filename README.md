@@ -20,7 +20,7 @@ cd ~/src/thoreinstein/dotfiles
 | **Starship** | Minimal prompt with git status & cmd duration |
 | **Git** | GPG signing, worktree aliases, Diffview merge tool |
 | **Ghostty** | Catppuccin Mocha theme |
-| **CLI Tools** | bat, eza, fd, ripgrep, fzf, atuin |
+| **CLI Tools** | bat, eza, fd, ripgrep, fzf, atuin, zoxide |
 
 ## Structure
 
@@ -124,6 +124,17 @@ Uses **Zsh** with fish-like features:
 - **Syntax highlighting** via zsh-syntax-highlighting
 - **History search** via Atuin (Ctrl+R)
 - **Prompt** via Starship
+- **Smart directory jumping** via zoxide (replaces `cd`)
+
+### Directory Navigation
+
+```bash
+..              # cd ..
+...             # cd ../..
+....            # cd ../../..
+cd proj         # Jump to most-used directory matching "proj"
+cdi             # Interactive directory picker (fzf)
+```
 
 ## Custom Scripts
 
