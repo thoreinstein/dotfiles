@@ -26,6 +26,9 @@ zstyle ':completion:*:descriptions' format '%B%d%b'   # bold descriptions
 # Load Homebrew and shell plugins (cross-platform)
 source ~/.zsh/00-homebrew.zsh
 source ~/.zsh/01-aliases.zsh
+if [[ -f ~/.zsh/local-aliases.zsh ]]; then
+  source ~/.zsh/local-aliases.zsh
+fi
 
 # Build PATH with unique entries only
 typeset -U path
@@ -60,3 +63,4 @@ eval "$(starship init zsh)"
 eval "$(atuin init zsh)"
 eval "$(direnv hook zsh)"
 eval "$(zoxide init zsh --cmd cd)"
+eval "$(codex completion zsh)"

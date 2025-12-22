@@ -24,6 +24,7 @@ zsh/.zcompcache/
 zsh/.zcompdump*
 zsh/.zsh_history
 zsh/.zsh_sessions/
+zsh/.zsh/local-aliases.zsh
 
 # Tokens and sensitive files
 **/tokens

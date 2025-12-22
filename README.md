@@ -125,6 +125,7 @@ Uses **Zsh** with fish-like features:
 - **History search** via Atuin (Ctrl+R)
 - **Prompt** via Starship
 - **Smart directory jumping** via zoxide (replaces `cd`)
+- Machine-specific aliases: add them to `~/.zsh/local-aliases.zsh` (sourced if present)
 
 ### Directory Navigation
 

@@ -58,3 +58,6 @@ credentials.json
 .claude.md
 CLAUDE.md
 .direnv/
+
+*.md
+.repo-mix.mxl

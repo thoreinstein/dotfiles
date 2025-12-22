@@ -41,3 +41,5 @@ alias fdx='fd --exec'
 alias fdf='fd --follow'
 alias fdd='fd --type d'
 alias fdfe='fd --type f --extension'
+
+alias tron='codex'
