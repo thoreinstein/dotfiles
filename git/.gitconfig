@@ -25,7 +25,8 @@
 	gpgsign = true
 
 [alias]
-	s = status
+	s = status -sb
+  d = diff --stat
 	co = checkout
 	cb = checkout -b
 	cm = commit -m
