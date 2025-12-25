@@ -1,10 +1,6 @@
 -- Global keymaps (non-plugin specific)
 local map = vim.keymap.set
 
--- Leader key (set before lazy)
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
-
 -- Better escape
 map("i", "jk", "<Esc>", { desc = "Exit insert mode" })
 map("i", "jj", "<Esc>", { desc = "Exit insert mode" })
@@ -68,7 +64,8 @@ map("x", "<leader>p", [["_dP]], { desc = "Paste without yanking" })
 map({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" })
 
 -- Quick save
-map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save file" })
+map("n", "<C-s>", "<cmd>w<cr>", { desc = "Save file" })
+map("i", "<C-s>", "<Esc><cmd>w<cr>", { desc = "Save file" })
 
 -- Quick quit
 map("n", "<leader>Q", "<cmd>qa<cr>", { desc = "Quit all" })

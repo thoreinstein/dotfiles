@@ -24,47 +24,88 @@
 -- ============================================================================
 
 return {
-  "NeogitOrg/neogit",
-  dependencies = {
-    "nvim-lua/plenary.nvim",
-    "sindrets/diffview.nvim",
-    "nvim-telescope/telescope.nvim",
-  },
-  cmd = "Neogit",
-  keys = {
-    { "<leader>gg", "<cmd>Neogit<cr>", desc = "Open Neogit" },
-  },
-  opts = {
-    -- Use unicode for prettier graph
-    graph_style = "unicode",
-    -- Integrate with diffview for side-by-side diffs
-    integrations = {
-      diffview = true,
-      telescope = true,
-    },
-    -- Open in current window rather than split
-    kind = "tab",
-    -- Sign column signs
-    signs = {
-      hunk = { "", "" },
-      item = { "", "" },
-      section = { "", "" },
-    },
-    -- Disable line numbers in Neogit buffers for cleaner UI
-    disable_line_numbers = true,
-    -- Automatically refresh when files change
-    auto_refresh = true,
-    -- Show recent commits in status
-    status = {
-      recent_commit_count = 10,
-    },
-    -- Commit editor settings
-    commit_editor = {
-      kind = "split",
-    },
-    -- Popup configuration
-    popup = {
-      kind = "split",
-    },
-  },
+	"NeogitOrg/neogit",
+	dependencies = {
+		"nvim-lua/plenary.nvim",
+		"sindrets/diffview.nvim",
+		"nvim-telescope/telescope.nvim",
+	},
+	cmd = "Neogit",
+	keys = {
+		{
+			"<leader>gg",
+			function()
+				require("neogit").open()
+			end,
+			desc = "Neogit status",
+		},
+		{
+			"<leader>gc",
+			function()
+				require("neogit").open({ "commit" })
+			end,
+			desc = "Neogit commit",
+		},
+		{
+			"<leader>gP",
+			function()
+				require("neogit").open({ "push" })
+			end,
+			desc = "Neogit push",
+		},
+		{
+			"<leader>gF",
+			function()
+				require("neogit").open({ "pull" })
+			end,
+			desc = "Neogit pull",
+		},
+		{
+			"<leader>gB",
+			function()
+				require("neogit").open({ "branch" })
+			end,
+			desc = "Neogit branch",
+		},
+		{
+			"<leader>gL",
+			function()
+				require("neogit").open({ "log" })
+			end,
+			desc = "Neogit log",
+		},
+	},
+	opts = {
+		-- Use unicode for prettier graph
+		graph_style = "unicode",
+		-- Integrate with diffview for side-by-side diffs
+		integrations = {
+			diffview = true,
+			telescope = true,
+		},
+		-- Open in current window rather than split
+		kind = "tab",
+		-- Sign column signs
+		signs = {
+			hunk = { "", "" },
+			item = { "", "" },
+			section = { "", "" },
+		},
+		-- Disable line numbers in Neogit buffers for cleaner UI
+		disable_line_numbers = true,
+		-- Automatically refresh when files change
+		auto_refresh = true,
+		-- Show recent commits in status
+		status = {
+			recent_commit_count = 10,
+		},
+		-- Commit editor settings
+		commit_editor = {
+			kind = "split",
+		},
+		-- Popup configuration
+		popup = {
+			kind = "split",
+		},
+	},
 }
