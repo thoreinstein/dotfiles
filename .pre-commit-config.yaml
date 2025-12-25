@@ -1,31 +1,69 @@
 repos:
-  # General file checks
+  # General file hygiene and safety
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
-        args: ['--maxkb=500']
+        args: ["--maxkb=500"]
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-symlinks
-      - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: trailing-whitespace
-        args: ['--markdown-linebreak-ext=md']
+        args: ["--markdown-linebreak-ext=md"]
       - id: mixed-line-ending
+      - id: check-yaml
+      - id: check-json
 
-  # Shell script validation
+  # YAML validation (rules via yamllint)
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        files: '\\.(ya?ml)$'
+
+  # Prettier for consistent structured data (JSON/YAML backup)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: '\\.(json|ya?ml)$'
+
+  # TOML formatting/validation
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3
+    hooks:
+      - id: taplo-format
+        alias: taplo
+
+  # Shell formatting (Google style, 2-space indent) and linting
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-ci", "-bn", "-sr", "-s"]
+        files: '\\.(sh|zsh)$|\\.zshrc$'
+
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
-        args: ['--severity=warning']
+        args: ["--severity=warning", "--shell=bash"]
+        files: '\\.(sh|zsh)$|\\.zshrc$'
 
-  # Lua formatting (for Neovim configs)
+  # Lua formatting (Neovim configs)
   - repo: https://github.com/JohnnyMorganz/StyLua
-    rev: v0.20.0
+    rev: v2.3.1
     hooks:
       - id: stylua
-        files: '\.lua$'
-        args: ['--config-path', '.stylua.toml']
+        files: '\\.(lua)$'
+        args: ["--config-path", ".stylua.toml"]
+
+  # Markdown linting (respects .markdownlintrc)
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.20.0
+    hooks:
+      - id: markdownlint-cli2
+        files: '\\.(md|markdown)$'
+        args: ["--config", ".markdownlintrc"]
