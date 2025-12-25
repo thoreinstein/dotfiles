@@ -49,7 +49,7 @@
 ## in any directory within a git repository tree (default: false).
 ##
 ## To use workspace mode by default when available, set this to true and
-## set filter_mode to "workspace" or leave it unspecified and 
+## set filter_mode to "workspace" or leave it unspecified and
 ## set search.filters to include "workspace" before other filter modes.
 # workspaces = false
 
@@ -174,29 +174,28 @@ enter_accept = false
 
 [stats]
 ## Set commands where we should consider the subcommand for statistics. Eg, kubectl get vs just kubectl
-common_subcommands = [
-  "apt",
-  "cargo",
-  "composer",
-  "dnf",
-  "docker",
-  "git",
-  "go",
-  "forge",
-  "ip",
-  "jj",
-  "kubectl",
-  "nix",
-  "nmcli",
-  "npm",
-  "pecl",
-  "pnpm",
-  "podman",
-  "port",
-  "systemctl",
-  "tmux",
-  "yarn",
-]
+# common_subcommands = [
+#   "apt",
+#   "cargo",
+#   "composer",
+#   "dnf",
+#   "docker",
+#   "git",
+#   "go",
+#   "ip",
+#   "jj",
+#   "kubectl",
+#   "nix",
+#   "nmcli",
+#   "npm",
+#   "pecl",
+#   "pnpm",
+#   "podman",
+#   "port",
+#   "systemctl",
+#   "tmux",
+#   "yarn",
+# ]
 
 ## Set commands that should be totally stripped and ignored from stats
 # common_prefix = ["sudo"]

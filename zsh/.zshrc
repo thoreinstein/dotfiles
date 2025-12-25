@@ -62,5 +62,6 @@ fi
 eval "$(starship init zsh)"
 eval "$(atuin init zsh)"
 eval "$(direnv hook zsh)"
+# eval "$(cascade hook zsh)"
 eval "$(zoxide init zsh --cmd cd)"
 eval "$(codex completion zsh)"

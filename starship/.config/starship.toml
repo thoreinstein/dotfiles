@@ -44,17 +44,17 @@ renamed = "󰹳 "
 deleted = "󰆴 "
 
 [cmd_duration]
-min_time = 2_000  # Show if command takes > 2 seconds
+min_time = 2_000                    # Show if command takes > 2 seconds
 style = "bold yellow"
 format = " [$duration]($style)"
 
 [hostname]
-ssh_only = true  # Only show when SSH'd into a machine
+ssh_only = true                # Only show when SSH'd into a machine
 style = "bold dimmed white"
 format = "[$hostname]($style)"
 
 [username]
-show_always = false  # Only show if different from logged-in user or SSH
+show_always = false              # Only show if different from logged-in user or SSH
 style_user = "bold dimmed white"
 format = "[$user]($style_user)@"
 

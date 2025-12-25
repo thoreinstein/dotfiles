@@ -2,7 +2,7 @@
 
 #############################################
 # Dotfiles Installation Script
-# 
+#
 # This script automates the setup of a macOS
 # development environment with modern CLI tools
 #############################################
@@ -114,7 +114,7 @@ clone_dotfiles() {
 install_brew_packages() {
     log_info "Installing packages from Brewfile..."
     cd "$DOTFILES_DIR/$WORK_TREE"
-    
+
     if [[ ! -f "Brewfile" ]]; then
         log_error "Brewfile not found"
         exit 1
@@ -128,7 +128,7 @@ install_brew_packages() {
 deploy_dotfiles() {
     log_info "Deploying dotfiles..."
     cd "$DOTFILES_DIR/$WORK_TREE"
-    
+
     # Check if GNU Stow is installed (should be from brew bundle)
     if ! command_exists stow; then
         log_error "GNU Stow is not installed"
@@ -142,7 +142,7 @@ deploy_dotfiles() {
 # Install Tmux Plugin Manager
 install_tpm() {
     local TPM_DIR="$HOME/.tmux/plugins/tpm"
-    
+
     if [[ -d "$TPM_DIR" ]]; then
         log_info "Tmux Plugin Manager already installed"
         return
@@ -161,7 +161,7 @@ install_tpm() {
 # Configure Zsh shell
 configure_zsh() {
     log_info "Configuring Zsh shell..."
-    
+
     # Zsh should already be in /etc/shells on macOS
     # Set Zsh as default shell if user confirms
     if [[ "$SHELL" != "/bin/zsh" ]]; then
@@ -181,7 +181,7 @@ configure_zsh() {
 # Configure Neovim
 configure_neovim() {
     log_info "Configuring Neovim..."
-    
+
     # Trigger plugin installation by running Neovim headlessly
     log_info "Installing Neovim plugins..."
     nvim --headless "+Lazy! sync" +qa
