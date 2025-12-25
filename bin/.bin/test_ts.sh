@@ -36,10 +36,10 @@ cleanup_test_env() {
 run_test() {
   local test_name="$1"
   local test_function="$2"
-  
+
   echo -n "Running test: $test_name... "
   TOTAL_TESTS=$((TOTAL_TESTS + 1))
-  
+
   if "$test_function"; then
     echo -e "${GREEN}PASS${NC}"
   else
@@ -54,12 +54,12 @@ test_missing_dependencies() {
   # Test when required commands are missing
   local temp_path="$PATH"
   export PATH="/nonexistent"
-  
+
   local result=0
   if "$TS_SCRIPT" 2>/dev/null; then
     result=1  # Should have failed
   fi
-  
+
   export PATH="$temp_path"
   return "$result"
 }
@@ -69,12 +69,12 @@ test_missing_base_dir() {
   # Test when base directory doesn't exist
   local temp_home="$HOME"
   export HOME="/nonexistent"
-  
+
   local result=0
   if "$TS_SCRIPT" 2>/dev/null; then
     result=1  # Should have failed
   fi
-  
+
   export HOME="$temp_home"
   return "$result"
 }
@@ -84,15 +84,15 @@ test_empty_base_dir() {
   # Test when base directory exists but is empty
   local temp_home="$HOME"
   setup_test_env
-  
+
   # Create empty src directory
   mkdir -p "$TEST_DIR/src"
-  
+
   local result=0
   if "$TS_SCRIPT" 2>/dev/null; then
     result=1  # Should have failed (no repos found)
   fi
-  
+
   export HOME="$temp_home"
   cleanup_test_env
   return "$result"
@@ -103,25 +103,25 @@ test_valid_git_repo() {
   local temp_home="$HOME"
   local temp_pwd="$PWD"
   setup_test_env
-  
+
   # Create a valid git repository structure
   local repo_dir="$TEST_DIR/src/testuser/testrepo"
   mkdir -p "$repo_dir"
-  
+
   if ! cd "$repo_dir"; then
     export HOME="$temp_home"
     cd "$temp_pwd" || true
     cleanup_test_env
     return 1
   fi
-  
+
   if ! git init --bare . >/dev/null 2>&1; then
     export HOME="$temp_home"
     cd "$temp_pwd" || true
     cleanup_test_env
     return 1
   fi
-  
+
   # The script should find this repo but exit when no selection is made
   # We'll just test that it doesn't crash with errors
   # Use portable timeout: gtimeout on macOS (from coreutils), timeout on Linux
@@ -131,14 +131,14 @@ test_valid_git_repo() {
   elif command -v timeout >/dev/null 2>&1; then
     timeout_cmd="timeout"
   fi
-  
+
   if [[ -n "$timeout_cmd" ]]; then
     "$timeout_cmd" 1s "$TS_SCRIPT" 2>/dev/null || true
   else
     # No timeout available, skip the interactive test
     true
   fi
-  
+
   export HOME="$temp_home"
   cd "$temp_pwd" || true
   cleanup_test_env
@@ -154,7 +154,7 @@ test_shellcheck_clean() {
     TOTAL_TESTS=$((TOTAL_TESTS - 1))
     return 0
   fi
-  
+
   if shellcheck "$TS_SCRIPT" >/dev/null 2>&1; then
     return 0
   else
@@ -168,26 +168,26 @@ main() {
   echo "Test directory: $TEST_DIR"
   echo "Script: $TS_SCRIPT"
   echo ""
-  
+
   # Verify the script exists
   if [[ ! -f "$TS_SCRIPT" ]]; then
     echo -e "${RED}ERROR: ts script not found at $TS_SCRIPT${NC}"
     exit 1
   fi
-  
+
   # Run tests
   run_test "Missing dependencies check" test_missing_dependencies
   run_test "Missing base directory check" test_missing_base_dir
   run_test "Empty base directory check" test_empty_base_dir
   run_test "Valid git repository handling" test_valid_git_repo
   run_test "Shellcheck validation" test_shellcheck_clean
-  
+
   echo ""
   echo "Test Results:"
   echo "============="
   echo "Total tests: $TOTAL_TESTS"
   echo -e "Passed: ${GREEN}$((TOTAL_TESTS - FAILED_TESTS))${NC}"
-  
+
   if [[ $FAILED_TESTS -gt 0 ]]; then
     echo -e "Failed: ${RED}$FAILED_TESTS${NC}"
     exit 1

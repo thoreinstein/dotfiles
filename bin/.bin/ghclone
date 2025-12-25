@@ -22,10 +22,10 @@ command -v git >/dev/null 2>&1 || error "git is required but not installed"
 parse_github_url() {
     local url="$1"
     local org repo
-    
+
     # Remove trailing .git if present
     url="${url%.git}"
-    
+
     # Handle different GitHub URL formats
     if [[ "$url" =~ ^git@github\.com:([^/]+)/([^/]+)$ ]]; then
         # SSH format: git@github.com:owner/repo
@@ -56,28 +56,28 @@ main() {
         echo "  ghclone git@github.com:owner/repo.git"
         exit 1
     fi
-    
+
     local github_url="$1"
     local clone_type org repo
-    
+
     # Parse the GitHub URL
     read -r clone_type org repo <<< "$(parse_github_url "$github_url")"
-    
+
     # Create directory structure
     local base_dir="$HOME/src/$org"
     local repo_dir="$base_dir/$repo"
-    
+
     echo "Creating directory: $base_dir"
     mkdir -p "$base_dir"
-    
+
     # Change to the organization directory
     cd "$base_dir"
-    
+
     # Check if repository already exists
     if [[ -d "$repo" ]]; then
         error "Repository already exists at $repo_dir"
     fi
-    
+
     # Clone based on type
     if [[ "$clone_type" == "https" ]]; then
         # Construct full HTTPS URL in case short format was provided
@@ -88,22 +88,22 @@ main() {
     else
         # SSH clone with bare repo and worktree
         echo "Cloning via SSH as bare repository: $github_url"
-        
+
         # Clone as bare repository
         git clone --bare "$github_url" "$repo"
         cd "$repo"
-        
+
         # Get the default branch name
         local default_branch
         if ! default_branch=$(git symbolic-ref HEAD 2>/dev/null | sed 's|refs/heads/||'); then
             # Fallback: try to determine from remote HEAD
             default_branch=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | cut -d: -f2 | xargs) || default_branch="main"
         fi
-        
+
         if [[ -z "$default_branch" ]]; then
             default_branch="main"
         fi
-        
+
         # Create worktree for the default branch
         echo "Creating worktree for branch: $default_branch"
         if ! git worktree add "$default_branch" "$default_branch" 2>/dev/null; then
@@ -111,7 +111,7 @@ main() {
             git worktree add "$default_branch" HEAD -b "$default_branch" 2>/dev/null || \
                 error "Failed to create worktree for branch: $default_branch"
         fi
-        
+
         echo "Successfully cloned to: $repo_dir (bare) with worktree at: $repo_dir/$default_branch"
     fi
 }

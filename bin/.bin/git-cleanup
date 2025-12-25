@@ -73,21 +73,21 @@ echo "Checking for stale branches..."
 for branch in "${LOCAL_BRANCHES[@]}"; do
   # Skip empty entries
   [[ -z "$branch" ]] && continue
-  
+
   # Skip the default branch
   if [[ "$branch" == "$DEFAULT_BRANCH" ]]; then
     continue
   fi
-  
+
   # Check if the branch has a remote counterpart (use -F for literal match)
   if git branch -r | grep -qF "origin/$branch"; then
     continue
   fi
-  
+
   # Check when the branch was last committed to
   LAST_COMMIT_DATE=$(git log -1 --format=%cd --date=relative "$branch" 2>/dev/null) || LAST_COMMIT_DATE="unknown"
   echo "Branch '$branch' has no remote and was last modified $LAST_COMMIT_DATE"
-  
+
   # Ask if the user wants to delete this branch
   read -r -p "Delete branch '$branch'? (y/N) " response
   if [[ "$response" =~ ^[Yy] ]]; then

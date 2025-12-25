@@ -2,7 +2,7 @@
 
 STOW := stow
 STOW_FLAGS :=
-STOW_RESTOW := --restow 
+STOW_RESTOW := --restow
 
 all: install
 

@@ -66,50 +66,50 @@ is_cache_valid() {
   if [[ ! -f "$CACHE_FILE" ]]; then
     return 1
   fi
-  
+
   local cache_time
   # GNU coreutils stat (requires: brew install coreutils)
   cache_time=$(stat -c "%Y" -- "$CACHE_FILE" 2>/dev/null || echo 0)
   local current_time
   current_time=$(date +%s)
   local age=$((current_time - cache_time))
-  
+
   [[ $age -lt $CACHE_MAX_AGE ]]
 }
 
 # Function to build repository list
 build_repo_list() {
   local -a temp_options=()
-  
+
   echo "Scanning repositories in $BASE_DIR..." >&2
-  
+
   # Find all Git repositories
   # We look for:
   #   1. Regular repos: directories containing .git subdirectory
   #   2. Bare repos: directories containing both objects/ and refs/ subdirectories
   while IFS= read -r repo_path; do
     [[ -z "$repo_path" ]] && continue
-    
+
     if [[ -d "$repo_path/.git" ]]; then
       # Regular Git repository
       repo_name=$(basename "$repo_path")
-      
+
       # Get current branch (run in subshell to avoid cd side effects)
       branch_name=$(cd "$repo_path" 2>/dev/null && git branch --show-current 2>/dev/null) || branch_name=""
       [[ -z "$branch_name" ]] && branch_name="detached"
-      
+
       # Get git status
       status=$(get_regular_git_status "$repo_path")
-      
+
       # Get remote info
       remote_info=$(get_regular_remote_info "$repo_path")
-      
+
       # Truncate long values for better table formatting
       truncated_remote=$(truncate_string "$remote_info" 25)
       truncated_repo=$(truncate_string "$repo_name" 18)
       truncated_branch=$(truncate_string "$branch_name" 20)
       truncated_worktree=$(truncate_string "$repo_name" 15)
-      
+
       # Format the display line
       option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
         "$truncated_remote" \
@@ -122,11 +122,11 @@ build_repo_list() {
         "$repo_path")
 
       temp_options+=("$option_line")
-      
+
     elif [[ -d "$repo_path/objects" ]] && [[ -d "$repo_path/refs" ]] && [[ -f "$repo_path/HEAD" ]]; then
       # Bare repository with worktrees (also check for HEAD file to confirm it's a git dir)
       repo_name=$(basename "$repo_path")
-      
+
       # Safely get worktree list
       if worktrees=$(git --git-dir="$repo_path" worktree list 2>/dev/null); then
         while IFS= read -r line; do
@@ -136,9 +136,9 @@ build_repo_list() {
           if [[ "$line" =~ ^([^[:space:]]+)[[:space:]]+([0-9a-f]{7,})[[:space:]]*(\[.+\])?$ ]]; then
             worktree_path="${BASH_REMATCH[1]}"
             branch_info="${BASH_REMATCH[3]:-}"
-            
+
             worktree_name=$(basename "$worktree_path")
-            
+
             # Extract branch name from bracket info or get current branch
             if [[ -n "$branch_info" ]]; then
               branch_name="${branch_info//[\[\]]/}"
@@ -148,19 +148,19 @@ build_repo_list() {
                 git --git-dir="$repo_path" --work-tree="$worktree_path" branch --show-current 2>/dev/null) || branch_name=""
               [[ -z "$branch_name" ]] && branch_name="detached"
             fi
-            
+
             # Get git status
             status=$(get_git_status "$worktree_path" "$repo_path")
-            
+
             # Get remote info (GitHub org/repo)
             remote_info=$(get_remote_info "$repo_path" "$worktree_path")
-            
+
             # Truncate long values for better table formatting
             truncated_remote=$(truncate_string "$remote_info" 25)
             truncated_repo=$(truncate_string "$repo_name" 18)
             truncated_branch=$(truncate_string "$branch_name" 20)
             truncated_worktree=$(truncate_string "$worktree_name" 15)
-            
+
             # Format the display line with consistent spacing
             option_line=$(printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s" \
               "$truncated_remote" \
@@ -179,7 +179,7 @@ build_repo_list() {
     fi
   done < <(find "$BASE_DIR" -maxdepth 4 -type d -name ".git" -exec dirname {} \; 2>/dev/null; \
            find "$BASE_DIR" -maxdepth 4 -type d -name "objects" -exec dirname {} \; 2>/dev/null | sort -u)
-  
+
   # Save to cache (handle empty array case)
   if [[ ${#temp_options[@]} -gt 0 ]]; then
     printf '%s\n' "${temp_options[@]}" > "$CACHE_FILE"
@@ -187,7 +187,7 @@ build_repo_list() {
     : > "$CACHE_FILE"  # Create empty cache file
   fi
   echo "Repository cache updated (${#temp_options[@]} repositories found)" >&2
-  
+
   # Return the options
   options=("${temp_options[@]+"${temp_options[@]}"}")
 }
@@ -196,7 +196,7 @@ build_repo_list() {
 truncate_string() {
   local str="$1"
   local max_len="$2"
-  
+
   if [[ ${#str} -le $max_len ]]; then
     echo "$str"
   else
@@ -222,19 +222,19 @@ has_session() {
 get_git_status() {
   local worktree_path="$1"
   local git_dir="$2"
-  
+
   if [[ ! -d "$worktree_path" ]]; then
     echo "Missing"
     return
   fi
-  
+
   # Run git commands with explicit paths (no cd needed)
   local porcelain_output
   porcelain_output=$(git --git-dir="$git_dir" --work-tree="$worktree_path" status --porcelain 2>/dev/null) || {
     echo "Error"
     return
   }
-  
+
   if [[ -z "$porcelain_output" ]]; then
     echo "Clean"
   elif echo "$porcelain_output" | grep -q '^[MADRC]'; then
@@ -249,16 +249,16 @@ get_git_status() {
 get_remote_info() {
   local git_dir="$1"
   local worktree_path="$2"
-  
+
   # Get the remote URL (no cd needed with explicit git-dir)
   local remote_url
   remote_url=$(git --git-dir="$git_dir" remote get-url origin 2>/dev/null) || remote_url=""
-  
+
   if [[ -z "$remote_url" ]]; then
     echo "local/local"
     return
   fi
-  
+
   # Parse GitHub/GitLab/etc URL (supports both SSH and HTTPS)
   # SSH: git@github.com:org/repo.git
   # HTTPS: https://github.com/org/repo.git
@@ -277,14 +277,14 @@ get_remote_info() {
 # Function to get git status for regular repos
 get_regular_git_status() {
   local repo_path="$1"
-  
+
   # Run git commands with explicit work-tree (no cd needed)
   local porcelain_output
   porcelain_output=$(git -C "$repo_path" status --porcelain 2>/dev/null) || {
     echo "Error"
     return
   }
-  
+
   if [[ -z "$porcelain_output" ]]; then
     echo "Clean"
   elif echo "$porcelain_output" | grep -q '^[MADRC]'; then
@@ -299,16 +299,16 @@ get_regular_git_status() {
 # Function to get remote info for regular repos
 get_regular_remote_info() {
   local repo_path="$1"
-  
+
   # Get the remote URL (no cd needed with -C)
   local remote_url
   remote_url=$(git -C "$repo_path" remote get-url origin 2>/dev/null) || remote_url=""
-  
+
   if [[ -z "$remote_url" ]]; then
     echo "local/local"
     return
   fi
-  
+
   # Parse GitHub/GitLab/etc URL (supports both SSH and HTTPS)
   if [[ "$remote_url" =~ (github|gitlab|bitbucket)\.com[:/]([^/]+)/([^/.]+) ]]; then
     local org="${BASH_REMATCH[2]}"
