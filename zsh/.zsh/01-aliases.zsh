@@ -11,7 +11,11 @@ alias vim='nvim'
 alias gap='git add -p'
 alias gan='git add -N'
 
+# Typos
+alias gits='git s'
+
 # eza
+alias l='eza -halF'
 alias ls='eza'
 alias l='eza -la'
 alias ll='eza -lg'
