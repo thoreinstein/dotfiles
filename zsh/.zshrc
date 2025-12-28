@@ -33,6 +33,7 @@ fi
 # Build PATH with unique entries only
 typeset -U path
 path=(
+  $HOME/.local/bin
   $HOME/.bin
   $(brew --prefix 2>/dev/null)/opt/coreutils/libexec/gnubin
   $HOME/go/bin
@@ -61,8 +62,8 @@ fi
 # Integrations
 eval "$(starship init zsh)"
 eval "$(atuin init zsh)"
-# eval "$(direnv hook zsh)"
 eval "$(cascade hook zsh)"
 eval "$(cascade completion zsh)"
 eval "$(zoxide init zsh --cmd cd)"
 eval "$(codex completion zsh)"
+eval "$(bd completion zsh)"
