@@ -54,3 +54,5 @@
   keepBackup = false
 [mergetool "diffview"]
   cmd = nvim -n -c "DiffviewOpen" "$MERGE"
+[url "git@github.com:"]
+	insteadOf = https://github.com/
