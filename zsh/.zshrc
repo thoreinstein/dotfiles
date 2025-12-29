@@ -51,6 +51,7 @@ export GPG_TTY=$(tty)
 export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
 if ! pgrep -x gpg-agent >/dev/null 2>&1; then
   gpgconf --launch gpg-agent
+  gpg-connect-agent updatestartuptty /bye > /dev/null
 fi
 
 # FZF - use ripgrep if available (Atuin handles Ctrl+R history)
