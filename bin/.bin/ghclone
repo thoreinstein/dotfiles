@@ -93,6 +93,9 @@ main() {
         git clone --bare "$github_url" "$repo"
         cd "$repo"
 
+        # Configure fetch refspec (bare clones don't get this automatically)
+        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+
         # Get the default branch name
         local default_branch
         if ! default_branch=$(git symbolic-ref HEAD 2>/dev/null | sed 's|refs/heads/||'); then
