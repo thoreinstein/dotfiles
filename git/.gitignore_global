@@ -59,6 +59,6 @@ credentials.json
 CLAUDE.md
 .direnv/
 
-*.md
+# *.md
 .repo-mix.mxl
 roadmap*.json
