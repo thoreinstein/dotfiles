@@ -61,10 +61,35 @@ if command -v rg >/dev/null 2>&1; then
 fi
 
 # Integrations
-eval "$(starship init zsh)"
-eval "$(atuin init zsh)"
-eval "$(direnv hook zsh)"
-# eval "$(cascade completion zsh)"
-eval "$(zoxide init zsh --cmd cd)"
-eval "$(codex completion zsh)"
-eval "$(bd completion zsh)"
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
+
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh)"
+fi
+
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi
+
+if command -v cascade >/dev/null 2>&1; then
+  eval "$(cascade completion zsh)"
+fi
+
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
+
+
+if command -v codex >/dev/null 2>&1; then
+  eval "$(codex completion zsh)"
+fi
+
+if command -v bd >/dev/null 2>&1; then
+  eval "$(bd completion zsh)"
+fi
+
+if command -v sre >/dev/null 2>&1; then
+  eval "$(sre completion zsh)"
+fi
