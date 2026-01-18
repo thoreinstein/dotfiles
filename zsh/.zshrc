@@ -81,7 +81,6 @@ if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh --cmd cd)"
 fi
 
-
 if command -v codex >/dev/null 2>&1; then
   eval "$(codex completion zsh)"
 fi
@@ -90,6 +89,16 @@ if command -v bd >/dev/null 2>&1; then
   eval "$(bd completion zsh)"
 fi
 
-if command -v sre >/dev/null 2>&1; then
-  eval "$(sre completion zsh)"
+if command -v rig >/dev/null 2>&1; then
+  eval "$(rig completion zsh)"
 fi
+
+if command -v gt >/dev/null 2>&1; then
+  eval "$(gt completion zsh)"
+fi
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/myers/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/myers/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/myers/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/myers/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
