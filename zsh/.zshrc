@@ -1,3 +1,5 @@
+fpath=(/Users/jimmyers/.docker/completions $fpath)
+
 # shellcheck shell=bash disable=SC1090,SC2034,SC2206,SC2207,SC2155,SC2296
 # Zsh Options (fish-like behavior)
 setopt autocd              # cd by typing directory name
@@ -102,3 +104,15 @@ if [ -f '/Users/myers/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/myers/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/myers/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+if command -v forge >/dev/null 2>&1; then
+  eval "$(forge completion zsh)"
+fi
+
+# bun completions
+[ -s "/Users/jimmyers/.bun/_bun" ] && source "/Users/jimmyers/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH="$HOME/.docker/bin:$PATH"
