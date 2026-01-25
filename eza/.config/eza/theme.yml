@@ -1,226 +1,226 @@
-# Eza theme configuration - Catppuccin Mocha
-# Official colors from https://catppuccin.com/palette/
+# Eza theme configuration - Rosé Pine Moon
+# Palette from https://rosepinetheme.com/palette/ingredients/
 
 filenames:
   normal:
-    foreground: "#cdd6f4"  # Text
+    foreground: "#e0def4"  # Text
   directory:
-    foreground: "#89b4fa"  # Blue
-    is_bold: true
+    foreground: "#9ccfd8"  # Foam
+    is_bold: false
   symlink:
-    foreground: "#cba6f7"  # Mauve
+    foreground: "#c4a7e7"  # Iris
   executable:
-    foreground: "#a6e3a1"  # Green
-    is_bold: true
+    foreground: "#3e8fb0"  # Pine
+    is_bold: false
   pipe:
-    foreground: "#f2cdcd"  # Flamingo
+    foreground: "#ea9a97"  # Rose
   socket:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   block_device:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   char_device:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   broken_symlink:
-    foreground: "#f38ba8"  # Red
-    background: "#1e1e2e"  # Base
+    foreground: "#eb6f92"  # Love
+    background: "#232136"  # Base
   missing_symlink_target:
-    foreground: "#f38ba8"  # Red
-    background: "#1e1e2e"  # Base
+    foreground: "#eb6f92"  # Love
+    background: "#232136"  # Base
   setuid:
-    foreground: "#f9e2af"  # Yellow
-    is_bold: true
+    foreground: "#f6c177"  # Gold
+    is_bold: false
   setgid:
-    foreground: "#f9e2af"  # Yellow
-    is_bold: true
+    foreground: "#f6c177"  # Gold
+    is_bold: false
   sticky:
-    foreground: "#89dceb"  # Sky
-    is_bold: true
+    foreground: "#9ccfd8"  # Foam
+    is_bold: false
   other_writable:
-    foreground: "#89dceb"  # Sky
-    is_bold: true
+    foreground: "#9ccfd8"  # Foam
+    is_bold: false
   sticky_other_writable:
-    foreground: "#89dceb"  # Sky
-    background: "#1e1e2e"  # Base
-    is_bold: true
+    foreground: "#9ccfd8"  # Foam
+    background: "#232136"  # Base
+    is_bold: false
 
 extensions:
   # Archives
   zip:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   tar:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   gz:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   bz2:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   xz:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   7z:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   rar:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
 
   # Documents
   pdf:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   doc:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   docx:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   odt:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   md:
-    foreground: "#f9e2af"  # Yellow
+    foreground: "#f6c177"  # Gold
   txt:
-    foreground: "#cdd6f4"  # Text
+    foreground: "#e0def4"  # Text
 
   # Images
   jpg:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   jpeg:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   png:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   gif:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   svg:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   webp:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
 
   # Code
   py:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   js:
-    foreground: "#f9e2af"  # Yellow
+    foreground: "#f6c177"  # Gold
   ts:
-    foreground: "#74c7ec"  # Sapphire
+    foreground: "#9ccfd8"  # Foam
   jsx:
-    foreground: "#89dceb"  # Sky
+    foreground: "#9ccfd8"  # Foam
   tsx:
-    foreground: "#89dceb"  # Sky
+    foreground: "#9ccfd8"  # Foam
   rs:
-    foreground: "#fab387"  # Peach
+    foreground: "#ea9a97"  # Rose
   go:
-    foreground: "#74c7ec"  # Sapphire
+    foreground: "#9ccfd8"  # Foam
   c:
-    foreground: "#74c7ec"  # Sapphire
+    foreground: "#9ccfd8"  # Foam
   cpp:
-    foreground: "#74c7ec"  # Sapphire
+    foreground: "#9ccfd8"  # Foam
   h:
-    foreground: "#94e2d5"  # Teal
+    foreground: "#908caa"  # Subtle
   hpp:
-    foreground: "#94e2d5"  # Teal
+    foreground: "#908caa"  # Subtle
   java:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   rb:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   php:
-    foreground: "#cba6f7"  # Mauve
+    foreground: "#c4a7e7"  # Iris
   lua:
-    foreground: "#74c7ec"  # Sapphire
+    foreground: "#9ccfd8"  # Foam
   vim:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   sh:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   fish:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   bash:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   zsh:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
 
   # Config
   json:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   yaml:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   yml:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   toml:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   ini:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   conf:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
   config:
-    foreground: "#fab387"  # Peach
+    foreground: "#f6c177"  # Gold
 
   # Git
   gitignore:
-    foreground: "#6c7086"  # Overlay0
+    foreground: "#908caa"  # Subtle
   gitmodules:
-    foreground: "#6c7086"  # Overlay0
+    foreground: "#908caa"  # Subtle
   gitattributes:
-    foreground: "#6c7086"  # Overlay0
+    foreground: "#908caa"  # Subtle
 
 permissions:
   user_read:
-    foreground: "#f9e2af"  # Yellow
+    foreground: "#f6c177"  # Gold
   user_write:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   user_execute:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   group_read:
-    foreground: "#f9e2af"  # Yellow
+    foreground: "#f6c177"  # Gold
   group_write:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   group_execute:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   other_read:
-    foreground: "#f9e2af"  # Yellow
+    foreground: "#f6c177"  # Gold
   other_write:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   other_execute:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   special_bit:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
 
 size:
   major:
-    foreground: "#b4befe"  # Lavender
+    foreground: "#c4a7e7"  # Iris
   minor:
-    foreground: "#94e2d5"  # Teal
+    foreground: "#9ccfd8"  # Foam
 
 users:
   user_you:
-    foreground: "#f9e2af"  # Yellow
-    is_bold: true
+    foreground: "#f6c177"  # Gold
+    is_bold: false
   user_other:
-    foreground: "#cdd6f4"  # Text
+    foreground: "#e0def4"  # Text
   group_yours:
-    foreground: "#a6e3a1"  # Green
-    is_bold: true
+    foreground: "#3e8fb0"  # Pine
+    is_bold: false
   group_other:
-    foreground: "#cdd6f4"  # Text
+    foreground: "#e0def4"  # Text
 
 links:
   normal:
-    foreground: "#f5e0dc"  # Rosewater
+    foreground: "#c4a7e7"  # Iris
   multi_link_file:
-    foreground: "#89dceb"  # Sky
+    foreground: "#9ccfd8"  # Foam
 
 git:
   new:
-    foreground: "#a6e3a1"  # Green
+    foreground: "#3e8fb0"  # Pine
   modified:
-    foreground: "#f9e2af"  # Yellow
+    foreground: "#f6c177"  # Gold
   deleted:
-    foreground: "#f38ba8"  # Red
+    foreground: "#eb6f92"  # Love
   renamed:
-    foreground: "#74c7ec"  # Sapphire
+    foreground: "#9ccfd8"  # Foam
   ignored:
-    foreground: "#6c7086"  # Overlay0
+    foreground: "#908caa"  # Subtle
   conflicted:
-    foreground: "#fab387"  # Peach
+    foreground: "#eb6f92"  # Love
   unchanged:
-    foreground: "#cdd6f4"  # Text
+    foreground: "#908caa"  # Subtle
 
 details:
   major:
-    foreground: "#cba6f7"  # Mauve
+    foreground: "#c4a7e7"  # Iris
   minor:
-    foreground: "#94e2d5"  # Teal
+    foreground: "#9ccfd8"  # Foam
 
 punctuation:
-  foreground: "#6c7086"  # Overlay0
+  foreground: "#908caa"  # Subtle

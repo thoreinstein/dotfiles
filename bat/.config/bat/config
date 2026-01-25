@@ -1,7 +1,7 @@
 # Bat configuration file
 
-# Set the theme to Catppuccin Mocha
---theme="Catppuccin Mocha"
+# Set the theme to rose-pine-moon
+--theme="rose-pine"
 
 # Show line numbers, Git modifications and file header
 --style="numbers,changes,header"
