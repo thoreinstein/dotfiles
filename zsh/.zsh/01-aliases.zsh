@@ -10,6 +10,7 @@ alias k='kubectl'
 alias vim='nvim'
 alias gap='git add -p'
 alias gan='git add -N'
+alias cat='bat'
 
 # Typos
 alias gits='git s'
