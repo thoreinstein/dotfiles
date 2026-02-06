@@ -5,7 +5,7 @@ font-size = 18.0
 theme = Rose Pine
 
 # Window Configuration
-background-opacity = 0.95
+background-opacity = 0.85
 window-padding-x = 10
 window-padding-y = 10
 

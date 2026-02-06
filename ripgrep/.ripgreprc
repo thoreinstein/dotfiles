@@ -65,12 +65,5 @@
 --colors=match:bg:yellow
 --colors=match:style:nobold
 
-# Performance settings
---threads=4
-
 # Encoding
 --encoding=auto
-
-# Sort results by path (DISABLED: breaks parallelism, slows searches 10x)
-# Use `rg --sort=path` when you need sorted output
-# --sort=path
