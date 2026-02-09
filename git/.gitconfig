@@ -38,6 +38,7 @@
 	l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
   wa = "!f() { git worktree add --track -b $1 $1 $2; cd $1; }; f"
   pr = "!f() { git worktree add ../pr/$1 && cd ../pr/$1 && gh pr checkout $1; }; f"
+  pull = "git stash -u && git pull && git stash pop"
 
 [gpg]
 	program = gpg  # Let PATH resolve it (works on macOS and Linux)
