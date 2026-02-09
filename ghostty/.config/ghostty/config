@@ -2,7 +2,7 @@
 font-family = "JetBrains Mono Nerd Font"
 font-size = 18.0
 
-theme = Rose Pine
+theme = light:Rose Pine Dawn,dark:Rose Pine
 
 # Window Configuration
 background-opacity = 0.85
