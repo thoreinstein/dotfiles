@@ -32,44 +32,21 @@ else
   SCRIPT_PATH="$(readlink -f "$0")"
 fi
 
-# Parse command line arguments
-UPDATE_CACHE=false
-if [[ "${1:-}" == "--update" ]] || [[ "${1:-}" == "-u" ]]; then
-  UPDATE_CACHE=true
-elif [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
-  echo "Usage: ts [OPTIONS]"
-  echo ""
-  echo "Tmux session switcher for Git repositories"
-  echo ""
-  echo "Options:"
-  echo "  -u, --update    Force update the repository cache"
-  echo "  -h, --help      Show this help message"
-  echo ""
-  echo "The script caches repository information for 1 hour to improve performance."
-  echo "Use --update to force a refresh of the cache."
-  exit 0
-fi
+# Function definitions
 
-# Check for required dependencies
-for cmd in tmux git fzf; do
-  if ! command -v "$cmd" &> /dev/null; then
-    echo "Error: Required command '$cmd' not found" >&2
-    exit 1
+# Helper function to truncate strings with ellipsis
+truncate_string() {
+  local str="$1"
+  local max_len="$2"
+
+  if [[ ${#str} -le $max_len ]]; then
+    echo "$str"
+  else
+    echo "${str:0:$((max_len - 3))}..."
   fi
-done
+}
 
-# Check if BASE_DIR exists
-if [[ ! -d "$BASE_DIR" ]]; then
-  echo "Error: Base directory '$BASE_DIR' does not exist" >&2
-  exit 1
-fi
-
-# Ensure cache directory exists
-mkdir -p "$(dirname "$CACHE_FILE")"
-
-declare -a options=()
-
-# Function to check if cache is valid
+# Check if cache is valid
 is_cache_valid() {
   if [[ ! -f "$CACHE_FILE" ]]; then
     return 1
@@ -95,19 +72,7 @@ is_cache_valid() {
   [[ $age -lt $CACHE_MAX_AGE ]]
 }
 
-# Helper function to truncate strings with ellipsis
-truncate_string() {
-  local str="$1"
-  local max_len="$2"
-
-  if [[ ${#str} -le $max_len ]]; then
-    echo "$str"
-  else
-    echo "${str:0:$((max_len - 3))}..."
-  fi
-}
-
-# Internal function to process a single repository path (found by its objects dir)
+# Internal function to process a single repository path
 internal_process_repo() {
   local objects_path="$1"
   local repo_path=""
@@ -150,12 +115,6 @@ internal_process_repo() {
   local is_bare=0
   
   # Use while read to process porcelain worktree list
-  # Format:
-  # worktree /path
-  # bare
-  # HEAD <sha>
-  # branch <ref>
-  # ... (empty line)
   while read -r line; do
     if [[ "$line" =~ ^worktree[[:space:]]+(.+)$ ]]; then
       wt_path="${BASH_REMATCH[1]}"
@@ -176,10 +135,8 @@ internal_process_repo() {
         if [[ -n "$status_info" ]]; then
           local first_line
           first_line=$(echo "$status_info" | head -n 1)
-          # Match ## branchname or ## No commits yet on branchname
           if [[ "$first_line" =~ ^##[[:space:]](No[[:space:]]commits[[:space:]]yet[[:space:]]on[[:space:]])?([^.[:space:]]+) ]]; then
             branch="${BASH_REMATCH[2]}"
-            # Strip refs/heads/ if present
             branch="${branch#refs/heads/}"
           fi
           
@@ -220,15 +177,13 @@ internal_process_repo() {
   return 0
 }
 
-# Handle internal processing call
-if [[ "${1:-}" == "--internal-process-repo" ]]; then
-  internal_process_repo "$2"
-  exit 0
-fi
-
 # Function to build repository list
 build_repo_list() {
-  echo "Scanning repositories in $BASE_DIR..." >&2
+  local verbose="${1:-true}"
+  
+  if [[ "$verbose" == "true" ]]; then
+    echo "Scanning repositories in $BASE_DIR..." >&2
+  fi
 
   local find_cmd
   if command -v fd &> /dev/null; then
@@ -246,12 +201,22 @@ build_repo_list() {
     nproc=$(nproc 2>/dev/null || echo 4)
   fi
 
-  # Run discovery and processing in parallel
-  eval "$find_cmd" | xargs -I {} -P "$nproc" "$SCRIPT_PATH" --internal-process-repo "{}" > "$CACHE_FILE"
+  # Use temp file for atomic update
+  local temp_cache="${CACHE_FILE}.tmp.$$"
+  
+  # Ensure cache directory exists
+  mkdir -p "$(dirname "$CACHE_FILE")"
 
-  local count
-  count=$(wc -l < "$CACHE_FILE")
-  echo "Repository cache updated ($count repositories found)" >&2
+  # Run discovery and processing in parallel
+  eval "$find_cmd" | xargs -I {} -P "$nproc" "$SCRIPT_PATH" --internal-process-repo "{}" > "$temp_cache"
+
+  mv "$temp_cache" "$CACHE_FILE"
+
+  if [[ "$verbose" == "true" ]]; then
+    local count
+    count=$(wc -l < "$CACHE_FILE")
+    echo "Repository cache updated ($count repositories found)" >&2
+  fi
 }
 
 switch_to() {
@@ -265,13 +230,69 @@ switch_to() {
 
 has_session() {
   local session_name="$1"
-  # Use exact match with = prefix to avoid regex issues with special chars like [ ]
   tmux has-session -t "=$session_name" 2>/dev/null
 }
 
-# Load repository list (from cache or build fresh)
-if [[ "$UPDATE_CACHE" == "true" ]] || ! is_cache_valid; then
-  build_repo_list
+# Parse command line arguments
+UPDATE_CACHE=false
+
+if [[ "${1:-}" == "--internal-process-repo" ]]; then
+  internal_process_repo "$2"
+  exit 0
+fi
+
+if [[ "${1:-}" == "--internal-update-cache" ]]; then
+  build_repo_list "false"
+  exit 0
+fi
+
+if [[ "${1:-}" == "--update" ]] || [[ "${1:-}" == "-u" ]]; then
+  UPDATE_CACHE=true
+elif [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+  echo "Usage: ts [OPTIONS]"
+  echo ""
+  echo "Tmux session switcher for Git repositories"
+  echo ""
+  echo "Options:"
+  echo "  -u, --update    Force update the repository cache"
+  echo "  -h, --help      Show this help message"
+  echo ""
+  echo "The script caches repository information for 1 hour to improve performance."
+  echo "It will automatically update the cache in the background if it is stale."
+  echo "Use --update to force a synchronous refresh of the cache."
+  exit 0
+fi
+
+# Check for required dependencies
+for cmd in tmux git fzf; do
+  if ! command -v "$cmd" &> /dev/null; then
+    echo "Error: Required command '$cmd' not found" >&2
+    exit 1
+  fi
+done
+
+# Check if BASE_DIR exists
+if [[ ! -d "$BASE_DIR" ]]; then
+  echo "Error: Base directory '$BASE_DIR' does not exist" >&2
+  exit 1
+fi
+
+declare -a options=()
+
+# Logic to load or build cache
+if [[ "$UPDATE_CACHE" == "true" ]]; then
+  # Explicit update requested
+  build_repo_list "true"
+elif [[ ! -f "$CACHE_FILE" ]]; then
+  # No cache exists, must build
+  build_repo_list "true"
+else
+  # Cache exists
+  if ! is_cache_valid; then
+    # Cache is stale, trigger background update
+    nohup "$SCRIPT_PATH" --internal-update-cache >/dev/null 2>&1 &
+  fi
+  # Proceed to use existing cache (even if stale)
 fi
 
 # Load from cache
@@ -287,7 +308,7 @@ if [[ ${#options[@]} -eq 0 ]]; then
   exit 1
 fi
 
-# Present options via fzf with better formatting
+# Present options via fzf
 selected=$(printf '%s\n' "${options[@]}" | fzf \
   --tmux 100%,90% \
   --with-nth=1 \
@@ -319,7 +340,6 @@ if [[ ! -d "$selected_path" ]]; then
 fi
 
 worktree=$(echo "$worktree_name" | xargs)
-# Construct the session name as 'repo_name [worktree_name]'
 selected_name="${repo_name} [${worktree}]"
 
 # Check if tmux server is running
@@ -329,7 +349,6 @@ if tmux list-sessions &>/dev/null; then
 fi
 
 if [[ -z "${TMUX:-}" ]] && [[ "$tmux_running" == "false" ]]; then
-  # No tmux session exists and we're not inside tmux - create and attach
   if ! tmux new-session -s "$selected_name" -c "$selected_path"; then
     echo "Error: Failed to create new tmux session" >&2
     exit 1
