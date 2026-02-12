@@ -25,20 +25,21 @@
 	gpgsign = true
 
 [alias]
-	s = status -sb
-  d = diff --stat
-	co = checkout
-	cb = checkout -b
-	cm = commit -m
 	ca = commit --amend
 	can = commit --amend --no-edit
+	cb = checkout -b
+	cm = commit -m
+	co = checkout
+	l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  mt = mergetool
+	rewrite = rebase -i
+	s = status -sb
 	wl = worktree list
 	wr = worktree remove
-	rewrite = rebase -i
-	l = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-  wa = "!f() { git worktree add --track -b $1 $1 $2; cd $1; }; f"
+  d = diff --stat
   pr = "!f() { git worktree add ../pr/$1 && cd ../pr/$1 && gh pr checkout $1; }; f"
   pull = "git stash -u && git pull && git stash pop"
+  wa = "!f() { git worktree add --track -b $1 $1 $2; cd $1; }; f"
 
 [gpg]
 	program = gpg  # Let PATH resolve it (works on macOS and Linux)
