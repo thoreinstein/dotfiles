@@ -44,8 +44,12 @@
 [gpg]
 	program = gpg  # Let PATH resolve it (works on macOS and Linux)
 
+[user]
+	name = Jim Myers
+
 [include]
   path = ~/.gitconfig.local
+
 [rerere]
 	enabled = true
 
