@@ -12,6 +12,7 @@ path=(
 export BUN_INSTALL="$HOME/.bun"
 path=($BUN_INSTALL/bin $path)
 path=($HOME/.docker/bin $path)
+path=(/opt/homebrew/opt/postgresql@17/bin $path)
 
 export PATH
 
