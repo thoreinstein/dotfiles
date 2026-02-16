@@ -1,5 +1,9 @@
 _:
 {
+  imports = [
+    ./cli.nix
+  ];
+
   # Core home-manager configuration
   home.stateVersion = "23.11";
 
