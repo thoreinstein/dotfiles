@@ -11,7 +11,7 @@
     history = {
       size = 50000;
       save = 50000;
-      ignoreDups = true;
+      ignoreAllDups = true;
       share = true;
       path = "$HOME/.zsh_history";
     };
@@ -89,7 +89,6 @@
 
         # Completion setup
         fpath=(~/.docker/completions $fpath)
-        autoload -Uz compinit && compinit
         zstyle ':completion:*' menu select
         zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
         zstyle ':completion:*' list-colors ''${(s.:.)LS_COLORS}

@@ -45,7 +45,7 @@ _:
 
       # Rose Pine theme
       set -g @rose_pine_variant 'main'
-      set -g @rose_pine_date_time ''''
+      set -g @rose_pine_date_time '''
       set -g @rose_pine_directory 'on'
       set -g @rose_pine_bar_bg_disable 'on'
       set -g @rose_pine_bar_bg_disabled_color_option 'default'
