@@ -34,7 +34,11 @@ This repository is transitioning from a GNU Stow-based dotfiles management syste
 ## Known Traps
 - **Hook Naming**: Use `github:cachix/git-hooks.nix` for pre-commit hooks. Avoid the old `nix-community` or `serokell` URLs.
 - **Empty Patterns**: `statix` requires `_:` instead of `{ ... }:` for empty or unused lambda patterns.
+- **Output Destructuring**: Ensure all inputs used in `outputs` are explicitly destructured (e.g., `{ self, nixpkgs, home-manager, ... }@inputs`).
 
 ## Conventions
 - **Nix Style**: Use `nixpkgs-fmt` for all Nix files.
 - **Theme**: Consistently use **Catppuccin Mocha** across all tool configurations.
+- **CLI Organization**: Consolidate core CLI tool enablements in `modules/home/cli.nix`.
+- **Hybrid Config**: Use HM `programs` options by default, supplementing with `home.file` for custom assets (themes, sidecar configs).
+- **Safety First**: Always perform dry-run builds (`nix build .#homeConfigurations.<user>.activationPackage`) before considering a task ready for integration.
