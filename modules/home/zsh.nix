@@ -30,6 +30,8 @@
       gan = "git add -N";
       cat = "bat";
 
+      vim = "nvim";
+
       # Typos
       gits = "git s";
 
