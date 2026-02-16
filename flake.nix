@@ -29,7 +29,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, agenix, git-hooks, ... }:
+  outputs = { self, nixpkgs, home-manager, agenix, git-hooks, ... }@inputs:
     let
       systems = [
         "aarch64-darwin"
@@ -84,7 +84,20 @@
 
       # Home-manager configurations
       homeConfigurations = {
-        # Define standalone home-manager configs here
+        "myers" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages."aarch64-darwin";
+          modules = [
+            ./modules/home
+            {
+              home = {
+                username = "myers";
+                homeDirectory = "/Users/myers";
+                stateVersion = "23.11";
+              };
+            }
+          ];
+          extraSpecialArgs = { inherit inputs; };
+        };
       };
     };
 }
