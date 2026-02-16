@@ -5,6 +5,7 @@ _:
     ./cli.nix
     ./git.nix
     ./ghostty.nix
+    ./markdown.nix
     ./neovim.nix
     ./tmux.nix
     ./zsh.nix

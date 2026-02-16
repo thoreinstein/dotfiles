@@ -1,168 +1,151 @@
+# ──────────────────────────────────────────────
+# Taps
+# ──────────────────────────────────────────────
 tap "atlassian/acli"
 tap "codefresh-io/cli"
 tap "hashicorp/tap"
 tap "steveyegge/beads"
 tap "supabase/tap"
 tap "thoreinstein/tap"
-<<<<<<< HEAD
 tap "unrss/tap"
-brew "atuin", restart_service: :changed
-brew "bat"
-brew "coreutils"
-brew "direnv"
-brew "doppler"
-brew "eza"
-brew "fd"
-brew "fish"
-brew "fortune"
-brew "fzf"
-brew "gh"
+
+# ──────────────────────────────────────────────
+# Global macOS tools
+# ──────────────────────────────────────────────
+
+# Git ecosystem (git.nix manages config only, not the binary)
 brew "git"
-brew "gnupg"
-brew "go"
-brew "jq"
-brew "mcp-toolbox"
-brew "neovim", args: ["HEAD"]
-brew "node"
-brew "ripgrep"
-brew "opencode"
-=======
-brew "atuin", restart_service: :changed
-brew "bat"
-brew "cloc"
-brew "cmake"
-brew "python@3.13"
-brew "codespell"
-brew "coreutils"
-brew "direnv"
-brew "eza"
-brew "fd"
-brew "fzf"
 brew "gh"
-brew "git"
 brew "git-delta"
 brew "git-filter-repo"
 brew "git-lfs"
+
+# GPG / YubiKey stack (macOS-specific integration)
 brew "gnupg"
-brew "go"
-brew "golangci-lint"
-brew "hugo"
-brew "jose"
-brew "jq"
-brew "jsonnet-bundler"
-brew "k9s"
-brew "kubeconform"
-brew "kubernetes-cli"
-brew "kustomize"
-brew "lychee"
-brew "neovim", args: ["HEAD"]
-brew "node"
->>>>>>> 53f2c0b (Updates)
-brew "osv-scanner"
-brew "tmux"
-brew "overmind"
 brew "pinentry-mac"
-<<<<<<< HEAD
-brew "postgresql@14"
-brew "pre-commit"
-brew "redis"
-brew "repomix"
-brew "shellcheck"
-brew "starship"
-brew "stow"
-brew "stripe-cli"
-brew "stylua"
-brew "terminal-notifier"
-brew "terraform"
-brew "tinymist"
-brew "typst"
-brew "typstyle"
-brew "uv"
-brew "wget"
 brew "ykman"
 brew "ykpers"
-=======
-brew "pkcs11-tools"
-brew "pkgconf"
-brew "pre-commit"
-brew "protobuf"
-brew "redis"
-brew "ripgrep"
-brew "shellcheck"
-brew "sqlfluff"
-brew "starship"
-brew "stern"
-brew "stow"
+
+# macOS utilities
+brew "coreutils"
 brew "terminal-notifier"
-brew "tflint"
 brew "tldr"
 brew "tree"
-brew "uv"
 brew "wget"
-brew "yamllint"
-brew "ykman"
-brew "ykpers"
+
+# General CLI tools
+brew "cloc"
+brew "osv-scanner"
 brew "yq"
->>>>>>> 53f2c0b (Updates)
-brew "zoxide"
-brew "zsh"
-brew "zsh-autosuggestions"
-brew "zsh-syntax-highlighting"
-<<<<<<< HEAD
-brew "supabase/tap/supabase"
-cask "bitwarden"
-cask "cascade"
-cask "claude"
-cask "codex"
-cask "docker-desktop"
-cask "figma"
-=======
+
+# Custom taps
+brew "steveyegge/beads/bd"
+brew "opencode"
+
+# ──────────────────────────────────────────────
+# Project-level candidates
+#
+# These are development tools that should eventually move into
+# project-level flake.nix devShells. Kept here for now.
+# ──────────────────────────────────────────────
+
+# Go development
+brew "go"
+brew "golangci-lint"
+
+# Node / Python / Typst
+brew "node"
+brew "python@3.13"
+brew "uv"
+brew "typst"
+brew "tinymist"
+brew "typstyle"
+
+# Infrastructure / K8s
+brew "terraform"
+brew "tflint"
+brew "kubernetes-cli"
+brew "kustomize"
+brew "kubeconform"
+brew "k9s"
+brew "stern"
+brew "jsonnet-bundler"
+
+# Database
+brew "postgresql@14"
+brew "redis"
+
+# Code quality (language-specific)
+brew "codespell"
+brew "lychee"
+brew "pre-commit"
+brew "shellcheck"
+brew "sqlfluff"
+brew "stylua"
+brew "yamllint"
+
+# Build / services
+brew "cmake"
+brew "doppler"
+brew "hugo"
+brew "jose"
+brew "mcp-toolbox"
+brew "overmind"
+brew "pkcs11-tools"
+brew "pkgconf"
+brew "protobuf"
+brew "repomix"
+brew "stripe-cli"
 brew "atlassian/acli/acli"
 brew "codefresh-io/cli/codefresh"
 brew "hashicorp/tap/terraform"
-brew "steveyegge/beads/bd"
 brew "supabase/tap/supabase"
-cask "thoreinstein/tap/aix"
+
+# ──────────────────────────────────────────────
+# Casks (GUI apps)
+# ──────────────────────────────────────────────
+cask "bitwarden"
+cask "cascade"
+cask "claude"
 cask "cmake-app"
 cask "codex"
 cask "docker-desktop"
+cask "figma"
 cask "finicky"
->>>>>>> 53f2c0b (Updates)
+cask "gcloud-cli"
+cask "ghostty"
+cask "gpg-suite"
+cask "obsidian"
+cask "plex"
+cask "postman"
+cask "rig"
+cask "spotify"
+cask "temurin"
+cask "thoreinstein/tap/aix"
+cask "utm"
+
+# ──────────────────────────────────────────────
+# Fonts
+# ──────────────────────────────────────────────
 cask "font-cinzel"
 cask "font-cinzel-decorative"
 cask "font-eb-garamond"
 cask "font-jetbrains-mono-nerd-font"
-<<<<<<< HEAD
-cask "ghostty"
-cask "obsidian"
-cask "plex"
-cask "rig"
-cask "spotify"
+
+# ──────────────────────────────────────────────
+# Go tools
+# ──────────────────────────────────────────────
 go "github.com/air-verse/air"
-go "golang.org/x/tools/cmd/callgraph"
 go "github.com/spf13/cobra-cli"
-=======
-cask "gcloud-cli"
-cask "ghostty"
-cask "gpg-suite"
-cask "postman"
-cask "thoreinstein/tap/rig"
-cask "spotify"
-cask "temurin"
-cask "utm"
 go "golang.org/x/tools/cmd/callgraph"
->>>>>>> 53f2c0b (Updates)
 go "github.com/go-delve/delve/cmd/dlv"
 go "github.com/davidrjenni/reftools/cmd/fillswitch"
 go "github.com/onsi/ginkgo/v2/ginkgo"
 go "github.com/abice/go-enum"
-<<<<<<< HEAD
-=======
 go "github.com/google/go-licenses"
 go "github.com/psampaz/go-mod-outdated"
 go "github.com/uudashr/gocognit/cmd/gocognit"
 go "github.com/fzipp/gocyclo/cmd/gocyclo"
->>>>>>> 53f2c0b (Updates)
 go "mvdan.cc/gofumpt"
 go "golang.org/x/tools/cmd/goimports"
 go "github.com/twpayne/go-jsonstruct/v3/cmd/gojsonstruct"
@@ -172,30 +155,18 @@ go "github.com/fatih/gomodifytags"
 go "github.com/abenz1267/gomvp"
 go "golang.org/x/tools/cmd/gonew"
 go "golang.org/x/tools/gopls"
-<<<<<<< HEAD
-go "github.com/cweill/gotests/gotests"
-go "gotest.tools/gotestsum"
-go "golang.org/x/vuln/cmd/govulncheck"
-go "github.com/steveyegge/gastown/cmd/gt"
-=======
 go "github.com/goreleaser/goreleaser/v2"
 go "github.com/cweill/gotests/gotests"
 go "gotest.tools/gotestsum"
 go "golang.org/x/vuln/cmd/govulncheck"
->>>>>>> 53f2c0b (Updates)
+go "github.com/steveyegge/gastown/cmd/gt"
 go "github.com/koron/iferr"
 go "github.com/josharian/impl"
 go "github.com/tmc/json-to-struct"
 go "github.com/golang-migrate/migrate/v4/cmd/migrate"
-<<<<<<< HEAD
-go "go.uber.org/mock/mockgen"
-go "github.com/kyoh86/richgo"
-go "github.com/sqlc-dev/sqlc/cmd/sqlc"
-=======
 go "github.com/vektra/mockery/v3"
 go "go.uber.org/mock/mockgen"
 go "github.com/kyoh86/richgo"
 go "github.com/sqlc-dev/sqlc/cmd/sqlc"
 go "honnef.co/go/tools/cmd/staticcheck"
->>>>>>> 53f2c0b (Updates)
 go "github.com/a-h/templ/cmd/templ"

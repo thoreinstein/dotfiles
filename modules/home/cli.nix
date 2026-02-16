@@ -64,34 +64,23 @@ _:
       };
     };
     eza.enable = true;
-    fd = {
-      enable = true;
-      ignores = [
-        ".git/"
-        "node_modules/"
-        "vendor/"
-        "target/"
-      ];
-    };
+    fd.enable = true;
     fzf.enable = true;
     jq.enable = true;
-    ripgrep = {
+    ripgrep.enable = true;
+    direnv = {
       enable = true;
-      arguments = [
-        "--max-columns=150"
-        "--max-columns-preview"
-        "--hidden"
-        "--smart-case"
-        "--glob=!.git/"
-        "--glob=!node_modules/"
-      ];
+      nix-direnv.enable = true;
     };
-    direnv.enable = true;
     zoxide = {
       enable = true;
       options = [ "--cmd" "cd" ];
     };
   };
 
-  home.file.".config/eza/theme.yml".source = ../../eza/.config/eza/theme.yml;
+  home.file = {
+    ".config/eza/theme.yml".source = ../../eza/.config/eza/theme.yml;
+    ".fdignore".source = ../../fd/.fdignore;
+    ".ripgreprc".source = ../../ripgrep/.ripgreprc;
+  };
 }
