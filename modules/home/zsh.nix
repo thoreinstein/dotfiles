@@ -101,7 +101,6 @@
         path=(
           $HOME/.local/bin
           $HOME/.bin
-          ''${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin}
           $HOME/go/bin
           $path
         )

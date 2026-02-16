@@ -1,5 +1,16 @@
-_:
+{ pkgs, ... }:
 {
+  home.packages = with pkgs; [
+    cloc
+    coreutils
+    osv-scanner
+    terminal-notifier
+    tldr
+    tree
+    wget
+    yq-go
+  ];
+
   programs = {
     atuin = {
       enable = true;

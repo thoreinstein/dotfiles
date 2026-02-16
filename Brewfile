@@ -10,35 +10,16 @@ tap "thoreinstein/tap"
 tap "unrss/tap"
 
 # ──────────────────────────────────────────────
-# Global macOS tools
+# Global macOS tools (not in nixpkgs or need macOS integration)
 # ──────────────────────────────────────────────
 
-# Git ecosystem (git.nix manages config only, not the binary)
-brew "git"
-brew "gh"
-brew "git-delta"
-brew "git-filter-repo"
-brew "git-lfs"
-
-# GPG / YubiKey stack (macOS-specific integration)
+# GPG / YubiKey stack (macOS keychain + smart-card integration)
 brew "gnupg"
 brew "pinentry-mac"
 brew "ykman"
 brew "ykpers"
 
-# macOS utilities
-brew "coreutils"
-brew "terminal-notifier"
-brew "tldr"
-brew "tree"
-brew "wget"
-
-# General CLI tools
-brew "cloc"
-brew "osv-scanner"
-brew "yq"
-
-# Custom taps
+# Custom taps (not in nixpkgs)
 brew "steveyegge/beads/bd"
 brew "opencode"
 
