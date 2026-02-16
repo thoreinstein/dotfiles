@@ -2,6 +2,9 @@ _:
 {
   imports = [
     ./cli.nix
+    ./neovim.nix
+    ./tmux.nix
+    ./zsh.nix
   ];
 
   # Core home-manager configuration
