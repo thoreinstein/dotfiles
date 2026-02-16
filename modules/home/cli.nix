@@ -86,7 +86,11 @@ _:
         "--glob=!node_modules/"
       ];
     };
-    zoxide.enable = true;
+    direnv.enable = true;
+    zoxide = {
+      enable = true;
+      options = [ "--cmd" "cd" ];
+    };
   };
 
   home.file.".config/eza/theme.yml".source = ../../eza/.config/eza/theme.yml;
