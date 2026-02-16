@@ -71,6 +71,7 @@
               statix
               deadnix
               agenix.packages.${system}.default
+              # beads is not in nixpkgs yet, so this is a placeholder or we can use a wrapper
             ];
           };
         });
