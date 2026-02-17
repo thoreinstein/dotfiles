@@ -116,14 +116,6 @@
         export K9S_CONFIG_DIR="$HOME/.config/k9s"
         export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
-        # GPG/SSH agent
-        export GPG_TTY=$(tty)
-        export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-        if ! pgrep -x gpg-agent >/dev/null 2>&1; then
-          gpgconf --launch gpg-agent
-          gpg-connect-agent updatestartuptty /bye > /dev/null
-        fi
-
         # FZF defaults
         if command -v rg >/dev/null 2>&1; then
           export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
