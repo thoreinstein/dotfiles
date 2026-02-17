@@ -1,13 +1,16 @@
-.PHONY: switch build check fmt
+.PHONY: switch build check fmt update
 
 switch:
-	home-manager switch --flake .#myers
+	sudo darwin-rebuild switch --flake '.#Jims-Mac-mini'
 
 build:
-	nix build .#homeConfigurations.myers.activationPackage --dry-run
+	darwin-rebuild build --flake '.#Jims-Mac-mini'
 
 check:
 	nix flake check
 
 fmt:
 	nix fmt
+
+update:
+	nix flake update

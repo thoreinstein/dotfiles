@@ -29,7 +29,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, agenix, git-hooks, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, agenix, git-hooks, ... }@inputs:
     let
       systems = [
         "aarch64-darwin"
@@ -77,27 +77,19 @@
         });
 
       # nix-darwin configurations
-      darwinConfigurations = {
-        # Define hosts here
-        # "my-mac" = nix-darwin.lib.darwinSystem { ... };
+      darwinConfigurations."Jims-Mac-mini" = nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        modules = [
+          ./modules/darwin
+          home-manager.darwinModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.myers = import ./modules/home;
+          }
+        ];
+        specialArgs = { inherit inputs; };
       };
 
-      # Home-manager configurations
-      homeConfigurations = {
-        "myers" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages."aarch64-darwin";
-          modules = [
-            ./modules/home
-            {
-              home = {
-                username = "myers";
-                homeDirectory = "/Users/myers";
-                stateVersion = "23.11";
-              };
-            }
-          ];
-          extraSpecialArgs = { inherit inputs; };
-        };
-      };
     };
 }

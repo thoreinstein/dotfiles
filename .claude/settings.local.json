@@ -14,7 +14,11 @@
       "Bash(tmux source-file:*)",
       "WebSearch",
       "WebFetch(domain:mynixos.com)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(nix run:*)"
     ]
   }
 }
