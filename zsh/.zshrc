@@ -22,3 +22,4 @@ elif [[ -f "$ZSH_CONFIG/local-aliases.zsh" ]]; then
   # Compatibility for your existing local-aliases.zsh
   source "$ZSH_CONFIG/local-aliases.zsh"
 fi
+

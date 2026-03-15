@@ -2,10 +2,10 @@
 font-family = "JetBrains Mono Nerd Font"
 font-size = 18.0
 
-theme = light:Rose Pine Dawn,dark:Rose Pine
+theme = light:Rose Pine Dawn,dark:Rose Pine Moon
 
 # Window Configuration
-background-opacity = 0.85
+background-opacity = 1
 window-padding-x = 10
 window-padding-y = 10
 
@@ -15,5 +15,10 @@ mouse-hide-while-typing = true
 confirm-close-surface = false
 
 # Shell Integration
-shell-integration = zsh
-shell-integration-features = cursor,sudo,title
+shell-integration = detect
+shell-integration-features = true
+
+clipboard-trim-trailing-spaces = true
+
+bell-features = system
+desktop-notifications = true

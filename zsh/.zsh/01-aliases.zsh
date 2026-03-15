@@ -46,3 +46,9 @@ alias fdx='fd --exec'
 alias fdf='fd --follow'
 alias fdd='fd --type d'
 alias fdfe='fd --type f --extension'
+
+# terraform
+alias tf='terraform'
+alias ti='terraform init'
+alias tp='terraform plan'
+alias ta='terraform apply'

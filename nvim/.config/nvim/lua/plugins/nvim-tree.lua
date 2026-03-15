@@ -6,6 +6,7 @@ return {
     disable_netrw = true,
     hijack_cursor = true,
     sync_root_with_cwd = true,
+    hijack_unnamed_buffer_when_opening = true,
     update_focused_file = {
       enable = true,
       update_root = false,
