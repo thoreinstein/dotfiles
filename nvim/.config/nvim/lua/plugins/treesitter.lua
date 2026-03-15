@@ -18,6 +18,7 @@ return {
       "typescript",
       "tsx",
       "javascript",
+      "svelte",
       "json",
       "yaml",
       -- Shell/Config
