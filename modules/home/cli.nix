@@ -4,6 +4,8 @@
     cloc
     codespell
     coreutils
+    k9s
+    kubectl
     lychee
     osv-scanner
     pre-commit

@@ -30,8 +30,6 @@ _:
       "finicky"
       "ghostty"
       "obsidian"
-      "thoreinstein/tap/rig"
-      "thoreinstein/tap/aix"
       "utm"
 
       # Fonts

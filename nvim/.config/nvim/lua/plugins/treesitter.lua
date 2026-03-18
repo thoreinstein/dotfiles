@@ -56,6 +56,35 @@ return {
     indent = { enable = true },
   },
   config = function(_, opts)
-    -- require("nvim-treesitter.configs").setup(opts)
+    require("nvim-treesitter").setup(opts)
+
+    local treesitter_filetypes = {
+      "css",
+      "go",
+      "gomod",
+      "gosum",
+      "gowork",
+      "html",
+      "javascript",
+      "json",
+      "lua",
+      "markdown",
+      "markdown_inline",
+      "svelte",
+      "toml",
+      "tsx",
+      "typescript",
+      "vim",
+      "yaml",
+    }
+
+    local group = vim.api.nvim_create_augroup("treesitter-start", { clear = true })
+    vim.api.nvim_create_autocmd("FileType", {
+      group = group,
+      pattern = treesitter_filetypes,
+      callback = function(args)
+        pcall(vim.treesitter.start, args.buf)
+      end,
+    })
   end,
 }
