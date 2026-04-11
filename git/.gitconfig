@@ -39,7 +39,7 @@
   d = diff --stat
   pr = "!f() { git worktree add ../pr/$1 && cd ../pr/$1 && gh pr checkout $1; }; f"
   pull = "git stash -u && git pull && git stash pop"
-  wa = "!f() { git worktree add --track -b $1 $1 $2; cd $1; }; f"
+  wa = "!f() { git worktree add -b $1 $1 $2; cd $1; }; f"
 
 [gpg]
 	program = gpg  # Let PATH resolve it (works on macOS and Linux)

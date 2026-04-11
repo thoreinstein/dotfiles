@@ -16,23 +16,24 @@ _:
     # ──────────────────────────────────────────────
     # Formulae
     # ──────────────────────────────────────────────
-    brews = [ ];
+    brews = [
+      "dolt"
+    ];
 
     # ──────────────────────────────────────────────
     # Casks (GUI apps + fonts)
     # ──────────────────────────────────────────────
     casks = [
       "claude"
-      "codex"
       "codexbar"
       "docker-desktop"
-      "figma"
       "finicky"
       "ghostty"
       "obsidian"
       "utm"
 
       # Fonts
+      "font-inter"
       "font-jetbrains-mono-nerd-font"
     ];
   };

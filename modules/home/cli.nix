@@ -4,9 +4,7 @@
     cloc
     codespell
     coreutils
-    k9s
-    kubectl
-    lychee
+    nodejs
     osv-scanner
     pre-commit
     shellcheck

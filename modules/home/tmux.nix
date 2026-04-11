@@ -12,6 +12,9 @@ _:
       # True color support
       set -ag terminal-overrides ",xterm-256color:RGB"
 
+      # Let Claude Code notification/progress escape sequences reach Ghostty/iTerm/etc.
+      set -g allow-passthrough on
+
       # Session switcher
       bind -r f run-shell "~/.bin/ts"
 

@@ -67,6 +67,7 @@
           default = pkgs.mkShell {
             inherit (self.checks.${system}.pre-commit-check) shellHook;
             packages = with pkgs; [
+              codex
               nixpkgs-fmt
               statix
               deadnix
