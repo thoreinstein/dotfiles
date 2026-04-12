@@ -100,7 +100,6 @@
         typeset -U path
         path=(
           $HOME/.local/bin
-          $HOME/.bin
           $HOME/go/bin
           $path
         )
@@ -111,10 +110,7 @@
         export PATH
 
         # Environment
-        # TODO: remove EDITOR once neovim.nix defaultEditor is confirmed working
-        export EDITOR="nvim"
         export K9S_CONFIG_DIR="$HOME/.config/k9s"
-        export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
         # FZF defaults
         if command -v rg >/dev/null 2>&1; then
