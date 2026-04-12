@@ -78,7 +78,6 @@ _:
       { mode = "n"; key = "<leader>fh"; action.__raw = ''function() require("telescope.builtin").help_tags() end''; options.desc = "Help tags"; }
       { mode = "n"; key = "<leader>fm"; action.__raw = ''function() require("telescope.builtin").marks() end''; options.desc = "Marks"; }
       { mode = "n"; key = "<leader>fz"; action.__raw = ''function() require("telescope.builtin").current_buffer_fuzzy_find() end''; options.desc = "Fuzzy find in buffer"; }
-      { mode = "n"; key = "<leader>ft"; action.__raw = ''function() require("config.worktree-picker").find_file_in_worktrees() end''; options.desc = "Find file in worktrees"; }
       { mode = "n"; key = "<leader>fr"; action = "<cmd>Telescope resume<cr>"; options.desc = "Resume last search"; }
       { mode = "n"; key = "<leader>fo"; action = "<cmd>Telescope oldfiles<cr>"; options.desc = "Recent files"; }
       { mode = "n"; key = "<leader>fc"; action = "<cmd>Telescope commands<cr>"; options.desc = "Commands"; }

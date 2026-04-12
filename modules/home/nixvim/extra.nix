@@ -3,8 +3,6 @@
   programs.nixvim = {
     extraPlugins = with pkgs.vimPlugins; [
       nvim-scrollbar
-      nvim-spectre
-      # gitgraph-nvim — not in nixpkgs, needs buildVimPlugin with pinned hash
     ];
 
     extraConfigLua = ''
@@ -28,9 +26,6 @@
         },
       })
       require("scrollbar.handlers.gitsigns").setup()
-
-      -- Spectre
-      require("spectre").setup({ open_cmd = "noswapfile vnew" })
     '';
   };
 }

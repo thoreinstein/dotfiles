@@ -75,7 +75,6 @@ _:
           "<leader>g" = "git";
           "<leader>h" = "hunk";
           "<leader>r" = "refactor";
-          "<leader>s" = "search/replace";
           "<leader>w" = "window";
           "<leader>x" = "diagnostics";
           "[" = "prev";
@@ -193,7 +192,7 @@ _:
       { mode = "n"; key = "]t"; action.__raw = ''function() require("todo-comments").jump_next() end''; options.desc = "Next TODO"; }
       { mode = "n"; key = "[t"; action.__raw = ''function() require("todo-comments").jump_prev() end''; options.desc = "Previous TODO"; }
       { mode = "n"; key = "<leader>xt"; action = "<cmd>Trouble todo<cr>"; options.desc = "TODOs (Trouble)"; }
-      { mode = "n"; key = "<leader>st"; action = "<cmd>TodoTelescope<cr>"; options.desc = "Search TODOs"; }
+      { mode = "n"; key = "<leader>ft"; action = "<cmd>TodoTelescope<cr>"; options.desc = "Search TODOs"; }
 
       # Lspsaga
       { mode = "n"; key = "<leader>cf"; action = "<cmd>Lspsaga finder<cr>"; options.desc = "LSP finder"; }
