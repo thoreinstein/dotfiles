@@ -15,13 +15,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Secret management
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.darwin.follows = "nix-darwin";
-    };
-
     # Neovim configuration
     nixvim = {
       url = "github:nix-community/nixvim";
@@ -35,7 +28,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, nixvim, agenix, git-hooks, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, nixvim, git-hooks, ... }@inputs:
     let
       systems = [
         "aarch64-darwin"
@@ -77,8 +70,6 @@
               nixpkgs-fmt
               statix
               deadnix
-              agenix.packages.${system}.default
-              # beads is not in nixpkgs yet, so this is a placeholder or we can use a wrapper
             ];
           };
         });
