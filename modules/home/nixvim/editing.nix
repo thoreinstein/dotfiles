@@ -19,13 +19,15 @@ _:
 
     illuminate = {
       enable = true;
-      underCursor = false;
-      delay = 200;
-      filetypesDenylist = [
-        "NvimTree"
-        "Trouble"
-        "telescope"
-      ];
+      settings = {
+        under_cursor = false;
+        delay = 200;
+        filetypes_denylist = [
+          "NvimTree"
+          "Trouble"
+          "telescope"
+        ];
+      };
     };
 
     mini = {
