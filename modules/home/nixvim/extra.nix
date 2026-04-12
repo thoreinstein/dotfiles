@@ -4,7 +4,7 @@
     extraPlugins = with pkgs.vimPlugins; [
       nvim-scrollbar
       nvim-spectre
-      gitgraph-nvim
+      # gitgraph-nvim — not in nixpkgs, needs buildVimPlugin with pinned hash
     ];
 
     # Worktree picker custom module
@@ -34,59 +34,6 @@
 
       -- Spectre
       require("spectre").setup({ open_cmd = "noswapfile vnew" })
-
-      -- Gitgraph
-      require("gitgraph").setup({
-        git_cmd = "git",
-        symbols = {
-          merge_commit = "",
-          commit = "",
-          merge_commit_end = "",
-          commit_end = "",
-          GVER = "",
-          GHOR = "",
-          GCLD = "",
-          GCRD = "╭",
-          GCLU = "",
-          GCRU = "",
-          GLRU = "",
-          GLRD = "",
-          GLUD = "",
-          GRUD = "",
-          GFORKU = "",
-          GFORKD = "",
-          GRUDCD = "",
-          GRUDCU = "",
-          GLUDCD = "",
-          GLUDCU = "",
-          GLRDCL = "",
-          GLRDCR = "",
-          GLRUCL = "",
-          GLRUCR = "",
-        },
-        format = {
-          timestamp = "%H:%M:%S %d-%m-%Y",
-          fields = { "hash", "timestamp", "author", "branch_name", "tag" },
-        },
-        hooks = {
-          on_select_commit = function(commit) print("selected commit:", commit.hash) end,
-          on_select_range_commit = function(from, to) print("selected range:", from.hash, to.hash) end,
-        },
-      })
     '';
-
-    keymaps = [
-      # Gitgraph
-      {
-        mode = "n"; key = "<leader>gG";
-        action.__raw = ''function() require("gitgraph").draw({}, { all = true, max_count = 5000 }) end'';
-        options.desc = "Git graph all";
-      }
-      {
-        mode = "n"; key = "<leader>gGc";
-        action.__raw = ''function() require("gitgraph").draw({}, { max_count = 5000 }) end'';
-        options.desc = "Git graph current branch";
-      }
-    ];
   };
 }

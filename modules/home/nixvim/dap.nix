@@ -4,66 +4,6 @@
     plugins = {
       dap = {
         enable = true;
-
-        extensions = {
-          dap-go = {
-            enable = true;
-            settings = {
-              dap_configurations = [
-                {
-                  type = "go";
-                  name = "Debug Package";
-                  request = "launch";
-                  program = "\${filedir}";
-                }
-                {
-                  type = "go";
-                  name = "Debug Test";
-                  request = "launch";
-                  mode = "test";
-                  program = "\${file}";
-                }
-                {
-                  type = "go";
-                  name = "Debug Test (go.mod)";
-                  request = "launch";
-                  mode = "test";
-                  program = "./\${relativeFileDirname}";
-                }
-              ];
-            };
-          };
-
-          dap-ui = {
-            enable = true;
-            settings = {
-              icons = { expanded = "▾"; collapsed = "▸"; current_frame = "▸"; };
-              layouts = [
-                {
-                  elements = [
-                    { id = "scopes"; size = 0.25; }
-                    { id = "breakpoints"; size = 0.25; }
-                    { id = "stacks"; size = 0.25; }
-                    { id = "watches"; size = 0.25; }
-                  ];
-                  position = "left";
-                  size = 40;
-                }
-                {
-                  elements = [
-                    { id = "repl"; size = 0.5; }
-                    { id = "console"; size = 0.5; }
-                  ];
-                  position = "bottom";
-                  size = 10;
-                }
-              ];
-            };
-          };
-
-          dap-virtual-text.enable = true;
-        };
-
         signs = {
           dapBreakpoint = { text = "●"; texthl = "DapBreakpoint"; };
           dapBreakpointCondition = { text = "●"; texthl = "DapBreakpointCondition"; };
@@ -71,6 +11,63 @@
           dapStopped = { text = "▶"; texthl = "DapStopped"; linehl = "DapStopped"; numhl = "DapStopped"; };
         };
       };
+
+      dap-go = {
+        enable = true;
+        settings = {
+          dap_configurations = [
+            {
+              type = "go";
+              name = "Debug Package";
+              request = "launch";
+              program = "\${filedir}";
+            }
+            {
+              type = "go";
+              name = "Debug Test";
+              request = "launch";
+              mode = "test";
+              program = "\${file}";
+            }
+            {
+              type = "go";
+              name = "Debug Test (go.mod)";
+              request = "launch";
+              mode = "test";
+              program = "./\${relativeFileDirname}";
+            }
+          ];
+        };
+      };
+
+      dap-ui = {
+        enable = true;
+        settings = {
+          icons = { expanded = "▾"; collapsed = "▸"; current_frame = "▸"; };
+          layouts = [
+            {
+              elements = [
+                { id = "scopes"; size = 0.25; }
+                { id = "breakpoints"; size = 0.25; }
+                { id = "stacks"; size = 0.25; }
+                { id = "watches"; size = 0.25; }
+              ];
+              position = "left";
+              size = 40;
+            }
+            {
+              elements = [
+                { id = "repl"; size = 0.5; }
+                { id = "console"; size = 0.5; }
+              ];
+              position = "bottom";
+              size = 10;
+            }
+          ];
+        };
+      };
+
+      dap-virtual-text.enable = true;
     };
 
     keymaps = [

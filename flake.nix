@@ -94,7 +94,7 @@
             home-manager.useUserPackages = true;
             home-manager.users.myers = import ./modules/home;
             home-manager.sharedModules = [
-              nixvim.homeManagerModules.nixvim
+              nixvim.homeModules.nixvim
             ];
           }
         ];

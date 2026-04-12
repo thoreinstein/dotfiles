@@ -7,8 +7,7 @@ _:
     ./ghostty.nix
     ./gpg.nix
     ./markdown.nix
-    ./neovim.nix
-    # ./nixvim  # uncomment to switch to nixvim, remove neovim.nix above
+    ./nixvim
     ./tmux.nix
     ./zsh.nix
   ];

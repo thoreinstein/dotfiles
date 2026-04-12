@@ -53,7 +53,7 @@
       golangci-lint
       eslint_d
       shellcheck
-      nodePackages.markdownlint-cli
+      markdownlint-cli
       yamllint
       python3Packages.flake8
     ];

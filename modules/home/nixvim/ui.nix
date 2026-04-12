@@ -101,17 +101,19 @@
 
       fidget = {
         enable = true;
-        notification = {
-          window = {
-            winblend = 0;
-            border = "none";
-            zindex = 45;
-            maxWidth = 0;
-            maxHeight = 0;
-            xPadding = 1;
-            yPadding = 0;
-            align = "bottom";
-            relative = "editor";
+        settings = {
+          notification = {
+            window = {
+              winblend = 0;
+              border = "none";
+              zindex = 45;
+              max_width = 0;
+              max_height = 0;
+              x_padding = 1;
+              y_padding = 0;
+              align = "bottom";
+              relative = "editor";
+            };
           };
         };
       };
@@ -138,8 +140,10 @@
 
       lspsaga = {
         enable = true;
-        symbolInWinbar = {
-          folderLevel = 3;
+        settings = {
+          symbol_in_winbar = {
+            folder_level = 3;
+          };
         };
       };
 
