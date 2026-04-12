@@ -6,6 +6,7 @@ _:
     ./bin.nix
     ./cli.nix
     ./eza.nix
+    ./fd.nix
     ./git.nix
     ./ghostty.nix
     ./gpg.nix

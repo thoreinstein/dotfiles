@@ -24,7 +24,6 @@
       nix-direnv.enable = true;
       silent = true;
     };
-    fd.enable = true;
     fzf = {
       enable = true;
       enableZshIntegration = true;
@@ -42,7 +41,6 @@
   };
 
   home.file = {
-    ".fdignore".source = ../../fd/.fdignore;
     ".ripgreprc".source = ../../ripgrep/.ripgreprc;
   };
 }
