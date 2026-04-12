@@ -5,6 +5,7 @@ _:
     ./bat.nix
     ./bin.nix
     ./cli.nix
+    ./eza.nix
     ./git.nix
     ./ghostty.nix
     ./gpg.nix

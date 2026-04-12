@@ -24,13 +24,6 @@
       nix-direnv.enable = true;
       silent = true;
     };
-    eza = {
-      colors = "auto";
-      enable = true;
-      enableZshIntegration = true;
-      git = true;
-      icons = "auto";
-    };
     fd.enable = true;
     fzf = {
       enable = true;
@@ -49,7 +42,6 @@
   };
 
   home.file = {
-    ".config/eza/theme.yml".source = ../../eza/.config/eza/theme.yml;
     ".fdignore".source = ../../fd/.fdignore;
     ".ripgreprc".source = ../../ripgrep/.ripgreprc;
   };
