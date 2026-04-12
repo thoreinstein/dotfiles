@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+_:
 {
   programs.nixvim = {
     plugins = {
@@ -89,34 +89,6 @@
         };
       };
 
-      neogit = {
-        enable = true;
-        settings = {
-          graph_style = "unicode";
-          integrations = {
-            diffview = true;
-            telescope = true;
-          };
-          kind = "tab";
-          signs = {
-            hunk = [ "" "" ];
-            item = [ "" "" ];
-            section = [ "" "" ];
-          };
-          disable_line_numbers = true;
-          auto_refresh = true;
-          status = {
-            recent_commit_count = 10;
-          };
-          commit_editor = {
-            kind = "split";
-          };
-          popup = {
-            kind = "split";
-          };
-        };
-      };
-
       diffview = {
         enable = true;
       };
@@ -126,25 +98,9 @@
       git-conflict = {
         enable = true;
       };
-
-      octo = {
-        enable = true;
-        settings = {
-          enable_builtin = true;
-          default_to_projects_v2 = true;
-        };
-      };
     };
 
     keymaps = [
-      # Neogit
-      { mode = "n"; key = "<leader>gg"; action.__raw = ''function() require("neogit").open() end''; options.desc = "Neogit status"; }
-      { mode = "n"; key = "<leader>gc"; action.__raw = ''function() require("neogit").open({ "commit" }) end''; options.desc = "Neogit commit"; }
-      { mode = "n"; key = "<leader>gP"; action.__raw = ''function() require("neogit").open({ "push" }) end''; options.desc = "Neogit push"; }
-      { mode = "n"; key = "<leader>gF"; action.__raw = ''function() require("neogit").open({ "pull" }) end''; options.desc = "Neogit pull"; }
-      { mode = "n"; key = "<leader>gB"; action.__raw = ''function() require("neogit").open({ "branch" }) end''; options.desc = "Neogit branch"; }
-      { mode = "n"; key = "<leader>gL"; action.__raw = ''function() require("neogit").open({ "log" }) end''; options.desc = "Neogit log"; }
-
       # Diffview
       { mode = "n"; key = "<leader>gd"; action = "<cmd>DiffviewOpen<cr>"; options.desc = "Diff view (working tree vs HEAD)"; }
       { mode = "n"; key = "<leader>gs"; action = "<cmd>DiffviewOpen --staged<cr>"; options.desc = "Diff view (staged vs HEAD)"; }
@@ -155,17 +111,6 @@
       # Fugitive
       { mode = "n"; key = "<leader>gf"; action = "<cmd>Git<cr>"; options.desc = "Fugitive (Git Status)"; }
       { mode = "n"; key = "<leader>gV"; action = "<cmd>Gvdiffsplit!<cr>"; options.desc = "Fugitive 3-way Merge"; }
-
-      # Octo
-      { mode = "n"; key = "<leader>oPr"; action = "<cmd>Octo pr checkout<cr>"; options.desc = "Checkout PR"; }
-      { mode = "n"; key = "<leader>oPo"; action = "<cmd>Octo pr browser<cr>"; options.desc = "Open PR in browser"; }
-      { mode = "n"; key = "<leader>oPa"; action = "<cmd>Octo review submit approve<cr>"; options.desc = "Approve PR"; }
-      { mode = "n"; key = "<leader>oPc"; action = "<cmd>Octo comment add<cr>"; options.desc = "Add comment"; }
-      { mode = "n"; key = "<leader>oPm"; action = "<cmd>Octo pr merge<cr>"; options.desc = "Merge PR"; }
-      { mode = "n"; key = "<leader>oPl"; action = "<cmd>Octo pr list<cr>"; options.desc = "List PRs"; }
-      { mode = "n"; key = "<leader>oIl"; action = "<cmd>Octo issue list<cr>"; options.desc = "List issues"; }
-      { mode = "n"; key = "<leader>oIc"; action = "<cmd>Octo issue create<cr>"; options.desc = "Create issue"; }
-      { mode = "n"; key = "<leader>oIb"; action = "<cmd>Octo issue browser<cr>"; options.desc = "Open issue in browser"; }
     ];
 
     extraConfigLua = ''
@@ -173,7 +118,7 @@
       vim.keymap.set("n", "g2", "<cmd>diffget //2<cr>", { desc = "Git: Get from Target (Left/Buf 2)" })
       vim.keymap.set("n", "g3", "<cmd>diffget //3<cr>", { desc = "Git: Get from Merge (Right/Buf 3)" })
 
-      -- Diffview keymaps and settings
+      -- Diffview settings
       require("diffview").setup({
         view = {
           default = { layout = "diff2_horizontal", winbar_info = true },

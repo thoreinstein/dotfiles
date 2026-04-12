@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+_:
 {
   programs.nixvim = {
     colorschemes.rose-pine = {
@@ -74,7 +74,6 @@
           "<leader>f" = "find";
           "<leader>g" = "git";
           "<leader>h" = "hunk";
-          "<leader>o" = "octo";
           "<leader>r" = "refactor";
           "<leader>s" = "search/replace";
           "<leader>w" = "window";
@@ -160,7 +159,8 @@
       { mode = "n"; key = "<leader>xL"; action = "<cmd>Trouble loclist toggle<cr>"; options.desc = "Location List (Trouble)"; }
       { mode = "n"; key = "<leader>xQ"; action = "<cmd>Trouble qflist toggle<cr>"; options.desc = "Quickfix List (Trouble)"; }
       {
-        mode = "n"; key = "[q";
+        mode = "n";
+        key = "[q";
         action.__raw = ''
           function()
             if require("trouble").is_open() then
@@ -174,7 +174,8 @@
         options.desc = "Previous Trouble/Quickfix Item";
       }
       {
-        mode = "n"; key = "]q";
+        mode = "n";
+        key = "]q";
         action.__raw = ''
           function()
             if require("trouble").is_open() then
