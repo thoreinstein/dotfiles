@@ -11,7 +11,6 @@ _:
     ./git.nix
     ./ghostty.nix
     ./gpg.nix
-    ./markdown.nix
     ./nixvim
     ./ripgrep.nix
     ./starship.nix
