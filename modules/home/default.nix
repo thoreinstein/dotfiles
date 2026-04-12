@@ -14,6 +14,7 @@ _:
     ./markdown.nix
     ./nixvim
     ./ripgrep.nix
+    ./starship.nix
     ./tmux.nix
     ./zoxide.nix
     ./zsh.nix
