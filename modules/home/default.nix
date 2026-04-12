@@ -12,6 +12,7 @@ _:
     ./gpg.nix
     ./markdown.nix
     ./nixvim
+    ./ripgrep.nix
     ./tmux.nix
     ./zsh.nix
   ];

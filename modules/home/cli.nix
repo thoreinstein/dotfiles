@@ -30,7 +30,6 @@
       tmux.enableShellIntegration = true;
     };
     jq.enable = true;
-    ripgrep.enable = true;
     zoxide = {
       enable = true;
       options = [
@@ -40,7 +39,5 @@
     };
   };
 
-  home.file = {
-    ".ripgreprc".source = ../../ripgrep/.ripgreprc;
-  };
+  home.file = { };
 }
