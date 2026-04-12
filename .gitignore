@@ -32,5 +32,6 @@ zsh/.zsh/local-aliases.zsh
 **/credentials
 
 result
+.direnv/
 .claude/settings.local.json
 .pre-commit-config.yaml

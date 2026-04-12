@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+_:
 {
   programs.nixvim = {
     plugins.lsp = {
@@ -94,26 +94,29 @@
       onAttach = ''
         local map = vim.keymap.set
         local function opts(desc)
-          return { buffer = bufnr, desc = "LSP " .. desc }
+          return { buffer = bufnr, desc = desc }
         end
-        map("n", "gD", vim.lsp.buf.declaration, opts "Go to declaration")
+
+        -- goto (g prefix, standard vim convention)
         map("n", "gd", vim.lsp.buf.definition, opts "Go to definition")
+        map("n", "gD", vim.lsp.buf.declaration, opts "Go to declaration")
         map("n", "gi", vim.lsp.buf.implementation, opts "Go to implementation")
-        map("n", "<leader>k", vim.lsp.buf.signature_help, opts "Signature help")
-        map("n", "<leader>K", vim.lsp.buf.hover, opts "Hover")
-        map("n", "<leader>D", vim.lsp.buf.type_definition, opts "Go to type definition")
-        map("n", "<leader>rn", vim.lsp.buf.rename, opts "Rename")
-        map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
         map("n", "gr", vim.lsp.buf.references, opts "References")
-        map("n", "<leader>e", vim.diagnostic.open_float, opts "Show diagnostic")
-        map("n", "<leader>q", vim.diagnostic.setloclist, opts "Diagnostic loclist")
-        map("n", "[d", vim.diagnostic.goto_prev, { buffer = bufnr, desc = "Prev diagnostic" })
-        map("n", "]d", vim.diagnostic.goto_next, { buffer = bufnr, desc = "Next diagnostic" })
-        map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, { buffer = bufnr, desc = "Add workspace folder" })
-        map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, { buffer = bufnr, desc = "Remove workspace folder" })
-        map("n", "<leader>wl", function()
-          print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-        end, { buffer = bufnr, desc = "List workspace folders" })
+
+        -- hover (standard K)
+        map("n", "K", vim.lsp.buf.hover, opts "Hover")
+
+        -- diagnostics ([ ] navigation)
+        map("n", "[d", vim.diagnostic.goto_prev, opts "Prev diagnostic")
+        map("n", "]d", vim.diagnostic.goto_next, opts "Next diagnostic")
+
+        -- code actions (<leader>c group)
+        map("n", "<leader>ck", vim.lsp.buf.signature_help, opts "Signature help")
+        map("n", "<leader>cr", vim.lsp.buf.rename, opts "Rename")
+
+        -- diagnostics (<leader>x group)
+        map("n", "<leader>xe", vim.diagnostic.open_float, opts "Show diagnostic float")
+        map("n", "<leader>xl", vim.diagnostic.setloclist, opts "Diagnostic loclist")
 
         if client.supports_method("textDocument/semanticTokens") then
           client.server_capabilities.semanticTokensProvider = nil

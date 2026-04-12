@@ -20,9 +20,11 @@ _:
   ];
 
   # Core home-manager configuration
-  home.username = "myers";
-  home.homeDirectory = "/Users/myers";
-  home.stateVersion = "23.11";
+  home = {
+    username = "myers";
+    homeDirectory = "/Users/myers";
+    stateVersion = "23.11";
+  };
 
   programs.home-manager.enable = true;
 }

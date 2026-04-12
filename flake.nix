@@ -90,12 +90,14 @@
           ./modules/darwin
           home-manager.darwinModules.home-manager
           {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.myers = import ./modules/home;
-            home-manager.sharedModules = [
-              nixvim.homeModules.nixvim
-            ];
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.myers = import ./modules/home;
+              sharedModules = [
+                nixvim.homeModules.nixvim
+              ];
+            };
           }
         ];
         specialArgs = { inherit inputs; };
