@@ -13,6 +13,21 @@ _:
       enable = true;
     };
 
+    ts-autotag = {
+      enable = true;
+    };
+
+    illuminate = {
+      enable = true;
+      underCursor = false;
+      delay = 200;
+      filetypesDenylist = [
+        "NvimTree"
+        "Trouble"
+        "telescope"
+      ];
+    };
+
     mini = {
       enable = true;
       modules = {

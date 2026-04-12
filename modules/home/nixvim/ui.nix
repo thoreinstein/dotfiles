@@ -75,6 +75,7 @@ _:
           "<leader>g" = "git";
           "<leader>h" = "hunk";
           "<leader>r" = "refactor";
+          "<leader>t" = "test";
           "<leader>w" = "window";
           "<leader>x" = "diagnostics";
           "[" = "prev";
