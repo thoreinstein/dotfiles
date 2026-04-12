@@ -7,14 +7,11 @@
     nodejs
     osv-scanner
     pre-commit
-    shellcheck
     sqlfluff
-    stylua
     terminal-notifier
     tldr
     tree
     wget
-    yamllint
     yq-go
   ];
 

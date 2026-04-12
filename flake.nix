@@ -22,6 +22,12 @@
       inputs.darwin.follows = "nix-darwin";
     };
 
+    # Neovim configuration
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Quality Control
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -29,7 +35,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, agenix, git-hooks, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, nixvim, agenix, git-hooks, ... }@inputs:
     let
       systems = [
         "aarch64-darwin"
@@ -87,6 +93,9 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.myers = import ./modules/home;
+            home-manager.sharedModules = [
+              nixvim.homeManagerModules.nixvim
+            ];
           }
         ];
         specialArgs = { inherit inputs; };
