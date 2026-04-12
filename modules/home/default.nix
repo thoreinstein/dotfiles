@@ -1,6 +1,7 @@
 _:
 {
   imports = [
+    ./atuin.nix
     ./bin.nix
     ./cli.nix
     ./git.nix

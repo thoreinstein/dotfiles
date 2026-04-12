@@ -2,13 +2,12 @@
 {
   programs.git = {
     enable = true;
-    userName = "Jim Myers";
 
     signing = {
       signByDefault = true;
+      format = "openpgp";
     };
 
-    delta.enable = true;
     lfs.enable = true;
 
     ignores = [
@@ -76,7 +75,8 @@
       { path = "~/.gitconfig.local"; }
     ];
 
-    extraConfig = {
+    settings = {
+      user.name = "Jim Myers";
       core.editor = "nvim";
       init.defaultBranch = "main";
       pull.rebase = true;
@@ -107,6 +107,11 @@
       mergetool.keepBackup = false;
       "mergetool \"fugitive\"".cmd = ''nvim -f -c "Gvdiffsplit!" "$MERGED"'';
     };
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
   };
 
   home.packages = with pkgs; [

@@ -1,56 +1,18 @@
 { pkgs, ... }:
 {
   home.packages = with pkgs; [
-    cloc
     codespell
     coreutils
     nodejs
-    osv-scanner
-    pre-commit
-    sqlfluff
     terminal-notifier
-    tldr
     tree
     wget
     yq-go
   ];
 
   programs = {
-    atuin = {
+    asciinema = {
       enable = true;
-      settings = {
-        search_mode = "fuzzy";
-        filter_mode = "global";
-        enter_accept = false;
-        sync = {
-          records = true;
-        };
-        stats = {
-          common_subcommands = [
-            "apt"
-            "cargo"
-            "composer"
-            "dnf"
-            "docker"
-            "git"
-            "go"
-            "forge"
-            "ip"
-            "jj"
-            "kubectl"
-            "nix"
-            "nmcli"
-            "npm"
-            "pecl"
-            "pnpm"
-            "podman"
-            "port"
-            "systemctl"
-            "tmux"
-            "yarn"
-          ];
-        };
-      };
     };
     bat = {
       enable = true;
@@ -78,18 +40,37 @@
         };
       };
     };
-    eza.enable = true;
-    fd.enable = true;
-    fzf.enable = true;
-    jq.enable = true;
-    ripgrep.enable = true;
+    dircolors = {
+      enable = true;
+      enableZshIntegration = true;
+    };
     direnv = {
       enable = true;
+      enableZshIntegration = true;
       nix-direnv.enable = true;
+      silent = true;
     };
+    eza = {
+      colors = "auto";
+      enable = true;
+      enableZshIntegration = true;
+      git = true;
+      icons = "auto";
+    };
+    fd.enable = true;
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+      tmux.enableShellIntegration = true;
+    };
+    jq.enable = true;
+    ripgrep.enable = true;
     zoxide = {
       enable = true;
-      options = [ "--cmd" "cd" ];
+      options = [
+        "--cmd"
+        "cd"
+      ];
     };
   };
 
