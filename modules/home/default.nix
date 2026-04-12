@@ -5,6 +5,7 @@ _:
     ./bat.nix
     ./bin.nix
     ./cli.nix
+    ./direnv.nix
     ./eza.nix
     ./fd.nix
     ./git.nix
