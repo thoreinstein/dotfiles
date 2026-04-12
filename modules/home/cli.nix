@@ -25,6 +25,4 @@
     };
     jq.enable = true;
   };
-
-  home.file = { };
 }
