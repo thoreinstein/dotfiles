@@ -24,13 +24,6 @@
       tmux.enableShellIntegration = true;
     };
     jq.enable = true;
-    zoxide = {
-      enable = true;
-      options = [
-        "--cmd"
-        "cd"
-      ];
-    };
   };
 
   home.file = { };
