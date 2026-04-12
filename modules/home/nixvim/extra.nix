@@ -7,9 +7,6 @@
       # gitgraph-nvim — not in nixpkgs, needs buildVimPlugin with pinned hash
     ];
 
-    # Worktree picker custom module
-    extraFiles."lua/config/worktree-picker.lua".source = ../../../nvim/.config/nvim/lua/config/worktree-picker.lua;
-
     extraConfigLua = ''
       -- Scrollbar
       require("scrollbar").setup({
