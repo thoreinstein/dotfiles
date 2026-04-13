@@ -1,4 +1,4 @@
-_:
+{ username, homeDirectory, ... }:
 {
   imports = [
     ./atuin.nix
@@ -21,8 +21,7 @@ _:
 
   # Core home-manager configuration
   home = {
-    username = "myers";
-    homeDirectory = "/Users/myers";
+    inherit username homeDirectory;
     stateVersion = "23.11";
   };
 

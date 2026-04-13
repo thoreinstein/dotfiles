@@ -16,7 +16,7 @@ _:
       set -g allow-passthrough on
 
       # Session switcher
-      bind -r f run-shell "~/.bin/ts"
+      bind -r f run-shell "ts"
 
       # Window behavior
       set-window-option -g aggressive-resize

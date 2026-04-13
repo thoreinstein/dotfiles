@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, homeDirectory, ... }:
 {
   imports = [
     ./homebrew.nix
@@ -14,11 +14,11 @@
 
   programs.zsh.enable = true;
 
-  users.users.myers = {
-    name = "myers";
-    home = "/Users/myers";
+  users.users.${username} = {
+    name = username;
+    home = homeDirectory;
   };
 
-  system.primaryUser = "myers";
+  system.primaryUser = username;
   system.stateVersion = 4;
 }

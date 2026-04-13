@@ -1,10 +1,12 @@
 .PHONY: switch build check fmt update
 
+HOST := $(shell scutil --get LocalHostName)
+
 switch:
-	sudo darwin-rebuild switch --flake '.#Jims-Mac-mini'
+	sudo darwin-rebuild switch --flake '.#$(HOST)'
 
 build:
-	darwin-rebuild build --flake '.#Jims-Mac-mini'
+	darwin-rebuild build --flake '.#$(HOST)'
 
 check:
 	nix flake check

@@ -37,6 +37,32 @@
         "x86_64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
+
+      mkDarwinHost = { system, username }: nix-darwin.lib.darwinSystem {
+        inherit system;
+        modules = [
+          ./modules/darwin
+          home-manager.darwinModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${username} = import ./modules/home;
+              sharedModules = [
+                nixvim.homeModules.nixvim
+              ];
+              extraSpecialArgs = {
+                inherit username;
+                homeDirectory = "/Users/${username}";
+              };
+            };
+          }
+        ];
+        specialArgs = {
+          inherit inputs username;
+          homeDirectory = "/Users/${username}";
+        };
+      };
     in
     {
       # Custom library functions
@@ -75,23 +101,14 @@
         });
 
       # nix-darwin configurations
-      darwinConfigurations."Jims-Mac-mini" = nix-darwin.lib.darwinSystem {
+      darwinConfigurations."Jims-Mac-mini" = mkDarwinHost {
         system = "aarch64-darwin";
-        modules = [
-          ./modules/darwin
-          home-manager.darwinModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.myers = import ./modules/home;
-              sharedModules = [
-                nixvim.homeModules.nixvim
-              ];
-            };
-          }
-        ];
-        specialArgs = { inherit inputs; };
+        username = "myers";
+      };
+
+      darwinConfigurations."mac-1QFL40HG" = mkDarwinHost {
+        system = "aarch64-darwin";
+        username = "jimmyers";
       };
 
     };
