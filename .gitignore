@@ -30,3 +30,4 @@ zsh/.zsh/local-aliases.zsh
 **/tokens
 **/secrets
 **/credentials
+zsh/.zsh/local.zsh

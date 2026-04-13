@@ -56,7 +56,6 @@ credentials.json
 # Claude AI
 .claude/
 .claude.md
-CLAUDE.md
 .direnv/
 
 # *.md
