@@ -8,6 +8,16 @@
 
     defaultKeymap = "emacs";
 
+    completionInit = ''
+      autoload -Uz compinit
+      if [[ -f "$HOME/.cache/zsh/zcompdump" ]] && [[ $(date +'%j') == $(stat -f '%Sm' -t '%j' "$HOME/.cache/zsh/zcompdump" 2>/dev/null) ]]; then
+        compinit -C -d "$HOME/.cache/zsh/zcompdump"
+      else
+        mkdir -p "$HOME/.cache/zsh"
+        compinit -d "$HOME/.cache/zsh/zcompdump"
+      fi
+    '';
+
     history = {
       size = 50000;
       save = 50000;
@@ -65,6 +75,9 @@
       fdf = "fd --follow";
       fdd = "fd --type d";
       fdfe = "fd --type f --extension";
+
+      tf = "tofu";
+      tg = "terragrunt";
     };
 
     initContent = lib.mkMerge [
@@ -72,17 +85,7 @@
         eval "$(zoxide init zsh --cmd cd)"
       '')
       (lib.mkBefore ''
-        # Detect and configure Homebrew for cross-platform compatibility
-        if [[ -x /opt/homebrew/bin/brew ]]; then
-          HOMEBREW_PREFIX="/opt/homebrew"
-        elif [[ -x /usr/local/bin/brew ]]; then
-          HOMEBREW_PREFIX="/usr/local"
-        elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
-          HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
-        elif command -v brew >/dev/null 2>&1; then
-          HOMEBREW_PREFIX="$(brew --prefix)"
-        fi
-        [[ -n "$HOMEBREW_PREFIX" ]] && eval "$($HOMEBREW_PREFIX/bin/brew shellenv)"
+        # nix-darwin manages Homebrew PATH via /etc/zshenv
       '')
       ''
         # Shell options
@@ -126,13 +129,19 @@
           . "$HOME/.cargo/env"
         fi
 
-        # Dynamic tool completions
-        [[ -x $(command -v cascade) ]] && eval "$(cascade completion zsh)"
-        [[ -x $(command -v codex) ]]   && eval "$(codex completion zsh)"
-        [[ -x $(command -v bd) ]]      && eval "$(bd completion zsh)"
-        [[ -x $(command -v rig) ]]     && eval "$(rig completion zsh)"
-        [[ -x $(command -v gt) ]]      && eval "$(gt completion zsh)"
-        [[ -x $(command -v forge) ]]   && eval "$(forge completion zsh)"
+        # Dynamic tool completions (cached to avoid slow eval on every shell)
+        _cache_completion() {
+          local cmd=$1 cache="$HOME/.cache/zsh-completions/_''${cmd}"
+          if [[ ! -f "$cache" ]] || [[ $(command -v "$cmd") -nt "$cache" ]]; then
+            mkdir -p "$HOME/.cache/zsh-completions"
+            "$cmd" completion zsh > "$cache" 2>/dev/null
+          fi
+          [[ -f "$cache" ]] && source "$cache"
+        }
+        for cmd in cascade codex rig gt forge; do
+          [[ -x $(command -v "$cmd") ]] && _cache_completion "$cmd"
+        done
+        unfunction _cache_completion
 
         # Google Cloud SDK
         [[ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]] && . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"

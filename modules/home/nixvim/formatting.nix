@@ -9,6 +9,7 @@
           go = [ "goimports" "gofmt" ];
           graphql = [ "prettier" ];
           handlebars = [ "prettier" ];
+          hcl = [ "tofu_fmt" "terragrunt_hclfmt" ];
           html = [ "prettier" ];
           javascript = [ "prettier" ];
           javascriptreact = [ "prettier" ];
@@ -22,6 +23,8 @@
           scss = [ "prettier" ];
           sh = [ "shfmt" ];
           svelte = [ "prettier" ];
+          terraform = [ "tofu_fmt" ];
+          "terraform-vars" = [ "tofu_fmt" ];
           typescript = [ "prettier" ];
           typescriptreact = [ "prettier" ];
           vue = [ "prettier" ];
@@ -81,15 +84,10 @@
     ];
 
     extraPackages = with pkgs; [
-      gofumpt
-      gotools
       prettierd
-      black
-      isort
       shfmt
-      yamlfmt
       stylua
-      rustfmt
+      yamlfmt
     ];
   };
 }

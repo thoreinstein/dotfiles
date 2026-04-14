@@ -1,5 +1,4 @@
-_:
-{
+_: {
   homebrew = {
     enable = true;
     onActivation = {
@@ -28,6 +27,7 @@ _:
       "docker-desktop"
       "finicky"
       "ghostty"
+      "lm-studio"
       "obsidian"
       "utm"
 

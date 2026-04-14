@@ -3,6 +3,7 @@
   home.packages = with pkgs; [
     codespell
     nodejs
+    pkg-config
     terminal-notifier
     yq-go
   ];

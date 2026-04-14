@@ -32,6 +32,7 @@
   };
 
   home.packages = with pkgs; [
+    pinentry_mac
     yubikey-manager
     yubikey-personalization
   ];
