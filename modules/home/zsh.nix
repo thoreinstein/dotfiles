@@ -68,6 +68,9 @@
     };
 
     initContent = lib.mkMerge [
+      (lib.mkAfter ''
+        eval "$(zoxide init zsh --cmd cd)"
+      '')
       (lib.mkBefore ''
         # Detect and configure Homebrew for cross-platform compatibility
         if [[ -x /opt/homebrew/bin/brew ]]; then
