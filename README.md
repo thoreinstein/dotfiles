@@ -1,55 +1,78 @@
 # Dotfiles
 
-Personal dotfiles for macOS, managed with GNU Stow.
+Personal dotfiles for macOS, managed with [Nix](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), and [home-manager](https://github.com/nix-community/home-manager).
 
 ## Quick Install
+
+Requires [Nix](https://nixos.org/download/) with flakes enabled.
 
 ```bash
 git clone git@github.com:thoreinstein/dotfiles.git ~/src/thoreinstein/dotfiles
 cd ~/src/thoreinstein/dotfiles
-./install.sh
+nix run nix-darwin/master#darwin-rebuild -- switch --flake '.#<hostname>'
 ```
+
+Subsequent rebuilds:
+
+```bash
+make switch    # Applies config (auto-detects hostname)
+make build     # Build without applying
+make update    # Update flake inputs
+make check     # Run flake checks
+make fmt       # Format nix files
+```
+
+## Hosts
+
+| Host | User | Description |
+|------|------|-------------|
+| `Jims-Mac-mini` | `myers` | Mac mini |
+| `mac-1QFL40HG` | `jimmyers` | MacBook |
+
+Adding a new host: add a `darwinConfigurations` entry in `flake.nix` using `mkDarwinHost`.
 
 ## What's Included
 
 | Tool | Description |
 |------|-------------|
-| **Neovim** | LSP, Treesitter, Telescope, Lazy.nvim |
-| **Zsh** | Fish-like experience with autosuggestions & syntax highlighting |
-| **Tmux** | Rose Pine theme, vim-tmux-navigator |
+| **Neovim** | Managed via [NixVim](https://github.com/nix-community/nixvim) — LSP, Treesitter, Telescope, conform |
+| **Zsh** | Autosuggestions, syntax highlighting, cached completions |
+| **Tmux** | Rose Pine theme, vim-tmux-navigator, TPM plugins |
 | **Starship** | Minimal prompt with git status & cmd duration |
-| **Git** | GPG signing, worktree aliases, Diffview merge tool |
-| **Ghostty** | Catppuccin Mocha theme |
-| **CLI Tools** | bat, eza, fd, ripgrep, fzf, atuin, zoxide |
+| **Git** | GPG signing, delta diffs, worktree aliases |
+| **Ghostty** | Rose Pine theme, JetBrains Mono Nerd Font |
+| **CLI Tools** | bat, eza, fd, ripgrep, fzf, atuin, zoxide, direnv |
 
 ## Structure
 
 ```
 dotfiles/
-├── nvim/        # Neovim config (Lazy.nvim, LSP, Treesitter)
-├── zsh/         # Zsh shell config
-├── tmux/        # Tmux config
-├── git/         # Git config (uses ~/.gitconfig.local for identity)
-├── starship/    # Starship prompt
-├── ghostty/     # Ghostty terminal
-├── bat/         # Bat themes
-├── eza/         # Eza theme
-├── ripgrep/     # Ripgrep config
-├── fd/          # Fd ignore patterns
-├── bin/         # Custom scripts (ts, ghclone, git-cleanup)
-└── Brewfile     # All Homebrew packages
-```
-
-## Manual Deployment
-
-Deploy specific configs with make:
-
-```bash
-make nvim      # Deploy Neovim config
-make zsh       # Deploy Zsh config
-make git       # Deploy Git config
-make install   # Deploy everything
-make clean     # Remove all symlinks
+├── flake.nix              # Flake entry point with mkDarwinHost helper
+├── flake.lock
+├── Makefile               # switch, build, check, fmt, update
+├── modules/
+│   ├── darwin/
+│   │   ├── default.nix    # Users, fonts, nix settings
+│   │   ├── homebrew.nix   # Casks managed by nix-darwin
+│   │   └── system.nix     # macOS defaults (dock, keyboard, finder)
+│   └── home/
+│       ├── default.nix    # Home-manager entry point
+│       ├── zsh.nix        # Shell config, aliases, completions
+│       ├── tmux.nix       # Tmux config
+│       ├── git.nix        # Git + delta
+│       ├── starship.nix   # Prompt
+│       ├── ghostty.nix    # Terminal
+│       ├── bin.nix        # Custom scripts (ts, ghclone, git-cleanup)
+│       ├── nixvim/        # Neovim config (14 modules)
+│       │   ├── lsp.nix
+│       │   ├── completion.nix
+│       │   ├── formatting.nix
+│       │   ├── treesitter.nix
+│       │   └── ...
+│       └── ...            # atuin, bat, eza, fd, ripgrep, etc.
+├── bat/                   # Bat themes (Rose Pine)
+├── bin/                   # Custom shell scripts
+└── secrets/               # Secret definitions
 ```
 
 ## Key Bindings
@@ -66,8 +89,9 @@ make clean     # Remove all symlinks
 | `gr` | References |
 | `<leader>ca` | Code action |
 | `<leader>rn` | Rename |
+| `<leader>rf` | Format buffer |
+| `<leader>rt` | Toggle format on save |
 | `S-h` / `S-l` | Previous/Next buffer |
-| `jk` or `jj` | Exit insert mode |
 
 ### Tmux
 
@@ -98,43 +122,7 @@ git wl          # List worktrees
 git wa <branch> # Add worktree
 git pr <number> # Checkout PR in worktree
 git l           # Pretty log
-```
-
-## Pre-commit Hooks
-
-This repo uses pre-commit for code quality:
-
-```bash
-pre-commit install          # Install hooks (done automatically)
-pre-commit run --all-files  # Run on all files
-```
-
-Hooks include:
-- Large file detection
-- Private key detection
-- YAML validation
-- Shellcheck for shell scripts
-- StyLua for Lua formatting
-
-## Shell
-
-Uses **Zsh** with fish-like features:
-
-- **Autosuggestions** via zsh-autosuggestions
-- **Syntax highlighting** via zsh-syntax-highlighting
-- **History search** via Atuin (Ctrl+R)
-- **Prompt** via Starship
-- **Smart directory jumping** via zoxide (replaces `cd`)
-- Machine-specific aliases: add them to `~/.zsh/local-aliases.zsh` (sourced if present)
-
-### Directory Navigation
-
-```bash
-..              # cd ..
-...             # cd ../..
-....            # cd ../../..
-cd proj         # Jump to most-used directory matching "proj"
-cdi             # Interactive directory picker (fzf)
+git s           # Short status
 ```
 
 ## Custom Scripts
@@ -159,32 +147,20 @@ ghclone https://github.com/user/repo
 
 ## Troubleshooting
 
-### Neovim plugins not loading
+### Rebuild fails
 
 ```bash
-nvim --headless "+Lazy! sync" +qa
+make build    # Build without switching to see errors
+```
+
+### GPG signing fails
+
+```bash
+gpgconf --kill gpg-agent && gpg-agent --daemon
 ```
 
 ### Tmux plugins not loading
 
 ```bash
 ~/.tmux/plugins/tpm/bin/install_plugins
-```
-
-### GPG signing fails
-
-```bash
-# Restart GPG agent
-gpgconf --kill gpg-agent
-gpgconf --launch gpg-agent
-```
-
-### Starship prompt not showing
-
-```bash
-# Verify starship is in PATH
-which starship
-
-# Reinitialize
-eval "$(starship init zsh)"
 ```
