@@ -143,10 +143,6 @@
         done
         unfunction _cache_completion
 
-        # Google Cloud SDK
-        [[ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]] && . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"
-        [[ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]] && . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"
-
         # Bun completions
         [[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
 
