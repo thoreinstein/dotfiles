@@ -26,8 +26,8 @@ _: {
       "codexbar"
       "docker-desktop"
       "finicky"
+      "gcloud-cli"
       "ghostty"
-      "lm-studio"
       "obsidian"
       "utm"
 
