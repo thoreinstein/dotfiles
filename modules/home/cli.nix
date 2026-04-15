@@ -2,6 +2,8 @@
 {
   home.packages = with pkgs; [
     codespell
+    codex
+    k9s
     nodejs
     pkg-config
     terminal-notifier
