@@ -85,7 +85,8 @@
         eval "$(zoxide init zsh --cmd cd)"
       '')
       (lib.mkBefore ''
-        # nix-darwin manages Homebrew PATH via /etc/zshenv
+        # Homebrew (nix-darwin doesn't add this to PATH)
+        path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
       '')
       ''
         # Shell options

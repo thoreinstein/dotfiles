@@ -80,6 +80,7 @@
       core.editor = "nvim";
       init.defaultBranch = "main";
       pull.rebase = true;
+      pull.autostash = true;
       push.default = "current";
       credential.helper = "osxkeychain";
       rerere.enabled = true;
