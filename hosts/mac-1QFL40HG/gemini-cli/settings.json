@@ -1,0 +1,69 @@
+{
+  "general": {
+    "enableAutoUpdate": true,
+    "enableNotifications": true,
+    "enablePromptCompletion": true,
+    "previewFeatures": true,
+    "sessionRetention": {
+      "enabled": true,
+      "maxAge": "30d",
+      "warningAcknowledged": true
+    },
+    "defaultApprovalMode": "default"
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    },
+    "autoAddToPolicyByDefault": true,
+    "enablePermanentToolApproval": true,
+    "environmentVariableRedaction": {
+      "enabled": true
+    }
+  },
+  "ui": {
+    "accessibility": {
+      "enableLoadingPhrases": false
+    },
+    "dynamicWindowTitle": true,
+    "footer": {
+      "hideContextPercentage": false,
+      "hideSandboxStatus": true
+    },
+    "hideBanner": true,
+    "hideContextSummary": false,
+    "hideFooter": false,
+    "hideTips": true,
+    "hideWindowTitle": true,
+    "incrementalRendering": true,
+    "inlineThinkingMode": "off",
+    "loadingPhrases": "off",
+    "showCitations": true,
+    "showLineNumbers": true,
+    "showMemoryUsage": true,
+    "showModelInfoInChat": true,
+    "showShortcutsHint": false,
+    "terminalBackgroundPollingInterval": 5,
+    "theme": "Rose Pine Dawn (gemini-rose-pine)",
+    "useAlternateBuffer": true,
+    "escapePastedAtSymbols": true
+  },
+  "context": {
+    "loadMemoryFromIncludeDirectories": true
+  },
+  "tools": {
+    "shell": {
+      "showColor": true
+    }
+  },
+  "advanced": {
+    "autoConfigureMemory": true
+  },
+  "experimental": {
+    "useOSC52Paste": true,
+    "useOSC52Copy": true,
+    "plan": false,
+    "modelSteering": true,
+    "directWebFetch": true
+  }
+}

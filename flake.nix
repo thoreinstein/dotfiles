@@ -38,7 +38,7 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      mkDarwinHost = { system, username }: nix-darwin.lib.darwinSystem {
+      mkDarwinHost = { hostname, system, username }: nix-darwin.lib.darwinSystem {
         inherit system;
         modules = [
           ./modules/darwin
@@ -47,7 +47,10 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              users.${username} = import ./modules/home;
+              users.${username}.imports = [
+                ./modules/home
+                ./hosts/${hostname}.nix
+              ];
               sharedModules = [
                 nixvim.homeModules.nixvim
               ];
@@ -102,11 +105,13 @@
 
       # nix-darwin configurations
       darwinConfigurations."Jims-Mac-mini" = mkDarwinHost {
+        hostname = "Jims-Mac-mini";
         system = "aarch64-darwin";
         username = "myers";
       };
 
       darwinConfigurations."mac-1QFL40HG" = mkDarwinHost {
+        hostname = "mac-1QFL40HG";
         system = "aarch64-darwin";
         username = "jimmyers";
       };

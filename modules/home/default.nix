@@ -1,6 +1,7 @@
 { username, homeDirectory, ... }:
 {
   imports = [
+    ./ai-tools.nix
     ./atuin.nix
     ./bat.nix
     ./bin.nix
