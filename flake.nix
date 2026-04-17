@@ -28,7 +28,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, nixvim, git-hooks, ... }@inputs:
+  outputs =
+    { self
+    , nixpkgs
+    , nix-darwin
+    , home-manager
+    , nixvim
+    , git-hooks
+    , ...
+    }@inputs:
     let
       systems = [
         "aarch64-darwin"
@@ -38,34 +46,41 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      mkDarwinHost = { hostname, system, username }: nix-darwin.lib.darwinSystem {
-        inherit system;
-        modules = [
-          ./modules/darwin
-          home-manager.darwinModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${username}.imports = [
-                ./modules/home
-                ./hosts/${hostname}.nix
-              ];
-              sharedModules = [
-                nixvim.homeModules.nixvim
-              ];
-              extraSpecialArgs = {
-                inherit username;
-                homeDirectory = "/Users/${username}";
+      mkDarwinHost =
+        { hostname
+        , system
+        , username
+        ,
+        }:
+        nix-darwin.lib.darwinSystem {
+          inherit system;
+          modules = [
+            ./modules/darwin
+            home-manager.darwinModules.home-manager
+            {
+              home-manager = {
+                backupFileExtension = ".bak";
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${username}.imports = [
+                  ./modules/home
+                  ./hosts/${hostname}.nix
+                ];
+                sharedModules = [
+                  nixvim.homeModules.nixvim
+                ];
+                extraSpecialArgs = {
+                  inherit username;
+                  homeDirectory = "/Users/${username}";
+                };
               };
-            };
-          }
-        ];
-        specialArgs = {
-          inherit inputs username;
-          homeDirectory = "/Users/${username}";
+            }
+          ];
+          specialArgs = {
+            inherit inputs username;
+            homeDirectory = "/Users/${username}";
+          };
         };
-      };
     in
     {
       # Custom library functions
@@ -87,7 +102,8 @@
       });
 
       # Devshell for bootstrapping
-      devShells = forAllSystems (system:
+      devShells = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
@@ -96,12 +112,14 @@
             inherit (self.checks.${system}.pre-commit-check) shellHook;
             packages = with pkgs; [
               codex
-              nixpkgs-fmt
-              statix
               deadnix
+              nixpkgs-fmt
+              prettier
+              statix
             ];
           };
-        });
+        }
+      );
 
       # nix-darwin configurations
       darwinConfigurations."Jims-Mac-mini" = mkDarwinHost {
