@@ -85,6 +85,7 @@
       credential.helper = "osxkeychain";
       rerere.enabled = true;
       gpg.program = "gpg";
+      advice.skippedCherryPicks = false;
 
       alias = {
         ca = "commit --amend";
