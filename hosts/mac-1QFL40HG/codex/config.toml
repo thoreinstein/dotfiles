@@ -14,9 +14,3 @@ network_access = true
 
 [features]
 codex_hooks = true
-
-[projects."/Users/jimmyers/src/thoreinstein/dotfiles"]
-trust_level = "trusted"
-
-[projects."/Users/jimmyers/src/forgecloud/tf-env-saas-v2"]
-trust_level = "trusted"
