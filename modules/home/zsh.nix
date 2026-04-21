@@ -107,6 +107,7 @@
         typeset -U path
         path=(
           $HOME/.local/bin
+          $HOME/.local/share/npm-global/bin
           $HOME/go/bin
           $path
         )
@@ -118,6 +119,7 @@
 
         # Environment
         export K9S_CONFIG_DIR="$HOME/.config/k9s"
+        export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
 
         # FZF defaults
         if command -v rg >/dev/null 2>&1; then
