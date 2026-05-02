@@ -2,9 +2,11 @@
 {
   home.packages = with pkgs; [
     codespell
+    dolt
     k9s
     nodejs
     pkg-config
+    poppler-utils
     terminal-notifier
     yq-go
   ];
