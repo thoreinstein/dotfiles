@@ -48,6 +48,8 @@
       set -g extended-keys on
       set -g extended-keys-format csi-u
 
+      set -g focus-events on
+
       # Window behavior
       set-window-option -g aggressive-resize
       set -g automatic-rename off

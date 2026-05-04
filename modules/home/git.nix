@@ -26,6 +26,7 @@
       "*.sublime-project"
       "*.sublime-workspace"
       ".vim/"
+      ".pi-lens"
       "*.swp"
       "*.swo"
       "*~"

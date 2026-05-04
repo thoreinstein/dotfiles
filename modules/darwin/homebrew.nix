@@ -10,12 +10,18 @@ _: {
     # ──────────────────────────────────────────────
     # Taps
     # ──────────────────────────────────────────────
-    taps = [ ];
+    taps = [
+      "emarkou/prism"
+      "gentleman-programming/tap"
+    ];
 
     # ──────────────────────────────────────────────
     # Formulae
     # ──────────────────────────────────────────────
-    brews = [ ];
+    brews = [
+      "emarkou/prism/gh-prism"
+      "mac-cleanup-go"
+    ];
 
     # ──────────────────────────────────────────────
     # Casks (GUI apps + fonts)
@@ -24,6 +30,7 @@ _: {
       "claude"
       "codexbar"
       "docker-desktop"
+      "engram"
       "finicky"
       "gcloud-cli"
       "ghostty"
