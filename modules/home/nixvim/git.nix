@@ -1,24 +1,45 @@
-_:
-{
+_: {
   programs.nixvim = {
     plugins = {
       gitsigns = {
         enable = true;
         settings = {
           signs = {
-            add = { text = "│"; };
-            change = { text = "│"; };
-            delete = { text = "_"; };
-            topdelete = { text = "‾"; };
-            changedelete = { text = "~"; };
-            untracked = { text = "┆"; };
+            add = {
+              text = "│";
+            };
+            change = {
+              text = "│";
+            };
+            delete = {
+              text = "_";
+            };
+            topdelete = {
+              text = "‾";
+            };
+            changedelete = {
+              text = "~";
+            };
+            untracked = {
+              text = "┆";
+            };
           };
           signs_staged = {
-            add = { text = "│"; };
-            change = { text = "│"; };
-            delete = { text = "_"; };
-            topdelete = { text = "‾"; };
-            changedelete = { text = "~"; };
+            add = {
+              text = "│";
+            };
+            change = {
+              text = "│";
+            };
+            delete = {
+              text = "_";
+            };
+            topdelete = {
+              text = "‾";
+            };
+            changedelete = {
+              text = "~";
+            };
           };
           current_line_blame = true;
           current_line_blame_opts = {
@@ -94,23 +115,54 @@ _:
       };
 
       fugitive.enable = true;
-
-      git-conflict = {
-        enable = true;
-      };
     };
 
     keymaps = [
       # Diffview
-      { mode = "n"; key = "<leader>gd"; action = "<cmd>DiffviewOpen<cr>"; options.desc = "Diff view (working tree vs HEAD)"; }
-      { mode = "n"; key = "<leader>gs"; action = "<cmd>DiffviewOpen --staged<cr>"; options.desc = "Diff view (staged vs HEAD)"; }
-      { mode = "n"; key = "<leader>gD"; action = "<cmd>DiffviewOpen -- %<cr>"; options.desc = "Diff current file vs HEAD"; }
-      { mode = "n"; key = "<leader>gh"; action = "<cmd>DiffviewFileHistory %<cr>"; options.desc = "File history (current file)"; }
-      { mode = "n"; key = "<leader>gH"; action = "<cmd>DiffviewFileHistory<cr>"; options.desc = "File history (repo)"; }
+      {
+        mode = "n";
+        key = "<leader>gd";
+        action = "<cmd>DiffviewOpen<cr>";
+        options.desc = "Diff view (working tree vs HEAD)";
+      }
+      {
+        mode = "n";
+        key = "<leader>gs";
+        action = "<cmd>DiffviewOpen --staged<cr>";
+        options.desc = "Diff view (staged vs HEAD)";
+      }
+      {
+        mode = "n";
+        key = "<leader>gD";
+        action = "<cmd>DiffviewOpen -- %<cr>";
+        options.desc = "Diff current file vs HEAD";
+      }
+      {
+        mode = "n";
+        key = "<leader>gh";
+        action = "<cmd>DiffviewFileHistory %<cr>";
+        options.desc = "File history (current file)";
+      }
+      {
+        mode = "n";
+        key = "<leader>gH";
+        action = "<cmd>DiffviewFileHistory<cr>";
+        options.desc = "File history (repo)";
+      }
 
       # Fugitive
-      { mode = "n"; key = "<leader>gf"; action = "<cmd>Git<cr>"; options.desc = "Fugitive (Git Status)"; }
-      { mode = "n"; key = "<leader>gV"; action = "<cmd>Gvdiffsplit!<cr>"; options.desc = "Fugitive 3-way Merge"; }
+      {
+        mode = "n";
+        key = "<leader>gf";
+        action = "<cmd>Git<cr>";
+        options.desc = "Fugitive (Git Status)";
+      }
+      {
+        mode = "n";
+        key = "<leader>gV";
+        action = "<cmd>Gvdiffsplit!<cr>";
+        options.desc = "Fugitive 3-way Merge";
+      }
     ];
 
     extraConfigLua = ''
