@@ -51,6 +51,7 @@
         gotmpl
         comment
         nix
+        zig
       ];
     };
 

@@ -28,6 +28,7 @@
           typescript = [ "prettier" ];
           typescriptreact = [ "prettier" ];
           vue = [ "prettier" ];
+          zig = [ "zigfmt" ];
         };
         format_on_save = {
           __raw = ''
@@ -88,6 +89,7 @@
       shfmt
       stylua
       yamlfmt
+      zig
     ];
   };
 }

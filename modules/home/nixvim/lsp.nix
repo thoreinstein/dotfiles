@@ -1,4 +1,4 @@
-_:
+{ pkgs, ... }:
 {
   programs.nixvim = {
     plugins.lsp = {
@@ -89,6 +89,10 @@ _:
         nil_ls = {
           enable = true;
         };
+
+        zls = {
+          enable = true;
+        };
       };
 
       onAttach = ''
@@ -159,5 +163,9 @@ _:
         end,
       })
     '';
+
+    extraPackages = with pkgs; [
+      zls
+    ];
   };
 }
