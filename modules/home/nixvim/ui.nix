@@ -65,22 +65,22 @@ _:
           defaults = {
             mode = [ "n" "v" ];
           };
-        };
-        registrations = {
-          "<leader>b" = "buffer";
-          "<leader>c" = "code";
-          "<leader>d" = "debug";
-          "<leader>e" = "explorer";
-          "<leader>f" = "find";
-          "<leader>g" = "git";
-          "<leader>h" = "hunk";
-          "<leader>r" = "refactor";
-          "<leader>t" = "test";
-          "<leader>w" = "window";
-          "<leader>x" = "diagnostics";
-          "[" = "prev";
-          "]" = "next";
-          "g" = "goto";
+          spec = [
+            { __unkeyed-1 = "<leader>b"; group = "Buffers"; }
+            { __unkeyed-1 = "<leader>c"; group = "Code"; }
+            { __unkeyed-1 = "<leader>d"; group = "Debug"; }
+            { __unkeyed-1 = "<leader>e"; group = "Explorer"; }
+            { __unkeyed-1 = "<leader>f"; group = "Find"; }
+            { __unkeyed-1 = "<leader>g"; group = "Git"; }
+            { __unkeyed-1 = "<leader>h"; group = "Hunk"; }
+            { __unkeyed-1 = "<leader>r"; group = "Refactor"; }
+            { __unkeyed-1 = "<leader>t"; group = "Test"; }
+            { __unkeyed-1 = "<leader>w"; group = "Window"; }
+            { __unkeyed-1 = "<leader>x"; group = "Diagnostics"; }
+            { __unkeyed-1 = "["; __unkeyed-2 = "prev"; }
+            { __unkeyed-1 = "]"; __unkeyed-2 = "next"; }
+            { __unkeyed-1 = "g"; group = "Goto"; }
+          ];
         };
       };
 

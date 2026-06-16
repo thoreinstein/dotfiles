@@ -5,9 +5,11 @@
     dolt
     k9s
     nodejs
+    opentofu
     pkg-config
     poppler-utils
     terminal-notifier
+    terragrunt
     yq-go
   ];
 
