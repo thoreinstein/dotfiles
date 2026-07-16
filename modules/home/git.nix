@@ -68,6 +68,7 @@
       "credentials.json"
 
       ".direnv/"
+      ".codegraph/"
       ".repo-mix.mxl"
       "roadmap*.json"
     ];

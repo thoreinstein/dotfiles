@@ -28,7 +28,6 @@ _: {
     # ──────────────────────────────────────────────
     casks = [
       "claude"
-      "codexbar"
       "docker-desktop"
       "engram"
       "finicky"

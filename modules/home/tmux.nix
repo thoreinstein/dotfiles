@@ -48,6 +48,8 @@
       set -g extended-keys on
       set -g extended-keys-format csi-u
 
+      set -g history-limit 10000
+
       set -g focus-events on
 
       # Window behavior
