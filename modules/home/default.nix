@@ -12,6 +12,7 @@
     ./ghostty.nix
     ./gpg.nix
     ./nixvim
+    ./pi
     ./ripgrep.nix
     ./starship.nix
     ./tmux.nix
