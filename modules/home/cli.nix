@@ -8,6 +8,7 @@
     opentofu
     pkg-config
     poppler-utils
+    presenterm
     terminal-notifier
     terragrunt
     yq-go
