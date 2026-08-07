@@ -20,6 +20,7 @@
     fzf = {
       enable = true;
       enableZshIntegration = true;
+      historyWidget.command = ""; # atuin owns Ctrl-R
       tmux.enableShellIntegration = true;
     };
     jq.enable = true;

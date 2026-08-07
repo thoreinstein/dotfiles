@@ -7,11 +7,7 @@
       settings = lib.importTOML ./mac-1QFL40HG/codex/config.toml;
     };
 
-    gemini-cli = {
-      enable = true;
-      enableMcpIntegration = true;
-      settings = lib.importJSON ./mac-1QFL40HG/gemini-cli/settings.json;
-    };
+
 
     mcp = {
       enable = true;
