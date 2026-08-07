@@ -8,6 +8,8 @@
     # interactive shell's own bun still takes precedence.
     extraPackages = [ pkgs.nodejs pkgs.bun ];
 
+    context = ./AGENTS.md;
+
     settings = {
       compaction = {
         enabled = true;
