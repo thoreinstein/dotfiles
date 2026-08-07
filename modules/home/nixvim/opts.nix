@@ -38,7 +38,10 @@ _:
       splitbelow = true;
       splitright = true;
       timeoutlen = 400;
+      # Agent changesets are large and occasionally wrong; make reverting cheap.
+      # undodir is left at Neovim's default (~/.local/state/nvim/undo//).
       undofile = true;
+      undolevels = 10000;
       updatetime = 250;
     };
 
