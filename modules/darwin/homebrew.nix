@@ -11,16 +11,16 @@ _: {
     # Taps
     # ──────────────────────────────────────────────
     taps = [
-      "emarkou/prism"
-      "gentleman-programming/tap"
+      {
+        name = "gentleman-programming/tap";
+        trusted = true;
+      }
     ];
 
     # ──────────────────────────────────────────────
     # Formulae
     # ──────────────────────────────────────────────
     brews = [
-      "emarkou/prism/gh-prism"
-      "mac-cleanup-go"
     ];
 
     # ──────────────────────────────────────────────
