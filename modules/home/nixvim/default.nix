@@ -2,6 +2,7 @@ _:
 {
   imports = [
     ./opts.nix
+    ./autoreload.nix
     ./keymaps.nix
     ./treesitter.nix
     ./lsp.nix
