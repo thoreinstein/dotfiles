@@ -45,8 +45,20 @@ shared baseline plus the minimum per-host difference.
 | Mini default | `anthropic` / `claude-opus-5` |
 | Global AGENTS.md | Yes, as a path to a repo file |
 
-**Accepted tradeoff:** the work laptop is downgraded 0.84.1 → 0.83.0, since nixpkgs lags
-upstream pi. Revisit if that becomes painful.
+**On pi's version.** The currently locked nixpkgs (2026-08-05) has 0.83.0, so the work
+laptop is initially downgraded from 0.84.1. This is not a packaging gap — nixpkgs tracks pi
+closely (master bumped to 0.84.0 on 2026-08-06, one day after upstream's release), and the
+flake is updated roughly weekly, which keeps it current enough. Being a few days behind is
+accepted deliberately.
+
+**Overriding the derivation to chase latest was considered and rejected.** It isn't a
+one-line bump: `src`, `npmDepsHash`, and a `modelData` npm tarball all need hashes, and
+`overrideAttrs` doesn't work for `npmDepsHash` — it's a destructured argument to
+`buildNpmPackage` (`build-npm-package/default.nix:28,58,71`) consumed before `mkDerivation`,
+so overriding it silently does nothing. More decisively, pi shipped 8 releases in the 22 days
+to 2026-08-07 (~one every 2.7 days), so a vendored package definition goes stale within the
+week. Note also that the nixpkgs wrapper sets `PI_SKIP_VERSION_CHECK 1`, since a
+nix-installed pi cannot self-update — that is inherent to nix owning the binary, not a bug.
 
 ## Architecture
 
