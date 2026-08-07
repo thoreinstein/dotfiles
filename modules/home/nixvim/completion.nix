@@ -26,8 +26,12 @@ _:
             default = [ "lsp" "path" "snippets" "buffer" ];
           };
 
+          # blink's own snippet engine (expands via vim.snippet) instead of
+          # luasnip. Its default source scans the runtimepath for
+          # friendly-snippets lazily, so the same snippets stay available
+          # without luasnip's ~11ms of startup.
           snippets = {
-            preset = "luasnip";
+            preset = "default";
           };
 
           completion = {
@@ -39,30 +43,7 @@ _:
         };
       };
 
-      luasnip = {
-        enable = true;
-        settings = {
-          history = true;
-          updateevents = "TextChanged,TextChangedI";
-        };
-        fromVscode = [{ }];
-      };
-
       friendly-snippets.enable = true;
     };
-
-    extraConfigLua = ''
-      -- Unlink snippet on InsertLeave
-      vim.api.nvim_create_autocmd("InsertLeave", {
-        callback = function()
-          if
-            require("luasnip").session.current_nodes[vim.api.nvim_get_current_buf()]
-            and not require("luasnip").session.jump_active
-          then
-            require("luasnip").unlink_current()
-          end
-        end,
-      })
-    '';
   };
 }
