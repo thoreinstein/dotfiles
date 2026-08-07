@@ -123,5 +123,46 @@
         theme = "system";
       };
     };
+
+    pi-coding-agent = {
+      settings = {
+        defaultProvider = "lm-studio";
+        defaultModel = "qwen/qwen3-coder-next";
+        enabledModels = [
+          "qwen/qwen3.6-35b-a3b"
+          "qwen/qwen3-coder-next"
+          "amazon-bedrock/us.anthropic.claude-opus-4-7"
+          "amazon-bedrock/us.anthropic.claude-sonnet-4-6"
+        ];
+      };
+
+      models.providers.lm-studio = {
+        baseUrl = "http://localhost:1234/v1";
+        api = "openai-completions";
+        # Placeholder, not a secret — the endpoint is localhost-only.
+        apiKey = "local-only";
+        models = [
+          {
+            id = "qwen/qwen3-coder-next";
+            name = "Qwen3-Coder-Next";
+            reasoning = false;
+            input = [ "text" ];
+            contextWindow = 131072;
+            maxTokens = 16384;
+            cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; };
+          }
+          {
+            id = "qwen/qwen3.6-35b-a3b";
+            name = "Qwen3.6-35B";
+            reasoning = true;
+            input = [ "text" ];
+            compat.thinkingFormat = "qwen-chat-template";
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; };
+          }
+        ];
+      };
+    };
   };
 }
