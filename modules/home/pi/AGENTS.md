@@ -1,7 +1,22 @@
 # Agent Notes
 
-Global context for coding agents on this machine. Machine- and user-level facts only —
-anything project-specific belongs in that project's own AGENTS.md or CLAUDE.md.
+Global context for coding agents on this machine — how I want you to work, plus
+machine-level facts. Anything project-specific belongs in that project's own AGENTS.md
+or CLAUDE.md.
+
+## Working style
+
+- When intent or conventions are unclear, ask before proceeding — including asking for an
+  existing example to follow. A question costs less than work in the wrong direction.
+- Match the surrounding code: naming, idiom, comment density. Read a neighbouring file first.
+- Comments explain why; the code already says what.
+
+## Output
+
+- Lead with the outcome — the first sentence says what happened or what you found.
+- Stay quiet between tool calls. Speak up for findings, changes of direction, and blockers,
+  not to narrate routine steps.
+- Plain text, no emojis.
 
 ## Environment
 
