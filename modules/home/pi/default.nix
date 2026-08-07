@@ -3,10 +3,15 @@
   programs.pi-coding-agent = {
     enable = true;
 
-    # The npm: packages below are fetched by pi at runtime and need a package
-    # manager on pi's PATH. The module wraps pi with --suffix, so an
-    # interactive shell's own bun still takes precedence.
-    extraPackages = [ pkgs.nodejs pkgs.bun ];
+    # The npm: and git: packages below (plus the one bare https://…git entry)
+    # are fetched by pi at runtime and need node, bun, and git on pi's PATH.
+    # The module wraps pi with --suffix, so an interactive shell's own bun
+    # still takes precedence.
+    extraPackages = [
+      pkgs.nodejs
+      pkgs.bun
+      pkgs.git
+    ];
 
     context = ./AGENTS.md;
 

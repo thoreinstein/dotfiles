@@ -520,7 +520,7 @@ EOF
 
 ### Task 5: Golden-file checks in `flake.checks`
 
-Turns the per-task `nix eval` verification into a permanent, CI-enforced assertion. After this, editing a host file in a way that clobbers the shared baseline fails `make check` and fails CI on PRs.
+Turns the per-task `nix eval` verification into a permanent assertion enforced by local `make check`. After this, editing a host file in a way that clobbers the shared baseline fails `make check`. Note: it does *not* fail CI on PRs — see Task 5's Interfaces note below.
 
 The `programs.pi-coding-agent` **module** is already tested upstream (`home-manager/tests/modules/programs/pi-coding-agent/` covers `settings`, `models`, and `context = <path>` via the `nmt` framework). What is untested is whether *our values* are what we intend and whether the two hosts stay correctly differentiated — that is what this check pins.
 
@@ -532,7 +532,7 @@ The `programs.pi-coding-agent` **module** is already tested upstream (`home-mana
 
 **Interfaces:**
 - Consumes: the merged `programs.pi-coding-agent.settings` / `.models` from Tasks 1, 3, and 4.
-- Produces: `checks.aarch64-darwin.pi-config`, run by `make check` and by `.github/workflows/check.yml`.
+- Produces: `checks.aarch64-darwin.pi-config`, run by local `make check`. `.github/workflows/check.yml` runs on `ubuntu-latest` with bare `nix flake check`, which only evaluates `checks.x86_64-linux` — it does not run this check. Adding a `macos-14` job would close that gap; left as a deliberate choice for the repo owner.
 
 - [ ] **Step 1: Add the check to `flake.nix`**
 
@@ -819,6 +819,16 @@ The work laptop's config was verified by evaluation only. Note explicitly in the
 - LM Studio actually answering on `localhost:1234`
 - The Bedrock entries resolving with work AWS credentials
 - pi 0.83.0 replacing the imperative 0.84.1 install without complaint
+
+**Follow-up for whoever runs this on `mac-1QFL40HG`:** `modules/home/zsh.nix:106-118`
+prepends `$HOME/.local/share/npm-global/bin` and `$HOME/.bun/bin` ahead of the nix profile
+on `PATH`. The work laptop's imperative pi 0.84.1 likely lives under one of those, so after
+`make switch`, `which pi` could still resolve to the old imperative binary instead of the
+nix-wrapped one — meaning it would read the new nix-managed config but run without the
+wrapper's `PI_SKIP_VERSION_CHECK=1`. Before switching, run `which -a pi` and uninstall any
+imperative pi found under `~/.local/share/npm-global/bin` or `~/.bun/bin`. This is a
+human step for the work laptop; do not fix the PATH order or uninstall anything as part of
+this plan.
 
 ---
 

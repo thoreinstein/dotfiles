@@ -26,6 +26,9 @@ Verification loop for any change: `make check` → `make build` → `make switch
 - `lib/` — placeholder for helper functions (empty today).
 - `bin/` — custom scripts (`ts`, `ghclone`, `git-cleanup`) wired in via `modules/home/bin.nix`.
 - `secrets/` — agenix skeleton; **not yet wired**. Don't assume secrets are available.
+- `tests/` — golden files asserted by `flake.checks`, e.g. `tests/pi/` for
+  `checks.aarch64-darwin.pi-config`. Enforced by local `make check`; see each subdirectory's
+  README for what it covers and how CI relates to it.
 
 ## Conventions & Gotchas
 
@@ -35,6 +38,9 @@ Verification loop for any change: `make check` → `make build` → `make switch
 - **Two usernames**: `myers` on Mac mini, `jimmyers` on MacBook. Any path like `/Users/<user>` must respect the active host.
 - **Git identity** lives in `~/.gitconfig.local` (untracked); GPG signing is enabled in `git.nix`.
 - **Indent**: 2 spaces everywhere (`.editorconfig`). Lua uses `stylua.toml` (120-char, double quotes, spaces).
+- **Changing pi settings** (`modules/home/pi/`, `hosts/*.nix`'s `programs.pi-coding-agent`)
+  requires regenerating `tests/pi/*` or `make check` fails with `FAIL <host> settings` /
+  `models` / `AGENTS.md`. See `tests/pi/README.md` for the regeneration command.
 
 ## Most-touched files
 

@@ -5,8 +5,10 @@ anything project-specific belongs in that project's own AGENTS.md or CLAUDE.md.
 
 ## Environment
 
-- macOS, managed declaratively with nix-darwin + home-manager. Packages come from nix,
-  not Homebrew or global npm. To add a tool, it goes in the flake — don't reach for
+- macOS, managed declaratively with nix-darwin + home-manager. Everything is declared in
+  the flake — nix packages plus a small set of Homebrew casks in
+  `modules/darwin/homebrew.nix` (with `cleanup = "zap"`, so anything installed by hand is
+  removed on the next switch). To add a tool, add it to the flake; don't reach for
   `brew install`, `npm i -g`, or `pip install`.
 - Two hosts, two usernames: `myers` (Mac mini) and `jimmyers` (work MacBook). Never
   hardcode `/Users/<name>`; use `$HOME` or the host's configured user.
@@ -19,6 +21,11 @@ anything project-specific belongs in that project's own AGENTS.md or CLAUDE.md.
   `lazy.nvim` and no runtime `:PlugInstall` — Neovim changes are nix expressions.
 - Terminal is ghostty; multiplexer is tmux.
 - Rose Pine theme, JetBrains Mono Nerd Font.
+- Your own settings (`~/.pi/agent/settings.json`) are managed by this flake and symlinked
+  read-only into `/nix/store`. Runtime changes you write there — `/model`, `/theme`,
+  thinking level, etc. — fail silently and won't persist across a restart; to change them
+  for good, edit `modules/home/pi/default.nix` or the relevant `hosts/<hostname>.nix` and
+  run `make switch`.
 
 ## Git
 

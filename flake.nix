@@ -106,12 +106,23 @@
           pi-config =
             let
               pkgs = nixpkgs.legacyPackages.${system};
-              json = pkgs.formats.json { };
-              piOf =
-                host: user:
-                self.darwinConfigurations.${host}.config.home-manager.users.${user}.programs.pi-coding-agent;
-              mini = piOf "Jims-Mac-mini" "myers";
-              work = piOf "mac-1QFL40HG" "jimmyers";
+              # Compare the actual emitted home.file artifacts, not the
+              # `settings` / `models` option values in isolation. The
+              # module's config is behind `mkIf cfg.enable`, and keys off
+              # `cfg.configDir`, so reading the option values directly
+              # would stay green even if `enable = false`, `configDir`
+              # changed, or `context` were deleted — none of which would
+              # actually land in ~/.pi/agent/. Deriving the home.file key
+              # from configDir (rather than hardcoding a path) means this
+              # fails loudly in all of those cases instead.
+              piFile =
+                host: user: name:
+                let
+                  hm = self.darwinConfigurations.${host}.config.home-manager.users.${user};
+                in
+                hm.home.file."${hm.programs.pi-coding-agent.configDir}/${name}".source;
+              mini = name: piFile "Jims-Mac-mini" "myers" name;
+              work = name: piFile "mac-1QFL40HG" "jimmyers" name;
             in
             pkgs.runCommand "pi-config-golden" { } ''
               fail=0
@@ -124,13 +135,15 @@
                 fi
               }
               compare ${./tests/pi/Jims-Mac-mini/settings.json} \
-                      ${json.generate "settings.json" mini.settings} "Jims-Mac-mini settings"
+                      ${mini "settings.json"} "Jims-Mac-mini settings"
               compare ${./tests/pi/Jims-Mac-mini/models.json} \
-                      ${json.generate "models.json" mini.models} "Jims-Mac-mini models"
+                      ${mini "models.json"} "Jims-Mac-mini models"
               compare ${./tests/pi/mac-1QFL40HG/settings.json} \
-                      ${json.generate "settings.json" work.settings} "mac-1QFL40HG settings"
+                      ${work "settings.json"} "mac-1QFL40HG settings"
               compare ${./tests/pi/mac-1QFL40HG/models.json} \
-                      ${json.generate "models.json" work.models} "mac-1QFL40HG models"
+                      ${work "models.json"} "mac-1QFL40HG models"
+              compare ${./modules/home/pi/AGENTS.md} \
+                      ${mini "AGENTS.md"} "Jims-Mac-mini AGENTS.md"
               if [ "$fail" -ne 0 ]; then
                 echo "pi config drifted from tests/pi goldens. See tests/pi/README.md to regenerate."
                 exit 1

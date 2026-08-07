@@ -21,6 +21,10 @@ shared baseline plus the minimum per-host difference.
 - **`lastChangelogVersion` is runtime state, not config** — the mini says `0.70.6`, the
   tarball `0.84.1`. pi writes it. It is omitted from nix; the practical cost is that the
   changelog marker doesn't persist, which `quietStartup` and `collapseChangelog` already mask.
+  This understates the real cost: `settings.json` itself is now a read-only symlink into
+  `/nix/store`, so *every* interactive write pi makes to it — `/model`, `/theme`, thinking
+  level, and not just the changelog marker — fails with `EACCES` and is silently swallowed;
+  none of those changes survive a restart.
 - **No secrets involved.** `apiKey: "local-only"` is a placeholder for a localhost endpoint,
   and Bedrock authenticates via AWS env. `~/.pi/agent/auth.json` (anthropic credentials) and
   `sessions/` live in the same directory but are never touched — the module symlinks
@@ -235,8 +239,10 @@ anything project-specific belongs in that project's own AGENTS.md or CLAUDE.md.
 
 **Golden-file checks.** A `checks.aarch64-darwin.pi-config` output compares each host's
 merged `settings` / `models` against snapshots in `tests/pi/`, using the same
-`pkgs.formats.json` generator the module uses. `make check` and CI both run it, so a host-file
-edit that clobbers the shared baseline fails the build rather than shipping silently. Guarded
+`pkgs.formats.json` generator the module uses. Local `make check` runs it, so a host-file
+edit that clobbers the shared baseline fails the build rather than shipping silently. CI
+(`.github/workflows/check.yml`) runs bare `nix flake check` on `ubuntu-latest`, which never
+evaluates `checks.aarch64-darwin` — this check does not currently run in CI. Guarded
 with `optionalAttrs` to `aarch64-darwin`, since `darwinConfigurations` don't exist for the
 Linux systems in the `checks` matrix.
 
@@ -276,7 +282,10 @@ Then verify against the live config:
    pi's wrapped PATH — confirm by grepping the wrapper for the nix bun store path.
 6. **Runtime behavior.** Launch pi and confirm it starts quietly, renders Rose Pine
    Dawn (proves the `pi-rose-pine` package installed), and reads AGENTS.md.
-7. **Cleanup.** `pi-config.tar.gz` is deleted from the repo.
+7. **Cleanup.** `pi-config.tar.gz` is deleted from the repo. It was never git-tracked, so
+   this is a plain filesystem deletion, not a commit — `git status` shows nothing to
+   stage for it. `tests/pi/mac-1QFL40HG/` is now the only surviving record of the values
+   it carried.
 
 Manual, needs a human at a terminal: step 6, and confirming the work laptop's
 LM Studio provider actually connects on `localhost:1234`.
