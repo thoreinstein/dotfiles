@@ -233,6 +233,18 @@ anything project-specific belongs in that project's own AGENTS.md or CLAUDE.md.
 
 ## Verification
 
+**Golden-file checks.** A `checks.aarch64-darwin.pi-config` output compares each host's
+merged `settings` / `models` against snapshots in `tests/pi/`, using the same
+`pkgs.formats.json` generator the module uses. `make check` and CI both run it, so a host-file
+edit that clobbers the shared baseline fails the build rather than shipping silently. Guarded
+with `optionalAttrs` to `aarch64-darwin`, since `darwinConfigurations` don't exist for the
+Linux systems in the `checks` matrix.
+
+The `programs.pi-coding-agent` module is already tested upstream via home-manager's `nmt`
+framework (`tests/modules/programs/pi-coding-agent/` covers `settings`, `models`, and
+`context = <path>`), so these snapshots test our values, not the module. Note that NixOS VM
+tests are not an option here — they're Linux-only and can't exercise a nix-darwin config.
+
 Per the repo's loop, after each step:
 
 ```bash
