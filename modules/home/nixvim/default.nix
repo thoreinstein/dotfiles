@@ -12,6 +12,7 @@ _:
     ./ui.nix
     ./git.nix
     ./navigation.nix
+    ./review.nix
     ./editing.nix
     ./dap.nix
     ./lang.nix
