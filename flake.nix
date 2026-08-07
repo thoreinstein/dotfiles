@@ -89,16 +89,56 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
 
       # Pre-commit hooks configuration
-      checks = forAllSystems (system: {
-        pre-commit-check = git-hooks.lib.${system}.run {
-          src = ./.;
-          hooks = {
-            nixpkgs-fmt.enable = true;
-            statix.enable = true;
-            deadnix.enable = true;
+      checks = forAllSystems (
+        system:
+        {
+          pre-commit-check = git-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              nixpkgs-fmt.enable = true;
+              statix.enable = true;
+              deadnix.enable = true;
+            };
           };
-        };
-      });
+        }
+        # darwinConfigurations only exist for aarch64-darwin.
+        // nixpkgs.lib.optionalAttrs (system == "aarch64-darwin") {
+          pi-config =
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+              json = pkgs.formats.json { };
+              piOf =
+                host: user:
+                self.darwinConfigurations.${host}.config.home-manager.users.${user}.programs.pi-coding-agent;
+              mini = piOf "Jims-Mac-mini" "myers";
+              work = piOf "mac-1QFL40HG" "jimmyers";
+            in
+            pkgs.runCommand "pi-config-golden" { } ''
+              fail=0
+              compare() {
+                if diff -u "$1" "$2"; then
+                  echo "ok   $3"
+                else
+                  echo "FAIL $3"
+                  fail=1
+                fi
+              }
+              compare ${./tests/pi/Jims-Mac-mini/settings.json} \
+                      ${json.generate "settings.json" mini.settings} "Jims-Mac-mini settings"
+              compare ${./tests/pi/Jims-Mac-mini/models.json} \
+                      ${json.generate "models.json" mini.models} "Jims-Mac-mini models"
+              compare ${./tests/pi/mac-1QFL40HG/settings.json} \
+                      ${json.generate "settings.json" work.settings} "mac-1QFL40HG settings"
+              compare ${./tests/pi/mac-1QFL40HG/models.json} \
+                      ${json.generate "models.json" work.models} "mac-1QFL40HG models"
+              if [ "$fail" -ne 0 ]; then
+                echo "pi config drifted from tests/pi goldens. See tests/pi/README.md to regenerate."
+                exit 1
+              fi
+              touch $out
+            '';
+        }
+      );
 
       # Devshell for bootstrapping
       devShells = forAllSystems (

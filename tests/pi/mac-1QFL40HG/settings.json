@@ -1,0 +1,36 @@
+{
+  "collapseChangelog": true,
+  "compaction": {
+    "enabled": true,
+    "keepRecentTokens": 20000,
+    "reserveTokens": 16384
+  },
+  "defaultModel": "qwen/qwen3-coder-next",
+  "defaultProvider": "lm-studio",
+  "defaultThinkingLevel": "medium",
+  "enableInstallTelemetry": false,
+  "enabledModels": [
+    "qwen/qwen3.6-35b-a3b",
+    "qwen/qwen3-coder-next",
+    "amazon-bedrock/us.anthropic.claude-opus-4-7",
+    "amazon-bedrock/us.anthropic.claude-sonnet-4-6"
+  ],
+  "hideThinkingBlock": true,
+  "packages": [
+    "git:github.com/apmantza/pi-lens",
+    "git:github.com/ferologics/pi-notify",
+    "https://github.com/zenobi-us/pi-rose-pine.git",
+    "npm:@joemccann/pi-exa",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@narumitw/pi-plan-mode",
+    "npm:context-mode",
+    "npm:pi-bash-live-view",
+    "npm:pi-caveman",
+    "npm:pi-continuous-learning",
+    "npm:pi-mcp-adapter",
+    "npm:pi-rtk-optimizer",
+    "npm:pi-memory"
+  ],
+  "quietStartup": true,
+  "theme": "rose-pine-dawn"
+}
