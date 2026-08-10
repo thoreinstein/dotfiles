@@ -31,6 +31,7 @@
 
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
+        "git:github.com/DietrichGebert/ponytail"
         "git:github.com/apmantza/pi-lens"
         "git:github.com/ferologics/pi-notify"
         "https://github.com/zenobi-us/pi-rose-pine.git"
@@ -42,8 +43,8 @@
         "npm:pi-caveman"
         "npm:pi-continuous-learning"
         "npm:pi-mcp-adapter"
-        "npm:pi-rtk-optimizer"
         "npm:pi-memory"
+        "npm:pi-rtk-optimizer"
       ];
     };
   };

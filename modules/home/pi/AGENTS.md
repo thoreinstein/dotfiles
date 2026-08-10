@@ -11,6 +11,32 @@ or CLAUDE.md.
 - Match the surrounding code: naming, idiom, comment density. Read a neighbouring file first.
 - Comments explain why; the code already says what.
 
+## Changes
+
+**Verification loop**: `make check` → `make build` → `make switch`
+
+Any change to `programs.pi-coding-agent.settings` (including `AGENTS.md`) requires
+generating new golden files in `tests/pi/`. Run:
+
+```bash
+for h in "Jims-Mac-mini:myers" "mac-1QFL40HG:jimmyers"; do
+  IFS=: read -r host user <<< "$h"
+  mkdir -p "tests/pi/$host"
+  for a in settings models; do
+    nix eval --json ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.$a" \
+      | nix shell nixpkgs#jq -c jq . > "tests/pi/$host/$a.json"
+  done
+done
+```
+
+Then run `make check` to confirm.
+
+## No
+
+- Don’t install tools with `brew`, `npm -g`, or `pip` — add them to the flake instead.
+- Don’t edit `tests/pi/*` by hand — regenerate them when settings change.
+- Don’t write git identity (`user.name`/`user.email`) to repo config — it lives in `~/.gitconfig.local`.
+
 ## Output
 
 - Lead with the outcome — the first sentence says what happened or what you found.
@@ -20,27 +46,20 @@ or CLAUDE.md.
 
 ## Environment
 
-- macOS, managed declaratively with nix-darwin + home-manager. Everything is declared in
-  the flake — nix packages plus a small set of Homebrew casks in
-  `modules/darwin/homebrew.nix` (with `cleanup = "zap"`, so anything installed by hand is
-  removed on the next switch). To add a tool, add it to the flake; don't reach for
-  `brew install`, `npm i -g`, or `pip install`.
-- Two hosts, two usernames: `myers` (Mac mini) and `jimmyers` (work MacBook). Never
-  hardcode `/Users/<name>`; use `$HOME` or the host's configured user.
-- Dotfiles live in `~/src/thoreinstein/dotfiles` — a bare repo with per-branch worktrees,
-  so the checkout you're in is one worktree among several.
+- macOS, managed declaratively with nix-darwin + home-manager. Everything declared in flake:
+  nix packages + Homebrew casks (`modules/darwin/homebrew.nix`, `cleanup = "zap"`).
+- Two hosts: `Jims-Mac-mini` (user `myers`) and `mac-1QFL40HG` (user `jimmyers`).
+  Use `$HOME` or host-configured user — never hardcode `/Users/<name>`.
+- Dotfiles repo at `~/src/thoreinstein/dotfiles`: bare git repo with per-branch worktrees.
 
 ## Tooling
 
-- Editor is Neovim, configured through nixvim. It is fully declarative: there is no
-  `lazy.nvim` and no runtime `:PlugInstall` — Neovim changes are nix expressions.
-- Terminal is ghostty; multiplexer is tmux.
-- Rose Pine theme, JetBrains Mono Nerd Font.
-- Your own settings (`~/.pi/agent/settings.json`) are managed by this flake and symlinked
-  read-only into `/nix/store`. Runtime changes you write there — `/model`, `/theme`,
-  thinking level, etc. — fail silently and won't persist across a restart; to change them
-  for good, edit `modules/home/pi/default.nix` or the relevant `hosts/<hostname>.nix` and
-  run `make switch`.
+- Editor: Neovim via nixvim (fully declarative — no lazy.nvim, no runtime installs).
+- Terminal: ghostty; multiplexer: tmux.
+- Theme: Rose Pine; font: JetBrains Mono Nerd Font.
+- pi settings live in flake (`modules/home/pi/default.nix`, `hosts/*.nix`) and are symlinked
+  read-only to `/nix/store`. Runtime edits to `~/.pi/agent/settings.json` fail silently
+  and don’t persist — use the flake instead.
 
 ## Git
 

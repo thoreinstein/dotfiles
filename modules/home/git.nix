@@ -71,6 +71,8 @@
       ".codegraph/"
       ".repo-mix.mxl"
       "roadmap*.json"
+
+      ".tokensave/"
     ];
 
     includes = [
