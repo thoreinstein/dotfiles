@@ -73,6 +73,7 @@
       "roadmap*.json"
 
       ".tokensave/"
+      ".pi/"
     ];
 
     includes = [
