@@ -67,3 +67,9 @@ Then run `make check` to confirm.
   `user.email` into a repo's own config.
 - Commit signing is on. A commit that fails to sign is a configuration problem to
   report, not a reason to pass `--no-gpg-sign`.
+
+## Finding things
+
+If you can't locate a file or don't know where something lives, ask me. Do not
+search the repository to find out. A question costs one turn. A search costs
+thousands of tokens and usually finds the wrong thing.
