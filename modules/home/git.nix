@@ -74,6 +74,7 @@
 
       ".tokensave/"
       ".pi/"
+      ".token-optimizer/"
     ];
 
     includes = [
