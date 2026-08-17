@@ -34,7 +34,6 @@
       "....." = "cd ../../../..";
 
       # Tools
-      code = "opencode";
       k = "kubectl";
       gap = "git add -p";
       gan = "git add -N";
