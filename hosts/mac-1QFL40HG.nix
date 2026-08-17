@@ -1,14 +1,6 @@
-{ lib, ... }:
+_:
 {
   programs = {
-    codex = {
-      enable = true;
-      enableMcpIntegration = true;
-      settings = lib.importTOML ./mac-1QFL40HG/codex/config.toml;
-    };
-
-
-
     mcp = {
       enable = true;
       servers = {
