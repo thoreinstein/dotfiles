@@ -5,18 +5,26 @@
     "keepRecentTokens": 20000,
     "reserveTokens": 16384
   },
-  "defaultModel": "qwen/qwen3-coder-next",
+  "defaultModel": "qwen/qwen3.8-27b",
   "defaultProvider": "lm-studio",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "on",
   "enableInstallTelemetry": false,
   "enabledModels": [
-    "qwen/qwen3.6-35b-a3b",
-    "qwen/qwen3-coder-next",
-    "amazon-bedrock/us.anthropic.claude-opus-4-7",
-    "amazon-bedrock/us.anthropic.claude-sonnet-4-6"
+    "qwen/qwen3.8-27b",
+    "polaris/anthropic.Polaris.Model.Smart.High",
+    "polaris/anthropic.Polaris.Model.Smart.Medium",
+    "polaris/anthropic.Polaris.Model.Smart.Low",
+    "polaris/anthropic.Claude.Opus",
+    "polaris/anthropic.Claude.Sonnet",
+    "polaris/anthropic.Claude.Haiku",
+    "polaris/anthropic.OpenAI.Sol",
+    "polaris/anthropic.OpenAI.Terra",
+    "polaris/anthropic.OpenAI.Luna",
+    "polaris/anthropic.Zai.GLM5"
   ],
   "hideThinkingBlock": true,
   "packages": [
+    "git:github.com/DietrichGebert/ponytail",
     "git:github.com/apmantza/pi-lens",
     "git:github.com/ferologics/pi-notify",
     "https://github.com/zenobi-us/pi-rose-pine.git",
@@ -28,8 +36,8 @@
     "npm:pi-caveman",
     "npm:pi-continuous-learning",
     "npm:pi-mcp-adapter",
-    "npm:pi-rtk-optimizer",
-    "npm:pi-memory"
+    "npm:pi-memory",
+    "npm:pi-rtk-optimizer"
   ],
   "quietStartup": true,
   "theme": "rose-pine-dawn"

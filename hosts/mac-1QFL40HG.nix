@@ -1,5 +1,4 @@
-_:
-{
+_: {
   programs = {
     mcp = {
       enable = true;
@@ -52,41 +51,66 @@ _:
     pi-coding-agent = {
       settings = {
         defaultProvider = "lm-studio";
-        defaultModel = "qwen/qwen3-coder-next";
+        defaultModel = "qwen/qwen3.8-27b";
         enabledModels = [
-          "qwen/qwen3.6-35b-a3b"
-          "qwen/qwen3-coder-next"
-          "amazon-bedrock/us.anthropic.claude-opus-4-7"
-          "amazon-bedrock/us.anthropic.claude-sonnet-4-6"
+          "qwen/qwen3.8-27b"
+          "polaris/anthropic.Polaris.Model.Smart.High"
+          "polaris/anthropic.Polaris.Model.Smart.Medium"
+          "polaris/anthropic.Polaris.Model.Smart.Low"
+          "polaris/anthropic.Claude.Opus"
+          "polaris/anthropic.Claude.Sonnet"
+          "polaris/anthropic.Claude.Haiku"
+          "polaris/anthropic.OpenAI.Sol"
+          "polaris/anthropic.OpenAI.Terra"
+          "polaris/anthropic.OpenAI.Luna"
+          "polaris/anthropic.Zai.GLM5"
         ];
       };
 
-      models.providers.lm-studio = {
-        baseUrl = "http://localhost:1234/v1";
-        api = "openai-completions";
-        # Placeholder, not a secret — the endpoint is localhost-only.
-        apiKey = "local-only";
-        models = [
-          {
-            id = "qwen/qwen3-coder-next";
-            name = "Qwen3-Coder-Next";
-            reasoning = false;
-            input = [ "text" ];
-            contextWindow = 131072;
-            maxTokens = 16384;
-            cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; };
-          }
-          {
-            id = "qwen/qwen3.6-35b-a3b";
-            name = "Qwen3.6-35B";
-            reasoning = true;
-            input = [ "text" ];
-            compat.thinkingFormat = "qwen-chat-template";
-            contextWindow = 131072;
-            maxTokens = 32768;
-            cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; };
-          }
-        ];
+      models.providers = {
+        lm-studio = {
+          baseUrl = "http://localhost:1234/v1";
+          api = "openai-completions";
+          apiKey = "local-only";
+          models = [
+            {
+              id = "qwen/qwen3.8-27b@q6_k_xl";
+              name = "Qwen3.8-27b";
+              reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
+              contextWindow = 65536;
+              maxTokens = 32768;
+              cost = {
+                input = 0;
+                output = 0;
+                cacheRead = 0;
+                cacheWrite = 0;
+              };
+            }
+          ];
+        };
+
+        polaris = {
+          baseUrl = "https://llm-gateway.polaris.pingidentity.com";
+          api = "anthropic-messages";
+          apiKey = "$POLARIS_AUTH_TOKEN";
+          authHeader = true;
+          models = [
+            { id = "anthropic.Polaris.Model.Smart.High"; }
+            { id = "anthropic.Polaris.Model.Smart.Medium"; }
+            { id = "anthropic.Polaris.Model.Smart.Low"; }
+            { id = "anthropic.Claude.Opus"; }
+            { id = "anthropic.Claude.Sonnet"; }
+            { id = "anthropic.Claude.Haiku"; }
+            { id = "anthropic.OpenAI.Sol"; }
+            { id = "anthropic.OpenAI.Terra"; }
+            { id = "anthropic.OpenAI.Luna"; }
+            { id = "anthropic.Zai.GLM5"; }
+          ];
+        };
       };
     };
   };

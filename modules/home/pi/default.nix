@@ -27,7 +27,7 @@
       collapseChangelog = true;
       quietStartup = true;
       enableInstallTelemetry = false;
-      defaultThinkingLevel = "medium";
+      defaultThinkingLevel = "on";
 
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
