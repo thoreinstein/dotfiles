@@ -38,7 +38,6 @@ _: {
 
       # Fonts
       "font-inter"
-      "font-jetbrains-mono-nerd-font"
     ];
   };
 }

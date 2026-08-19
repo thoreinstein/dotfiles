@@ -104,11 +104,13 @@ internal_process_repo() {
     remote_info="${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
   else
     # Handle cases where remote might be a path or non-standard URL
-    local base_remote=$(basename "$remote_url" .git)
+    local base_remote
+    base_remote=$(basename "$remote_url" .git)
     remote_info="other/${base_remote:-local}"
   fi
 
-  local repo_name=$(basename "$repo_path")
+  local repo_name
+  repo_name=$(basename "$repo_path")
 
   # Process all worktrees for this repo_path
   local wt_path=""
@@ -123,7 +125,8 @@ internal_process_repo() {
       is_bare=1
     elif [[ "$line" =~ ^HEAD[[:space:]] ]]; then
       if [[ $is_bare -eq 0 && -n "$wt_path" && -d "$wt_path" ]]; then
-        local wt_name=$(basename "$wt_path")
+        local wt_name
+        wt_name=$(basename "$wt_path")
         
         # Get status and branch in one call
         local status_info
@@ -152,10 +155,11 @@ internal_process_repo() {
         fi
         
         # Truncate values for table formatting
-        local truncated_remote=$(truncate_string "$remote_info" 25)
-        local truncated_repo=$(truncate_string "$repo_name" 18)
-        local truncated_branch=$(truncate_string "$branch" 20)
-        local truncated_worktree=$(truncate_string "$wt_name" 15)
+        local truncated_remote truncated_repo truncated_branch truncated_worktree
+        truncated_remote=$(truncate_string "$remote_info" 25)
+        truncated_repo=$(truncate_string "$repo_name" 18)
+        truncated_branch=$(truncate_string "$branch" 20)
+        truncated_worktree=$(truncate_string "$wt_name" 15)
 
         # Format: Display Line \t Worktree Name \t Repo Name \t Path
         printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s\n" \

@@ -23,9 +23,7 @@ Verification loop for any change: `make check` → `make build` → `make switch
 - `modules/home/` — shared home-manager config (zsh, tmux, git, starship, ghostty, CLI tools, `bin.nix`).
 - `modules/home/nixvim/` — Neovim config split across ~15 submodules (lsp, completion, formatting, treesitter, keymaps, ui, …). Add Neovim features here, not in a monolith.
 - `hosts/<hostname>.nix` — per-host home-manager overrides. Currently near-empty; this is the intended extension point for host-specific tweaks.
-- `lib/` — placeholder for helper functions (empty today).
-- `bin/` — custom scripts (`ts`, `ghclone`, `git-cleanup`) wired in via `modules/home/bin.nix`.
-- `secrets/` — agenix skeleton; **not yet wired**. Don't assume secrets are available.
+- `bin/` — custom scripts (`ts`, `ghclone`) wired in via `modules/home/bin.nix`.
 - `tests/` — golden files asserted by `flake.checks`, e.g. `tests/pi/` for
   `checks.aarch64-darwin.pi-config`. Enforced by local `make check`; see each subdirectory's
   README for what it covers and how CI relates to it.
@@ -33,8 +31,8 @@ Verification loop for any change: `make check` → `make build` → `make switch
 ## Conventions & Gotchas
 
 - **Formatter is `nixpkgs-fmt`** (set in `flake.nix` `formatter`). Don't swap for alejandra/nixfmt.
-- **Pre-commit hooks** run via `nix flake check`: `nixpkgs-fmt`, `statix`, `deadnix`. CI (`.github/workflows/check.yml`) runs the same on PR to `main`/`nix`.
-- **direnv**: `.envrc` uses `use flake` — entering the repo loads the devShell (codex, deadnix, nixpkgs-fmt, prettier, statix).
+- **Pre-commit hooks** run via `nix flake check`: `nixpkgs-fmt`, `statix`, `deadnix`, and `shellcheck`. CI (`.github/workflows/check.yml`) runs the same on PR to `main`/`nix`.
+- **direnv**: `.envrc` uses `use flake` — entering the repo loads the devShell (codex, deadnix, nixpkgs-fmt, prettier, shellcheck, statix).
 - **Two usernames**: `myers` on Mac mini, `jimmyers` on MacBook. Any path like `/Users/<user>` must respect the active host.
 - **Git identity** lives in `~/.gitconfig.local` (untracked); GPG signing is enabled in `git.nix`.
 - **Indent**: 2 spaces everywhere (`.editorconfig`). Lua uses `stylua.toml` (120-char, double quotes, spaces).

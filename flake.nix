@@ -41,7 +41,6 @@
         "aarch64-darwin"
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
@@ -82,9 +81,6 @@
         };
     in
     {
-      # Custom library functions
-      lib = import ./lib { inherit (nixpkgs) lib; };
-
       # Formatter for your nix files, available via 'nix fmt'
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
 
@@ -92,12 +88,28 @@
       checks = forAllSystems (
         system:
         {
+          script-tests =
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+            in
+            pkgs.runCommand "script-tests"
+              {
+                nativeBuildInputs = with pkgs; [ bash git ];
+              } ''
+              mkdir -p test-bin
+              cp ${./bin/.bin/ts} test-bin/ts
+              cp ${./bin/.bin/test_ts.sh} test-bin/test_ts.sh
+              bash test-bin/test_ts.sh
+              touch $out
+            '';
+
           pre-commit-check = git-hooks.lib.${system}.run {
             src = ./.;
             hooks = {
               nixpkgs-fmt.enable = true;
               statix.enable = true;
               deadnix.enable = true;
+              shellcheck.enable = true;
             };
           };
         }
@@ -125,7 +137,7 @@
               work = name: piFile "mac-1QFL40HG" "jimmyers" name;
             in
             pkgs.runCommand "pi-config-golden" { } ''
-              fail=0
+                fail=0
               compare() {
                 if diff -u "$1" "$2"; then
                   echo "ok   $3"
@@ -148,7 +160,7 @@
                 echo "pi config drifted from tests/pi goldens. See tests/pi/README.md to regenerate."
                 exit 1
               fi
-              touch $out
+                touch $out
             '';
         }
       );
@@ -166,6 +178,7 @@
               deadnix
               nixpkgs-fmt
               prettier
+              shellcheck
               statix
             ];
           };

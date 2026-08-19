@@ -34,7 +34,7 @@ Adding a new host: add a `darwinConfigurations` entry in `flake.nix` using `mkDa
 ## What's Included
 
 | Tool | Description |
-|------|-------------|
+| ------ | ------------- |
 | **Neovim** | Managed via [NixVim](https://github.com/nix-community/nixvim) — LSP, Treesitter, Telescope, conform |
 | **Zsh** | Autosuggestions, syntax highlighting, cached completions |
 | **Tmux** | Rose Pine theme, vim-tmux-navigator, TPM plugins |
@@ -62,7 +62,7 @@ dotfiles/
 │       ├── git.nix        # Git + delta
 │       ├── starship.nix   # Prompt
 │       ├── ghostty.nix    # Terminal
-│       ├── bin.nix        # Custom scripts (ts, ghclone, git-cleanup)
+│       ├── bin.nix        # Custom scripts (ts, ghclone)
 │       ├── nixvim/        # Neovim config (14 modules)
 │       │   ├── lsp.nix
 │       │   ├── completion.nix
@@ -72,7 +72,6 @@ dotfiles/
 │       └── ...            # atuin, bat, eza, fd, ripgrep, etc.
 ├── bat/                   # Bat themes (Rose Pine)
 ├── bin/                   # Custom shell scripts
-└── secrets/               # Secret definitions
 ```
 
 ## Key Bindings
@@ -80,7 +79,7 @@ dotfiles/
 ### Neovim
 
 | Key | Action |
-|-----|--------|
+| ----- | -------- |
 | `<Space>` | Leader key |
 | `<leader>ff` | Find files |
 | `<leader>fw` | Live grep |
@@ -96,7 +95,7 @@ dotfiles/
 ### Tmux
 
 | Key | Action |
-|-----|--------|
+| ----- | -------- |
 | `C-Space` | Prefix |
 | `<prefix>f` | Tmux session switcher (ts) |
 | `<prefix>\|` | Split vertical |
