@@ -78,16 +78,6 @@
 
     extraConfigLua = ''
       require("go").setup({
-        lsp_cfg = {
-          settings = {
-            gopls = {
-              buildFlags = {},
-              analyses = { unusedparams = true },
-              staticcheck = true,
-              gofumpt = true,
-            },
-          },
-        },
         lsp_keymaps = false,
         fmt_on_save = false,
         lsp_inlay_hints = { enable = true },
