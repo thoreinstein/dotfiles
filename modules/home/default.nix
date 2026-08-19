@@ -24,6 +24,10 @@
   home = {
     inherit username homeDirectory;
     stateVersion = "23.11";
+    sessionVariables = {
+      PI_MEMORY_SNAPSHOT = "per-turn";
+      PI_MEMORY_SUMMARIZE_TRANSITIONS = "1";
+    };
   };
 
   programs.home-manager.enable = true;

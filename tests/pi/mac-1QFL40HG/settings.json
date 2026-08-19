@@ -7,7 +7,7 @@
   },
   "defaultModel": "qwen/qwen3.8-27b",
   "defaultProvider": "lm-studio",
-  "defaultThinkingLevel": "on",
+  "defaultThinkingLevel": "high",
   "enableInstallTelemetry": false,
   "enabledModels": [
     "qwen/qwen3.8-27b",
@@ -22,6 +22,7 @@
     "polaris/anthropic.OpenAI.Luna",
     "polaris/anthropic.Zai.GLM5"
   ],
+  "externalEditor": "nvim",
   "hideThinkingBlock": true,
   "packages": [
     "git:github.com/DietrichGebert/ponytail",
@@ -30,7 +31,9 @@
     "https://github.com/zenobi-us/pi-rose-pine.git",
     "npm:@joemccann/pi-exa",
     "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo",
     "npm:@narumitw/pi-plan-mode",
+    "npm:@narumitw/pi-starship",
     "npm:context-mode",
     "npm:pi-bash-live-view",
     "npm:pi-caveman",
@@ -40,5 +43,9 @@
     "npm:pi-rtk-optimizer"
   ],
   "quietStartup": true,
-  "theme": "rose-pine-dawn"
+  "showCacheMissNotices": true,
+  "theme": "rose-pine-dawn",
+  "warnings": {
+    "anthropicExtraUsage": true
+  }
 }

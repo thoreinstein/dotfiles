@@ -1,0 +1,31 @@
+format = "$directory$git_branch$git_status$github_pr${fill}$model$thinking$cache$tokens$cost$context"
+
+[directory]
+truncate_to_repo = false
+truncation_symbol = "…/"
+truncation_length = 4
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "[$symbol$branch(:$remote_branch)]($style) "
+
+[git_status]
+style = "bold yellow"
+format = "[$all_status$ahead_behind]($style) "
+
+[model]
+format = "[$model]($style) "
+style = "bold cyan"
+truncation_length = 36
+truncation_symbol = "…"
+truncation_direction = "middle"
+
+[context]
+format = "[$percentage]($style)"
+
+[[context.display]]
+threshold = 0
+style = "bold yellow"
+hidden = false

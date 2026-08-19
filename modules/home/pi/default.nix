@@ -27,7 +27,11 @@
       collapseChangelog = true;
       quietStartup = true;
       enableInstallTelemetry = false;
-      defaultThinkingLevel = "on";
+      defaultThinkingLevel = "high";
+      showCacheMissNotices = true;
+      externalEditor = "nvim";
+
+      warnings.anthropicExtraUsage = true;
 
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
@@ -37,7 +41,9 @@
         "https://github.com/zenobi-us/pi-rose-pine.git"
         "npm:@joemccann/pi-exa"
         "npm:@juicesharp/rpiv-ask-user-question"
+        "npm:@juicesharp/rpiv-todo"
         "npm:@narumitw/pi-plan-mode"
+        "npm:@narumitw/pi-starship"
         "npm:context-mode"
         "npm:pi-bash-live-view"
         "npm:pi-caveman"
@@ -47,5 +53,10 @@
         "npm:pi-rtk-optimizer"
       ];
     };
+  };
+
+  home.file = {
+    ".pi/agent/extensions/guardrails.ts".source = ./guardrails.ts;
+    ".pi/agent/pi-starship.toml".source = ./starship.toml;
   };
 }
