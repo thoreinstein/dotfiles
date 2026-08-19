@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+_:
 {
   programs.nixvim = {
     plugins.lsp = {
@@ -164,8 +164,5 @@
       })
     '';
 
-    extraPackages = with pkgs; [
-      zls
-    ];
   };
 }
