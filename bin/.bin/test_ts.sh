@@ -11,7 +11,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TS_SCRIPT="$SCRIPT_DIR/ts"
-TEST_DIR="/tmp/ts_test_$$"
+TEST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ts_test.XXXXXX")"
 FAILED_TESTS=0
 TOTAL_TESTS=0
 
@@ -32,6 +32,7 @@ setup_test_env() {
 cleanup_test_env() {
   rm -rf "$TEST_DIR" 2>/dev/null || true
 }
+trap cleanup_test_env EXIT
 
 run_test() {
   local test_name="$1"
