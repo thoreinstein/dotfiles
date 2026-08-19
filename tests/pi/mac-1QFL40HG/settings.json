@@ -40,10 +40,47 @@
     "npm:pi-continuous-learning",
     "npm:pi-mcp-adapter",
     "npm:pi-memory",
-    "npm:pi-rtk-optimizer"
+    "npm:pi-rtk-optimizer",
+    "npm:pi-subagents"
   ],
   "quietStartup": true,
   "showCacheMissNotices": true,
+  "subagents": {
+    "agentOverrides": {
+      "delegate": {
+        "model": "polaris/anthropic.Polaris.Model.Smart.Medium",
+        "thinking": "medium"
+      },
+      "oracle": {
+        "model": "polaris/anthropic.Claude.Opus",
+        "thinking": "max"
+      },
+      "researcher": {
+        "model": "polaris/anthropic.Claude.Sonnet",
+        "thinking": "high"
+      },
+      "reviewer": {
+        "model": "polaris/anthropic.Polaris.Model.Smart.High",
+        "thinking": "high"
+      },
+      "scout": {
+        "model": "polaris/anthropic.Polaris.Model.Smart.Low",
+        "thinking": "low"
+      },
+      "worker": {
+        "model": "polaris/anthropic.Polaris.Model.Smart.Medium",
+        "thinking": "medium"
+      }
+    },
+    "defaultModel": "polaris/anthropic.Polaris.Model.Smart.Medium",
+    "modelScope": {
+      "allow": [
+        "polaris/*"
+      ],
+      "enforce": true,
+      "strict": true
+    }
+  },
   "theme": "rose-pine-dawn",
   "warnings": {
     "anthropicExtraUsage": true

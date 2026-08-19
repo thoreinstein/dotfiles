@@ -51,6 +51,7 @@
         "npm:pi-mcp-adapter"
         "npm:pi-memory"
         "npm:pi-rtk-optimizer"
+        "npm:pi-subagents"
       ];
     };
   };

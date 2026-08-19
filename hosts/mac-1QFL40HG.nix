@@ -52,6 +52,40 @@ _: {
       settings = {
         defaultProvider = "lm-studio";
         defaultModel = "qwen/qwen3.8-27b";
+        subagents = {
+          defaultModel = "polaris/anthropic.Polaris.Model.Smart.Medium";
+          agentOverrides = {
+            scout = {
+              model = "polaris/anthropic.Polaris.Model.Smart.Low";
+              thinking = "low";
+            };
+            researcher = {
+              model = "polaris/anthropic.Claude.Sonnet";
+              thinking = "high";
+            };
+            worker = {
+              model = "polaris/anthropic.Polaris.Model.Smart.Medium";
+              thinking = "medium";
+            };
+            reviewer = {
+              model = "polaris/anthropic.Polaris.Model.Smart.High";
+              thinking = "high";
+            };
+            oracle = {
+              model = "polaris/anthropic.Claude.Opus";
+              thinking = "max";
+            };
+            delegate = {
+              model = "polaris/anthropic.Polaris.Model.Smart.Medium";
+              thinking = "medium";
+            };
+          };
+          modelScope = {
+            enforce = true;
+            strict = true;
+            allow = [ "polaris/*" ];
+          };
+        };
         enabledModels = [
           "qwen/qwen3.8-27b"
           "polaris/anthropic.Polaris.Model.Smart.High"
