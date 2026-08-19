@@ -1,4 +1,4 @@
-.PHONY: switch build build-all check fmt update
+.PHONY: switch build build-all check check-all fmt update
 
 HOST := $(shell scutil --get LocalHostName)
 
@@ -14,6 +14,9 @@ build-all:
 
 check:
 	nix flake check
+
+check-all:
+	nix flake check --all-systems
 
 fmt:
 	nix fmt
