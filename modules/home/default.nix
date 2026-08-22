@@ -6,6 +6,7 @@
     ./bin.nix
     ./cli.nix
     ./direnv.nix
+    ./mise.nix
     ./eza.nix
     ./fd.nix
     ./git.nix

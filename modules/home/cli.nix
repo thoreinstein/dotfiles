@@ -5,12 +5,10 @@
     dolt
     k9s
     nodejs
-    opentofu
     pkg-config
     poppler-utils
     presenterm
     terminal-notifier
-    terragrunt
     yq-go
   ];
 
