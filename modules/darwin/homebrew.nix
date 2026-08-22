@@ -21,6 +21,7 @@ _: {
     # Formulae
     # ──────────────────────────────────────────────
     brews = [
+      "engram"
     ];
 
     # ──────────────────────────────────────────────
@@ -29,15 +30,11 @@ _: {
     casks = [
       "claude"
       "docker-desktop"
-      "engram"
       "finicky"
       "gcloud-cli"
       "ghostty"
       "obsidian"
       "utm"
-
-      # Fonts
-      "font-inter"
     ];
   };
 }
