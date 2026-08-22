@@ -16,12 +16,6 @@
     context = ./AGENTS.md;
 
     settings = {
-      compaction = {
-        enabled = true;
-        reserveTokens = 16384;
-        keepRecentTokens = 20000;
-      };
-
       theme = "rose-pine-dawn";
       hideThinkingBlock = true;
       collapseChangelog = true;
@@ -45,11 +39,11 @@
         "npm:@narumitw/pi-plan-mode"
         "npm:@narumitw/pi-starship"
         "npm:context-mode"
+        "npm:gentle-engram@0.1.8"
         "npm:pi-bash-live-view"
         "npm:pi-caveman"
         "npm:pi-continuous-learning"
         "npm:pi-mcp-adapter"
-        "npm:pi-memory"
         "npm:pi-rtk-optimizer"
         "npm:pi-subagents"
       ];

@@ -133,16 +133,56 @@ _: {
           apiKey = "$POLARIS_AUTH_TOKEN";
           authHeader = true;
           models = [
-            { id = "anthropic.Polaris.Model.Smart.High"; }
-            { id = "anthropic.Polaris.Model.Smart.Medium"; }
-            { id = "anthropic.Polaris.Model.Smart.Low"; }
-            { id = "anthropic.Claude.Opus"; }
-            { id = "anthropic.Claude.Sonnet"; }
-            { id = "anthropic.Claude.Haiku"; }
-            { id = "anthropic.OpenAI.Sol"; }
-            { id = "anthropic.OpenAI.Terra"; }
-            { id = "anthropic.OpenAI.Luna"; }
-            { id = "anthropic.Zai.GLM5"; }
+            {
+              id = "anthropic.Polaris.Model.Smart.High";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Polaris.Model.Smart.Medium";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Polaris.Model.Smart.Low";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Claude.Opus";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Claude.Sonnet";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Claude.Haiku";
+              contextWindow = 200000;
+              maxTokens = 64000;
+            }
+            {
+              id = "anthropic.OpenAI.Sol";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.OpenAI.Terra";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.OpenAI.Luna";
+              contextWindow = 1000000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Zai.GLM5";
+              contextWindow = 200000;
+              maxTokens = 128000;
+            }
           ];
         };
       };

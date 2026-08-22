@@ -31,34 +31,54 @@
       "baseUrl": "https://llm-gateway.polaris.pingidentity.com",
       "models": [
         {
-          "id": "anthropic.Polaris.Model.Smart.High"
+          "contextWindow": 1000000,
+          "id": "anthropic.Polaris.Model.Smart.High",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.Polaris.Model.Smart.Medium"
+          "contextWindow": 1000000,
+          "id": "anthropic.Polaris.Model.Smart.Medium",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.Polaris.Model.Smart.Low"
+          "contextWindow": 1000000,
+          "id": "anthropic.Polaris.Model.Smart.Low",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.Claude.Opus"
+          "contextWindow": 1000000,
+          "id": "anthropic.Claude.Opus",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.Claude.Sonnet"
+          "contextWindow": 1000000,
+          "id": "anthropic.Claude.Sonnet",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.Claude.Haiku"
+          "contextWindow": 200000,
+          "id": "anthropic.Claude.Haiku",
+          "maxTokens": 64000
         },
         {
-          "id": "anthropic.OpenAI.Sol"
+          "contextWindow": 1000000,
+          "id": "anthropic.OpenAI.Sol",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.OpenAI.Terra"
+          "contextWindow": 1000000,
+          "id": "anthropic.OpenAI.Terra",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.OpenAI.Luna"
+          "contextWindow": 1000000,
+          "id": "anthropic.OpenAI.Luna",
+          "maxTokens": 128000
         },
         {
-          "id": "anthropic.Zai.GLM5"
+          "contextWindow": 200000,
+          "id": "anthropic.Zai.GLM5",
+          "maxTokens": 128000
         }
       ]
     }

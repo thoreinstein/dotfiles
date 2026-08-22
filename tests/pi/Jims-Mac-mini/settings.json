@@ -1,10 +1,5 @@
 {
   "collapseChangelog": true,
-  "compaction": {
-    "enabled": true,
-    "keepRecentTokens": 20000,
-    "reserveTokens": 16384
-  },
   "defaultModel": "claude-opus-5",
   "defaultProvider": "anthropic",
   "defaultThinkingLevel": "high",
@@ -22,11 +17,11 @@
     "npm:@narumitw/pi-plan-mode",
     "npm:@narumitw/pi-starship",
     "npm:context-mode",
+    "npm:gentle-engram@0.1.8",
     "npm:pi-bash-live-view",
     "npm:pi-caveman",
     "npm:pi-continuous-learning",
     "npm:pi-mcp-adapter",
-    "npm:pi-memory",
     "npm:pi-rtk-optimizer",
     "npm:pi-subagents"
   ],
