@@ -1,0 +1,69 @@
+{
+  "mcpServers": {
+    "kubernetes": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "kubernetes-mcp-server"]
+    },
+    "terraform": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@hashicorp/terraform-mcp-server"]
+    },
+    "fetch": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "gcp-gke": {
+      "type": "http",
+      "url": "https://container.googleapis.com/mcp"
+    },
+    "gcp-logging": {
+      "type": "http",
+      "url": "https://logging.googleapis.com/mcp"
+    },
+    "gcp-monitoring": {
+      "type": "http",
+      "url": "https://monitoring.googleapis.com/mcp"
+    },
+    "gcp-firestore": {
+      "type": "http",
+      "url": "https://firestore.googleapis.com/mcp"
+    },
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"],
+      "env": {
+        "EXA_API_KEY": "$EXA_API_KEY"
+      }
+    },
+    "jira": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp"
+    },
+    "glean": {
+      "type": "http",
+      "url": "https://pingidentity-be.glean.com/mcp/default"
+    },
+    "firehydrant": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "firehydrant-mcp", "start", "--transport", "stdio"],
+      "env": {
+        "FIREHYDRANT_API_KEY": "$FIREHYDRANT_API_KEY"
+      }
+    },
+    "engram": {
+      "type": "stdio",
+      "command": "engram",
+      "args": ["mcp"]
+    }
+  }
+}

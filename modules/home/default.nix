@@ -31,4 +31,8 @@
   };
 
   programs.home-manager.enable = true;
+
+  home.file = {
+    ".mcp.json".source = ./mcp.json;
+  };
 }
