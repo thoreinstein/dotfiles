@@ -88,6 +88,9 @@
       pull.rebase = true;
       pull.autostash = true;
       push.default = "current";
+      branch.autoSetupMerge = "simple";
+      push.autoSetupRemote = true;
+      worktree.guessRemote = true;
       credential.helper = "osxkeychain";
       rerere.enabled = true;
       gpg.program = "gpg";
@@ -107,7 +110,7 @@
         wr = "worktree remove";
         d = "diff --stat";
         pr = "!f() { git worktree add ../pr/$1 && cd ../pr/$1 && gh pr checkout $1; }; f";
-        wa = "!f() { git worktree add -b $1 $1 $2; cd $1; }; f";
+        wa = "!f() { git worktree add -b $1 $1 origin/$2; cd $1; }; f";
       };
 
       merge.tool = "fugitive";
