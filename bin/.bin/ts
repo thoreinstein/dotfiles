@@ -16,6 +16,9 @@
 
 set -euo pipefail
 
+# Never let git take index locks while we're just reading status
+export GIT_OPTIONAL_LOCKS=0
+
 # Save original directory to restore later
 ORIGINAL_DIR="$PWD"
 trap 'cd "$ORIGINAL_DIR" 2>/dev/null || true' EXIT
@@ -74,26 +77,11 @@ is_cache_valid() {
 
 # Internal function to process a single repository path
 internal_process_repo() {
-  local objects_path="$1"
-  local repo_path=""
+  # Called with a .../.git directory found during discovery
+  local git_dir="${1%/}"
+  local repo_path="${git_dir%/.git}"
 
-  # Remove trailing slash if present
-  objects_path="${objects_path%/}"
-
-  if [[ "$objects_path" == */.git/objects ]]; then
-    repo_path="${objects_path%/.git/objects}"
-  else
-    repo_path="${objects_path%/objects}"
-  fi
-  
-  # Ensure repo_path is not empty and exists
-  repo_path="${repo_path:-.}"
-  [[ ! -d "$repo_path" ]] && return 0
-
-  # Sanity check: is it a git repo? (Look for HEAD)
-  if [[ ! -f "$repo_path/HEAD" && ! -f "$repo_path/.git/HEAD" ]]; then
-    return 0
-  fi
+  [[ -d "$repo_path" ]] || return 0
 
   # Get remote info once per repository
   local remote_url
@@ -109,8 +97,8 @@ internal_process_repo() {
     remote_info="other/${base_remote:-local}"
   fi
 
-  local repo_name
-  repo_name=$(basename "$repo_path")
+  # Relative path under BASE_DIR is more useful than the bare repo name
+  local repo_name="${repo_path#"$BASE_DIR"/}"
 
   # Process all worktrees for this repo_path
   local wt_path=""
@@ -157,12 +145,12 @@ internal_process_repo() {
         # Truncate values for table formatting
         local truncated_remote truncated_repo truncated_branch truncated_worktree
         truncated_remote=$(truncate_string "$remote_info" 25)
-        truncated_repo=$(truncate_string "$repo_name" 18)
+        truncated_repo=$(truncate_string "$repo_name" 30)
         truncated_branch=$(truncate_string "$branch" 20)
         truncated_worktree=$(truncate_string "$wt_name" 15)
 
         # Format: Display Line \t Worktree Name \t Repo Name \t Path
-        printf "%-25s | %-18s | %-15s | %-20s | %-8s\t%s\t%s\t%s\n" \
+        printf "%-25s | %-30s | %-15s | %-20s | %-8s\t%s\t%s\t%s\n" \
           "$truncated_remote" \
           "$truncated_repo" \
           "$truncated_worktree" \
@@ -189,12 +177,14 @@ build_repo_list() {
     echo "Scanning repositories in $BASE_DIR..." >&2
   fi
 
+  # Find main repos by their .git directory. Worktrees (and anything else git
+  # knows about) are enumerated via `git worktree list`, so depth limits only
+  # affect where repos themselves live, not their worktrees.
   local find_cmd
   if command -v fd &> /dev/null; then
-    # -H for hidden, -I to ignore .gitignore (we WANT to find .git directories)
-    find_cmd="fd -H -I -d 5 -t d '^objects$' \"$BASE_DIR\""
+    find_cmd="fd -H -I -d 4 -t d '\.git$' \"$BASE_DIR\" -0 || true"
   else
-    find_cmd="find \"$BASE_DIR\" -maxdepth 5 -type d -name objects"
+    find_cmd="find \"$BASE_DIR\" -maxdepth 4 -type d -name .git -print0 || true"
   fi
 
   # Determine parallelism
@@ -212,7 +202,7 @@ build_repo_list() {
   mkdir -p "$(dirname "$CACHE_FILE")"
 
   # Run discovery and processing in parallel
-  eval "$find_cmd" | xargs -I {} -P "$nproc" "$SCRIPT_PATH" --internal-process-repo "{}" > "$temp_cache"
+  eval "$find_cmd" | xargs -0 -P "$nproc" -n 1 "$SCRIPT_PATH" --internal-process-repo > "$temp_cache"
 
   mv "$temp_cache" "$CACHE_FILE"
 
@@ -264,6 +254,8 @@ elif [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
   echo "The script caches repository information for 1 hour to improve performance."
   echo "It will automatically update the cache in the background if it is stale."
   echo "Use --update to force a synchronous refresh of the cache."
+  echo "Inside fzf: ctrl-u rebuilds the cache and reloads the list."
+  echo "Existing tmux sessions are marked with a dot."
   exit 0
 fi
 
@@ -299,10 +291,21 @@ else
   # Proceed to use existing cache (even if stale)
 fi
 
-# Load from cache
+# Load from cache, dropping entries whose path no longer exists
 if [[ -f "$CACHE_FILE" ]]; then
+  declare -A live_sessions=()
+  while IFS= read -r s; do
+    [[ -n "$s" ]] && live_sessions["$s"]=1
+  done < <(tmux list-sessions -F '#S' 2>/dev/null || true)
+
   while IFS= read -r line; do
-    options+=("$line")
+    IFS=$'\t' read -r disp wt rel path <<< "$line"
+    [[ -d "$path" ]] || continue
+    # Mark entries that already have a tmux session
+    if [[ -n "${live_sessions["$(basename "$rel") [${wt}]"]:-}" ]]; then
+      disp="● $disp"
+    fi
+    options+=("${disp}"$'\t'"${wt}"$'\t'"${rel}"$'\t'"${path}")
   done < "$CACHE_FILE"
 fi
 
@@ -320,7 +323,8 @@ selected=$(printf '%s\n' "${options[@]}" | fzf \
   --preview='echo "Path: {4}"; echo ""; ls -la {4}' \
   --layout=reverse \
   --prompt='Select Repository > ' \
-  --header="$(printf "%-25s | %-18s | %-15s | %-20s | %-8s" "GitHub Org/Repo" "Repository" "Worktree" "Branch" "Status")" \
+  --bind="ctrl-u:reload($SCRIPT_PATH --internal-update-cache >/dev/null 2>&1; cat ${CACHE_FILE})" \
+  --header="$(printf "%-25s | %-30s | %-15s | %-20s | %-8s" "GitHub Org/Repo" "Path under ~/src" "Worktree" "Branch" "Status")" \
   --bind='?:toggle-preview' 2>/dev/null) || exit 0
 
 # Check if selection is empty
@@ -330,6 +334,8 @@ fi
 
 # Extract fields from the selected line
 IFS=$'\t' read -r _ worktree_name repo_name selected_path <<< "$selected"
+# Keep session names as before (basename), so existing sessions still match
+selected_name="$(basename "$repo_name") [${worktree_name}]"
 
 # Validate extracted fields
 if [[ -z "$worktree_name" ]] || [[ -z "$repo_name" ]] || [[ -z "$selected_path" ]]; then
@@ -342,9 +348,6 @@ if [[ ! -d "$selected_path" ]]; then
   echo "Error: Selected path '$selected_path' does not exist" >&2
   exit 1
 fi
-
-worktree=$(echo "$worktree_name" | xargs)
-selected_name="${repo_name} [${worktree}]"
 
 # Check if tmux server is running
 tmux_running=false
