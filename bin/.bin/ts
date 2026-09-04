@@ -37,18 +37,6 @@ fi
 
 # Function definitions
 
-# Helper function to truncate strings with ellipsis
-truncate_string() {
-  local str="$1"
-  local max_len="$2"
-
-  if [[ ${#str} -le $max_len ]]; then
-    echo "$str"
-  else
-    echo "${str:0:$((max_len - 3))}..."
-  fi
-}
-
 # Check if cache is valid
 is_cache_valid() {
   if [[ ! -f "$CACHE_FILE" ]]; then
@@ -142,19 +130,14 @@ internal_process_repo() {
           fi
         fi
         
-        # Truncate values for table formatting
-        local truncated_remote truncated_repo truncated_branch truncated_worktree
-        truncated_remote=$(truncate_string "$remote_info" 25)
-        truncated_repo=$(truncate_string "$repo_name" 30)
-        truncated_branch=$(truncate_string "$branch" 20)
-        truncated_worktree=$(truncate_string "$wt_name" 15)
-
         # Format: Display Line \t Worktree Name \t Repo Name \t Path
+        # No truncation: fzf with --with-nth=1 searches the display line, and
+        # truncated values break matching on full names. Columns just widen.
         printf "%-25s | %-30s | %-15s | %-20s | %-8s\t%s\t%s\t%s\n" \
-          "$truncated_remote" \
-          "$truncated_repo" \
-          "$truncated_worktree" \
-          "$truncated_branch" \
+          "$remote_info" \
+          "$repo_name" \
+          "$wt_name" \
+          "$branch" \
           "$status" \
           "$wt_name" \
           "$repo_name" \
