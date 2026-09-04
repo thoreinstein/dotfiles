@@ -65,9 +65,15 @@ is_cache_valid() {
 
 # Internal function to process a single repository path
 internal_process_repo() {
-  # Called with a .../.git directory found during discovery
-  local git_dir="${1%/}"
-  local repo_path="${git_dir%/.git}"
+  # Called with a found .../.git or bare-repo .../objects directory
+  local found="${1%/}"
+  local repo_path=""
+  if [[ "$found" == */.git/objects ]]; then
+    repo_path="${found%/.git/objects}"
+  else
+    repo_path="${found%/objects}"
+  fi
+  repo_path="${repo_path:-.}"
 
   [[ -d "$repo_path" ]] || return 0
 
@@ -160,14 +166,15 @@ build_repo_list() {
     echo "Scanning repositories in $BASE_DIR..." >&2
   fi
 
-  # Find main repos by their .git directory. Worktrees (and anything else git
-  # knows about) are enumerated via `git worktree list`, so depth limits only
-  # affect where repos themselves live, not their worktrees.
+  # Find repos by their objects directory — this covers both normal repos
+  # (X/.git/objects) and bare repos (X/objects, e.g. worktree hosts like
+  # tf-gcp-org-v2 that don't end in .git). Worktrees are enumerated via
+  # `git worktree list`, so depth only limits where repos themselves live.
   local find_cmd
   if command -v fd &> /dev/null; then
-    find_cmd="fd -H -I -d 4 -t d '\.git$' \"$BASE_DIR\" -0 || true"
+    find_cmd="fd -H -I -d 5 -t d '^objects$' \"$BASE_DIR\" -0 || true"
   else
-    find_cmd="find \"$BASE_DIR\" -maxdepth 4 -type d -name .git -print0 || true"
+    find_cmd="find \"$BASE_DIR\" -maxdepth 5 -type d -name objects -print0 || true"
   fi
 
   # Determine parallelism
