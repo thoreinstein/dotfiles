@@ -72,7 +72,7 @@ _: {
               thinking = "high";
             };
             oracle = {
-              model = "polaris/anthropic.Claude.Opus";
+              model = "polaris/anthropic.Polaris.Model.Smart.High";
               thinking = "max";
             };
             delegate = {
@@ -91,13 +91,12 @@ _: {
           "polaris/anthropic.Polaris.Model.Smart.High"
           "polaris/anthropic.Polaris.Model.Smart.Medium"
           "polaris/anthropic.Polaris.Model.Smart.Low"
-          "polaris/anthropic.Claude.Opus"
           "polaris/anthropic.Claude.Sonnet"
           "polaris/anthropic.Claude.Haiku"
-          "polaris/anthropic.OpenAI.Sol"
           "polaris/anthropic.OpenAI.Terra"
           "polaris/anthropic.OpenAI.Luna"
           "polaris/anthropic.Zai.GLM5"
+          "polaris/anthropic.Zai.GLM53Flash"
         ];
       };
 
@@ -149,11 +148,6 @@ _: {
               maxTokens = 128000;
             }
             {
-              id = "anthropic.Claude.Opus";
-              contextWindow = 1000000;
-              maxTokens = 128000;
-            }
-            {
               id = "anthropic.Claude.Sonnet";
               contextWindow = 1000000;
               maxTokens = 128000;
@@ -162,11 +156,6 @@ _: {
               id = "anthropic.Claude.Haiku";
               contextWindow = 200000;
               maxTokens = 64000;
-            }
-            {
-              id = "anthropic.OpenAI.Sol";
-              contextWindow = 1000000;
-              maxTokens = 128000;
             }
             {
               id = "anthropic.OpenAI.Terra";
@@ -181,6 +170,11 @@ _: {
             {
               id = "anthropic.Zai.GLM5";
               contextWindow = 200000;
+              maxTokens = 128000;
+            }
+            {
+              id = "anthropic.Zai.GLM53Flash";
+              contextWindow = 131072;
               maxTokens = 128000;
             }
           ];

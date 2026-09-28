@@ -47,11 +47,6 @@
         },
         {
           "contextWindow": 1000000,
-          "id": "anthropic.Claude.Opus",
-          "maxTokens": 128000
-        },
-        {
-          "contextWindow": 1000000,
           "id": "anthropic.Claude.Sonnet",
           "maxTokens": 128000
         },
@@ -59,11 +54,6 @@
           "contextWindow": 200000,
           "id": "anthropic.Claude.Haiku",
           "maxTokens": 64000
-        },
-        {
-          "contextWindow": 1000000,
-          "id": "anthropic.OpenAI.Sol",
-          "maxTokens": 128000
         },
         {
           "contextWindow": 1000000,
@@ -78,6 +68,11 @@
         {
           "contextWindow": 200000,
           "id": "anthropic.Zai.GLM5",
+          "maxTokens": 128000
+        },
+        {
+          "contextWindow": 131072,
+          "id": "anthropic.Zai.GLM53Flash",
           "maxTokens": 128000
         }
       ]

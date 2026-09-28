@@ -9,13 +9,12 @@
     "polaris/anthropic.Polaris.Model.Smart.High",
     "polaris/anthropic.Polaris.Model.Smart.Medium",
     "polaris/anthropic.Polaris.Model.Smart.Low",
-    "polaris/anthropic.Claude.Opus",
     "polaris/anthropic.Claude.Sonnet",
     "polaris/anthropic.Claude.Haiku",
-    "polaris/anthropic.OpenAI.Sol",
     "polaris/anthropic.OpenAI.Terra",
     "polaris/anthropic.OpenAI.Luna",
-    "polaris/anthropic.Zai.GLM5"
+    "polaris/anthropic.Zai.GLM5",
+    "polaris/anthropic.Zai.GLM53Flash"
   ],
   "externalEditor": "nvim",
   "hideThinkingBlock": true,
@@ -47,7 +46,7 @@
         "thinking": "medium"
       },
       "oracle": {
-        "model": "polaris/anthropic.Claude.Opus",
+        "model": "polaris/anthropic.Polaris.Model.Smart.High",
         "thinking": "max"
       },
       "researcher": {
