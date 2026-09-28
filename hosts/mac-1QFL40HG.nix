@@ -108,14 +108,14 @@ _: {
           apiKey = "local-only";
           models = [
             {
-              id = "qwen/qwen3.8-27b@q6_k_xl";
+              id = "qwen/qwen3.8-27b";
               name = "Qwen3.8-27b";
               reasoning = true;
               input = [
                 "text"
                 "image"
               ];
-              contextWindow = 65536;
+              contextWindow = 131072;
               maxTokens = 32768;
               cost = {
                 input = 0;

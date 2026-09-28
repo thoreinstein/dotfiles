@@ -6,14 +6,14 @@
       "baseUrl": "http://localhost:1234/v1",
       "models": [
         {
-          "contextWindow": 65536,
+          "contextWindow": 131072,
           "cost": {
             "cacheRead": 0,
             "cacheWrite": 0,
             "input": 0,
             "output": 0
           },
-          "id": "qwen/qwen3.8-27b@q6_k_xl",
+          "id": "qwen/qwen3.8-27b",
           "input": [
             "text",
             "image"
