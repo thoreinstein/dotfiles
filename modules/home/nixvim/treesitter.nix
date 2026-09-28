@@ -16,7 +16,14 @@
           };
         };
       };
-      grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
+      grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; let
+        # tree-sitter-nix ships its own queries using #is-not? (unregistered by
+        # nvim-treesitter) which shadow the plugin's queries; drop them.
+        # See nvim-treesitter#6870 / nix-community/tree-sitter-nix#84.
+        nix-clean = nix.overrideAttrs (_: { postInstall = "rm -rf $out/queries"; });
+      in
+      [
+        nix-clean
         lua
         luadoc
         printf
@@ -50,7 +57,6 @@
         css
         gotmpl
         comment
-        nix
         zig
       ];
     };
