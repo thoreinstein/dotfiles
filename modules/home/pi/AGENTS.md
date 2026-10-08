@@ -31,6 +31,14 @@ done
 
 Then run `make check` to confirm.
 
+## Memory
+
+Engram is the memory shared with Claude Code. Save decisions, bugfixes and discoveries with
+`mem_save` as they happen, and write a session summary before finishing. Before asking me about
+prior work, conventions or past decisions, search engram (`mem_search`), then the Obsidian vault at
+`~/Documents/second_brain` if its tools are available. The vault's `engram/` folder is a
+read-only mirror of engram; never edit it. Layout is in `reference/VAULT_CONVENTIONS.md`.
+
 ## No
 
 - Don’t install tools with `brew`, `npm -g`, or `pip` — add them to the flake instead.
