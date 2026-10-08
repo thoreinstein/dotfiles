@@ -7,6 +7,11 @@
 # when the day's notes have not changed since the last run.
 set -euo pipefail
 
+log="$HOME/.cache/engram-daily-log.log"
+if [ -f "$log" ] && [ "$(wc -c <"$log")" -gt 1048576 ]; then
+  tail -n 500 "$log" >"$log.tmp" && cat "$log.tmp" >"$log" && rm "$log.tmp"
+fi
+
 vault="$HOME/Documents/second_brain"
 state="$HOME/.cache/engram-daily-log"
 mkdir -p "$state"
