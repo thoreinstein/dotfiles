@@ -3,6 +3,10 @@
   home.packages = [
     (pkgs.writeShellScriptBin "ghclone" (builtins.readFile ../../bin/.bin/ghclone))
     (pkgs.writeShellScriptBin "ts" (builtins.readFile ../../bin/.bin/ts))
-    (pkgs.writeShellScriptBin "weekly" (builtins.readFile ../../bin/.bin/weekly))
+    (pkgs.writeShellApplication {
+      name = "weekly";
+      runtimeInputs = [ pkgs.sqlite ];
+      text = builtins.readFile ../../bin/.bin/weekly;
+    })
   ];
 }
