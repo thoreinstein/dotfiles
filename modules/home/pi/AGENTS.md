@@ -39,6 +39,18 @@ prior work, conventions or past decisions, search engram (`mem_search`), then th
 `~/Documents/second_brain` if its tools are available. The vault's `engram/` folder is a
 read-only mirror of engram; never edit it. Layout is in `reference/VAULT_CONVENTIONS.md`.
 
+## Workbench tickets
+
+`wb start` launches pi with `WB_TICKET` (ticket ID) and, when a vault is configured, `WB_NOTE`
+(path to that ticket's working note in the vault). If `WB_NOTE` is set:
+
+- Read the note at the start of a session.
+- Keep `## Log` current: append a dated line (one or two sentences) when a decision is made,
+  something non-obvious is found, a milestone is reached, or work stops with something unfinished.
+  Include the PR link once one exists.
+- Leave Summary, Description and Notes alone — they come from Jira.
+- Engram stays canonical for decisions (`mem_save`). The note is the ticket's running record.
+
 ## No
 
 - Don’t install tools with `brew`, `npm -g`, or `pip` — add them to the flake instead.
