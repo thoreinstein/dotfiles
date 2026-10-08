@@ -39,7 +39,6 @@
         "npm:context-mode"
         "npm:gentle-engram"
         "npm:pi-caveman"
-        "npm:pi-continuous-learning"
         "npm:pi-rtk-optimizer"
         "git:github.com/thoreinstein/pi-obsidian"
       ];
