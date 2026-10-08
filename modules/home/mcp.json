@@ -5,21 +5,6 @@
       "command": "npx",
       "args": ["-y", "kubernetes-mcp-server"]
     },
-    "terraform": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@hashicorp/terraform-mcp-server"]
-    },
-    "fetch": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
-    },
-    "sequential-thinking": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
     "gcp-gke": {
       "type": "http",
       "url": "https://container.googleapis.com/mcp"
@@ -64,6 +49,15 @@
       "type": "stdio",
       "command": "engram",
       "args": ["mcp"]
+    },
+    "obsidian-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["@homeDir@/src/thoreinstein/obsidian-mcp/dist/index.js"]
+    },
+    "gcp-devknowledge": {
+      "type": "http",
+      "url": "https://developerknowledge.googleapis.com/mcp"
     }
   }
 }

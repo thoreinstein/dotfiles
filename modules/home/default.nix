@@ -1,4 +1,12 @@
 { username, homeDirectory, ... }:
+let
+  # mcp.json references the home directory; expand it at build time since
+  # consumers (node stdio servers) don't expand ~ or $HOME in args.
+  mcpJson = builtins.replaceStrings
+    [ "@homeDir@" ]
+    [ homeDirectory ]
+    (builtins.readFile ./mcp.json);
+in
 {
   imports = [
     ./atuin.nix
@@ -36,6 +44,8 @@
   programs.home-manager.enable = true;
 
   home.file = {
-    ".mcp.json".source = ./mcp.json;
+    ".mcp.json".text = mcpJson;
+    # pi >= 0.99 reads native MCP config from here (same file, both paths)
+    ".pi/agent/mcp.json".text = mcpJson;
   };
 }
