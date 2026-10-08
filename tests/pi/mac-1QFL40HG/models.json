@@ -91,6 +91,29 @@
           "reasoning": true
         }
       ]
+    },
+    "unsloth": {
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "baseUrl": "http://localhost:8888/v1",
+      "models": [
+        {
+          "contextWindow": 131072,
+          "cost": {
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "input": 0,
+            "output": 0
+          },
+          "id": "Jundot/Qwen3.8-27B-oQ4e-mtp",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "Qwen3.8 oQ4e",
+          "reasoning": true
+        }
+      ]
     }
   }
 }

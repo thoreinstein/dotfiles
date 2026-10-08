@@ -10,6 +10,7 @@
   "enabledModels": [
     "incoai/Qwen3.8-27B-Splash",
     "incoai/Qwen3.6-35B-A3B-Splash",
+    "unsloth/Jundot/Qwen3.8-27B-oQ4e-mtp",
     "polaris/anthropic.Polaris.Model.Smart.High",
     "polaris/anthropic.Polaris.Model.Smart.Medium",
     "polaris/anthropic.Polaris.Model.Smart.Low",

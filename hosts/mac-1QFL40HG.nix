@@ -22,6 +22,7 @@ _: {
         enabledModels = [
           "incoai/Qwen3.8-27B-Splash"
           "incoai/Qwen3.6-35B-A3B-Splash"
+          "unsloth/Jundot/Qwen3.8-27B-oQ4e-mtp"
           "polaris/anthropic.Polaris.Model.Smart.High"
           "polaris/anthropic.Polaris.Model.Smart.Medium"
           "polaris/anthropic.Polaris.Model.Smart.Low"
@@ -61,6 +62,30 @@ _: {
 
               id = "incoai/Qwen3.6-35B-A3B-Splash";
               name = "Qwen3.6";
+              reasoning = true;
+              input = [
+                "text"
+              ];
+              contextWindow = 131072;
+              maxTokens = 32768;
+              cost = {
+                input = 0;
+                output = 0;
+                cacheRead = 0;
+                cacheWrite = 0;
+              };
+            }
+          ];
+        };
+
+        unsloth = {
+          baseUrl = "http://localhost:8888/v1";
+          api = "openai-completions";
+          apiKey = "not-needed";
+          models = [
+            {
+              id = "Jundot/Qwen3.8-27B-oQ4e-mtp";
+              name = "Qwen3.8 oQ4e";
               reasoning = true;
               input = [
                 "text"
