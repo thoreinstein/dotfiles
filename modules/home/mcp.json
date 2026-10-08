@@ -45,11 +45,6 @@
         "FIREHYDRANT_API_KEY": "$FIREHYDRANT_API_KEY"
       }
     },
-    "engram": {
-      "type": "stdio",
-      "command": "engram",
-      "args": ["mcp"]
-    },
     "obsidian-mcp": {
       "type": "stdio",
       "command": "node",

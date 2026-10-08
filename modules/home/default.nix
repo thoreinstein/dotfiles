@@ -6,10 +6,10 @@ let
     [ "@homeDir@" ]
     [ homeDirectory ]
     (builtins.readFile ./mcp.json);
-  # Claude Code gets these from its engram and obsidian-rag plugins; only pi needs them here.
+  # Claude Code gets obsidian tools from its obsidian-rag plugin; only pi needs this server.
   claudeMcpJson =
     let cfg = builtins.fromJSON mcpJson;
-    in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "engram" "obsidian-mcp" ]; });
+    in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "obsidian-mcp" ]; });
 in
 {
   imports = [
