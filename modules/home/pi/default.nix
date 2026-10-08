@@ -21,7 +21,7 @@
       collapseChangelog = true;
       quietStartup = true;
       enableInstallTelemetry = false;
-      defaultThinkingLevel = "xhigh";
+      defaultThinkingLevel = "medium";
       showCacheMissNotices = true;
       externalEditor = "nvim";
 

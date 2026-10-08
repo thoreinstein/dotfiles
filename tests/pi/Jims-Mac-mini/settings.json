@@ -2,7 +2,7 @@
   "collapseChangelog": true,
   "defaultModel": "claude-opus-5",
   "defaultProvider": "anthropic",
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "medium",
   "defaultTools": [
     "+codemode"
   ],
