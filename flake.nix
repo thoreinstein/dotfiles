@@ -103,6 +103,18 @@
               touch $out
             '';
 
+          pi-guard-tests =
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+            in
+            pkgs.runCommand "pi-guard-tests"
+              {
+                nativeBuildInputs = with pkgs; [ bash nodejs ];
+              } ''
+              bash ${./modules/home/pi/test_pi_guard.sh} ${./modules/home/pi/pi-guard.ts}
+              touch $out
+            '';
+
           pre-commit-check = git-hooks.lib.${system}.run {
             src = ./.;
             hooks = {

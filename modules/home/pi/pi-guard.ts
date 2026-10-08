@@ -141,6 +141,23 @@ function lastUserMessage(ctx) {
   return latest ? userText(latest) : "";
 }
 
+const AGENT_MESSAGE_MAX = 1000;
+
+// The text the assistant wrote in the same message as this tool call, last 1,000 characters,
+// or null when that message has none. Calls made by another tool (a codemode script) never appear
+// in the transcript, so they are matched through their parent call.
+export function agentMessage(branch, toolCallId, parentToolCallId) {
+  const id = parentToolCallId ?? toolCallId;
+  for (const e of branch) {
+    if (e.type !== "message" || e.message.role !== "assistant" || !Array.isArray(e.message.content)) continue;
+    const blocks = e.message.content;
+    if (!blocks.some((b) => b.type === "toolCall" && b.id === id)) continue;
+    const text = blocks.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+    return text ? text.slice(-AGENT_MESSAGE_MAX) : null;
+  }
+  return null;
+}
+
 export default function (pi: ExtensionAPI) {
   // Per-session run of identical command families; edits and writes count as progress.
   const runs = new Map();
@@ -197,6 +214,7 @@ export default function (pi: ExtensionAPI) {
         args: event.input,
         rules,
         last_user_message: lastUserMessage(ctx),
+        agent_message: agentMessage(ctx.sessionManager.getBranch(), event.toolCallId, event.parentToolCallId),
         answer,
         auto: noVerify || !ctx.hasUI,
       }) + "\n");
