@@ -10,6 +10,7 @@
     poppler-utils
     presenterm
     terminal-notifier
+    uv
     yq-go
   ];
 
