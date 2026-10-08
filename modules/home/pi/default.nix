@@ -29,7 +29,6 @@
 
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
-        "git:github.com/DietrichGebert/ponytail"
         "git:github.com/apmantza/pi-lens"
         "git:github.com/ferologics/pi-notify"
         "npm:@juicesharp/rpiv-ask-user-question"
