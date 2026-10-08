@@ -4,6 +4,7 @@
     ./atuin.nix
     ./bat.nix
     ./bin.nix
+    ./claude.nix
     ./cli.nix
     ./direnv.nix
     ./mise.nix
