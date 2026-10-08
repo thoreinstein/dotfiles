@@ -7,6 +7,7 @@
     ./claude.nix
     ./cli.nix
     ./direnv.nix
+    ./engram-vault-sync.nix
     ./mise.nix
     ./eza.nix
     ./fd.nix

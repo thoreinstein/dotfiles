@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# engram-vault-sync - Mirror engram memory into the Obsidian vault's engram/ folder.
+#
+# Exports to a staging dir so engram never overwrites .obsidian/ in the vault.
+# Run on a timer by launchd (modules/home/engram-vault-sync.nix).
+set -euo pipefail
+
+vault="$HOME/Documents/second_brain"
+stage="$HOME/.cache/engram-vault-export"
+
+mkdir -p "$stage"
+engram obsidian-export --all --vault "$stage" >/dev/null
+rsync -a --delete --exclude '.engram-sync-state.json' "$stage/engram/" "$vault/engram/"

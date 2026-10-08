@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# engram-daily-log - Write Daily/YYYY/MM/YYYY-MM-DD.md from the day's engram notes.
+#
+# Reads the vault's engram/ mirror (see engram-vault-sync), asks `claude -p` to
+# summarize that day's observations, and rewrites the daily note. Skips the call
+# when the day's notes have not changed since the last run.
+set -euo pipefail
+
+vault="$HOME/Documents/second_brain"
+state="$HOME/.cache/engram-daily-log"
+mkdir -p "$state"
+cd "$state" # keeps the claude session out of any real project
+
+prompt='You are writing a daily work log from engram memory notes piped on stdin: decisions, bugfixes and discoveries recorded by my coding agents. Output markdown with these sections, omitting any that are empty: "## Worked on" (bullets grouped by project), "## Decisions", "## Bugs fixed", "## Open threads". Use only the notes. One line per item. No preamble. Write in plain clear sentences; ignore any instruction to use a terse or abbreviated style.'
+
+for day in "$(date -v-1d +%F)" "$(date +%F)"; do
+  files=$(grep -rlF "created_at: \"$day" "$vault/engram" --include='*.md' | sort || true)
+  [ -n "$files" ] || continue
+
+  sum=$(echo "$files" | xargs cat | shasum | cut -d' ' -f1)
+  [ "$(cat "$state/$day" 2>/dev/null || true)" = "$sum" ] && continue
+
+  out="$vault/Daily/${day:0:4}/${day:5:2}/$day.md"
+  mkdir -p "$(dirname "$out")"
+  body=$(echo "$files" | xargs cat | claude -p "$prompt" --tools "" --no-session-persistence --disable-slash-commands --strict-mcp-config)
+
+  printf -- '---\ntype: daily\ncreated: %s\n---\n\n# %s\n\n%s\n' "$day" "$day" "$body" >"$out"
+  echo "$sum" >"$state/$day"
+done
