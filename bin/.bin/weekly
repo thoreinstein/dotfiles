@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# weekly - Review what you actually did, from atuin history.
+#
+# Reads atuin's SQLite DB and answers: which repos got time, what loops
+# repeat, how much context switching, and which sessions look ticket- or
+# incident-shaped. Run with no args = last 7 days.
+#
+# Usage: weekly [days]
+
+set -euo pipefail
+
+DB="${ATUIN_DB:-$HOME/.local/share/atuin/history.db}"
+DAYS="${1:-7}"
+# atuin stores timestamps in nanoseconds
+SINCE=$(( ($(date +%s) - DAYS * 86400) * 1000000000 ))
+
+q() { sqlite3 "$DB" "$1"; }
+
+echo "=== Last ${DAYS} days ($(q "SELECT COUNT(*) FROM history WHERE timestamp >= $SINCE AND deleted_at IS NULL") commands)"
+echo
+
+echo "=== Top repos by command count"
+q "SELECT cwd, COUNT(*) FROM history
+   WHERE timestamp >= $SINCE AND deleted_at IS NULL
+   GROUP BY cwd ORDER BY 2 DESC LIMIT 15" |
+  awk -F'|' '{n=$NF; $NF=""; gsub(/\|$/,""); printf "%5d  %s\n", n, $0}'
+echo
+
+echo "=== Sessions (repos touched per day — context switching)"
+q "SELECT date(timestamp/1000000000,'unixepoch','localtime') d,
+          COUNT(DISTINCT cwd) repos,
+          COUNT(DISTINCT session) sessions
+   FROM history WHERE timestamp >= $SINCE AND deleted_at IS NULL
+   GROUP BY d ORDER BY d DESC" |
+  awk -F'|' '{printf "%s  repos: %-3s tmux-sessions: %s\n", $1, $2, $3}'
+echo
+
+echo "=== Top commands"
+q "SELECT command, COUNT(*) FROM history
+   WHERE timestamp >= $SINCE AND deleted_at IS NULL
+   GROUP BY command ORDER BY 2 DESC LIMIT 15" |
+  awk -F'|' '{n=$NF; $NF=""; gsub(/\|$/,""); printf "%5d  %s\n", n, $0}'
+echo
+
+echo "=== Ticket / incident shaped activity"
+TICKETS=$(q "SELECT COUNT(*) FROM history
+   WHERE timestamp >= $SINCE AND deleted_at IS NULL
+     AND (cwd GLOB '*[A-Z][A-Z]-[0-9]*' OR command GLOB '*[A-Z][A-Z]-[0-9]*'
+          OR cwd LIKE '%/[A-Z][A-Z]-[0-9]*/%')")
+INCIDENTS=$(q "SELECT COUNT(*) FROM history
+   WHERE timestamp >= $SINCE AND deleted_at IS NULL
+     AND (cwd LIKE '%incident%' OR command LIKE '%incident%'
+          OR command LIKE '%pager%' OR command LIKE '%oncall%')")
+echo "  ticket-matching commands:  $TICKETS"
+echo "  incident-matching commands: $INCIDENTS"
