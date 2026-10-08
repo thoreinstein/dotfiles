@@ -1,4 +1,4 @@
-# The Andrej Kaparthy Rules
+# The Andrej Karpathy Rules
 
 ## 1. Think Before Coding
 
@@ -72,7 +72,6 @@ Strong criteria — loop independently. Weak criteria ("make it work") — const
 - **Discipline:** Don't begin work or mark tasks `in_progress` until both agreed on plan.
 - **Memory:** Session start — call `mem_search` with keywords from user's first message to surface prior context. Call `mem_save` after every decision, bugfix, pattern, or architecture finding — not just session end.
 - **Vault first:** Before asking user about prior work, conventions, or past decisions, search engram (`mem_search`), then the vault via `obsidian_rag_query`. Vault `engram/` folder is a read-only mirror of engram — never edit it. Layout: `reference/VAULT_CONVENTIONS.md`.
-- **Headroom:** Long-running or resumed work — call `headroom_retrieve` to surface prior compressed context first.
 - **Skills:** Before non-trivial task, check for applicable skill via Skill tool. Skill applies — invoke before any other action.
 
 <!-- CODEGRAPH_START -->
@@ -89,6 +88,6 @@ No `.codegraph/` directory — skip CodeGraph entirely. Indexing is user's decis
 
 ## Environment Constraints
 
-- **Token stack:** RTK (92% CLI filtering) + caveman (output) + token-optimizer MCP (caching) + headroom MCP compress/retrieve (client-side).
+- **Token stack:** RTK (92% CLI filtering) + caveman (output) + token-optimizer MCP (caching).
 
 @RTK.md
