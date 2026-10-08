@@ -16,12 +16,12 @@
     context = ./AGENTS.md;
 
     settings = {
-      theme = "rose-pine-dawn";
+      defaultTools = [ "+codemode" ];
       hideThinkingBlock = true;
       collapseChangelog = true;
       quietStartup = true;
       enableInstallTelemetry = false;
-      defaultThinkingLevel = "high";
+      defaultThinkingLevel = "xhigh";
       showCacheMissNotices = true;
       externalEditor = "nvim";
 
@@ -32,26 +32,23 @@
         "git:github.com/DietrichGebert/ponytail"
         "git:github.com/apmantza/pi-lens"
         "git:github.com/ferologics/pi-notify"
-        "https://github.com/zenobi-us/pi-rose-pine.git"
-        "npm:@joemccann/pi-exa"
         "npm:@juicesharp/rpiv-ask-user-question"
         "npm:@juicesharp/rpiv-todo"
         "npm:@narumitw/pi-plan-mode"
         "npm:@narumitw/pi-starship"
         "npm:context-mode"
-        "npm:gentle-engram@0.1.8"
-        "npm:pi-bash-live-view"
+        "npm:gentle-engram"
         "npm:pi-caveman"
         "npm:pi-continuous-learning"
-        "npm:pi-mcp-adapter"
         "npm:pi-rtk-optimizer"
-        "npm:pi-subagents"
+        "git:github.com/thoreinstein/pi-obsidian"
       ];
     };
   };
 
   home.file = {
     ".pi/agent/extensions/guardrails.ts".source = ./guardrails.ts;
+    ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
     ".pi/agent/pi-starship.toml".source = ./starship.toml;
   };
 }

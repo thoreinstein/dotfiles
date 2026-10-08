@@ -2,7 +2,10 @@
   "collapseChangelog": true,
   "defaultModel": "claude-opus-5",
   "defaultProvider": "anthropic",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "xhigh",
+  "defaultTools": [
+    "+codemode"
+  ],
   "enableInstallTelemetry": false,
   "externalEditor": "nvim",
   "hideThinkingBlock": true,
@@ -10,24 +13,19 @@
     "git:github.com/DietrichGebert/ponytail",
     "git:github.com/apmantza/pi-lens",
     "git:github.com/ferologics/pi-notify",
-    "https://github.com/zenobi-us/pi-rose-pine.git",
-    "npm:@joemccann/pi-exa",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-todo",
     "npm:@narumitw/pi-plan-mode",
     "npm:@narumitw/pi-starship",
     "npm:context-mode",
-    "npm:gentle-engram@0.1.8",
-    "npm:pi-bash-live-view",
+    "npm:gentle-engram",
     "npm:pi-caveman",
     "npm:pi-continuous-learning",
-    "npm:pi-mcp-adapter",
     "npm:pi-rtk-optimizer",
-    "npm:pi-subagents"
+    "git:github.com/thoreinstein/pi-obsidian"
   ],
   "quietStartup": true,
   "showCacheMissNotices": true,
-  "theme": "rose-pine-dawn",
   "warnings": {
     "anthropicExtraUsage": true
   }

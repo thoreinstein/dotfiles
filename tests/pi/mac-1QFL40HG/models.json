@@ -1,29 +1,5 @@
 {
   "providers": {
-    "lm-studio": {
-      "api": "openai-completions",
-      "apiKey": "local-only",
-      "baseUrl": "http://localhost:1234/v1",
-      "models": [
-        {
-          "contextWindow": 131072,
-          "cost": {
-            "cacheRead": 0,
-            "cacheWrite": 0,
-            "input": 0,
-            "output": 0
-          },
-          "id": "qwen/qwen3.8-27b",
-          "input": [
-            "text",
-            "image"
-          ],
-          "maxTokens": 32768,
-          "name": "Qwen3.8-27b",
-          "reasoning": true
-        }
-      ]
-    },
     "polaris": {
       "api": "anthropic-messages",
       "apiKey": "$POLARIS_AUTH_TOKEN",
@@ -31,19 +7,19 @@
       "baseUrl": "https://llm-gateway.polaris.pingidentity.com",
       "models": [
         {
-          "contextWindow": 1000000,
+          "contextWindow": 380000,
           "id": "anthropic.Polaris.Model.Smart.High",
-          "maxTokens": 128000
+          "maxTokens": 32768
         },
         {
-          "contextWindow": 1000000,
+          "contextWindow": 380000,
           "id": "anthropic.Polaris.Model.Smart.Medium",
-          "maxTokens": 128000
+          "maxTokens": 32768
         },
         {
-          "contextWindow": 1000000,
+          "contextWindow": 380000,
           "id": "anthropic.Polaris.Model.Smart.Low",
-          "maxTokens": 128000
+          "maxTokens": 32768
         },
         {
           "contextWindow": 1000000,
@@ -66,14 +42,53 @@
           "maxTokens": 128000
         },
         {
-          "contextWindow": 200000,
+          "contextWindow": 380000,
           "id": "anthropic.Zai.GLM5",
-          "maxTokens": 128000
+          "maxTokens": 32768
+        },
+        {
+          "contextWindow": 380000,
+          "id": "anthropic.Zai.GLM53Flash",
+          "maxTokens": 32768
+        }
+      ]
+    },
+    "splash": {
+      "api": "openai-completions",
+      "apiKey": "not-needed",
+      "baseUrl": "http://localhost:8000/v1",
+      "models": [
+        {
+          "contextWindow": 131072,
+          "cost": {
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "input": 0,
+            "output": 0
+          },
+          "id": "incoai/Qwen3.8-27B-Splash",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "Qwen3.8",
+          "reasoning": true
         },
         {
           "contextWindow": 131072,
-          "id": "anthropic.Zai.GLM53Flash",
-          "maxTokens": 128000
+          "cost": {
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "input": 0,
+            "output": 0
+          },
+          "id": "incoai/Qwen3.6-35B-A3B-Splash",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "Qwen3.6",
+          "reasoning": true
         }
       ]
     }

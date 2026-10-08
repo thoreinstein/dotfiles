@@ -9,85 +9,19 @@ _: {
         exa = {
           url = "https://mcp.exa.ai/mcp?tools=web_search_exa";
         };
-        github = {
-          url = "https://api.githubcopilot.com/mcp/";
-          headers = {
-            "Authorization" = "Bearer \${GITHUB_PERSONAL_ACCESS_TOKEN}";
-          };
-        };
         grep_app = {
           url = "https://mcp.grep.app";
-        };
-        playwright = {
-          command = "docker";
-          args = [
-            "run"
-            "-i"
-            "--rm"
-            "mcp/playwright"
-          ];
-        };
-        sequential_thinking = {
-          command = "docker";
-          args = [
-            "run"
-            "-i"
-            "--rm"
-            "mcp/sequentialthinking"
-          ];
-        };
-        time = {
-          command = "docker";
-          args = [
-            "run"
-            "-i"
-            "--rm"
-            "mcp/time"
-          ];
         };
       };
     };
 
     pi-coding-agent = {
       settings = {
-        defaultProvider = "lm-studio";
-        defaultModel = "qwen/qwen3.8-27b";
-        subagents = {
-          defaultModel = "polaris/anthropic.Polaris.Model.Smart.Medium";
-          agentOverrides = {
-            scout = {
-              model = "polaris/anthropic.Polaris.Model.Smart.Low";
-              thinking = "low";
-            };
-            researcher = {
-              model = "polaris/anthropic.Claude.Sonnet";
-              thinking = "high";
-            };
-            worker = {
-              model = "polaris/anthropic.Polaris.Model.Smart.Medium";
-              thinking = "medium";
-            };
-            reviewer = {
-              model = "polaris/anthropic.Polaris.Model.Smart.High";
-              thinking = "high";
-            };
-            oracle = {
-              model = "polaris/anthropic.Polaris.Model.Smart.High";
-              thinking = "max";
-            };
-            delegate = {
-              model = "polaris/anthropic.Polaris.Model.Smart.Medium";
-              thinking = "medium";
-            };
-          };
-          modelScope = {
-            enforce = true;
-            strict = true;
-            allow = [ "polaris/*" ];
-          };
-        };
+        defaultProvider = "splash";
+        defaultModel = "incoai/Qwen3.6-35B-A3B-Splash";
         enabledModels = [
-          "qwen/qwen3.8-27b"
+          "incoai/Qwen3.8-27B-Splash"
+          "incoai/Qwen3.6-35B-A3B-Splash"
           "polaris/anthropic.Polaris.Model.Smart.High"
           "polaris/anthropic.Polaris.Model.Smart.Medium"
           "polaris/anthropic.Polaris.Model.Smart.Low"
@@ -101,18 +35,35 @@ _: {
       };
 
       models.providers = {
-        lm-studio = {
-          baseUrl = "http://localhost:1234/v1";
+        splash = {
+          baseUrl = "http://localhost:8000/v1";
           api = "openai-completions";
-          apiKey = "local-only";
+          apiKey = "not-needed";
           models = [
             {
-              id = "qwen/qwen3.8-27b";
-              name = "Qwen3.8-27b";
+
+              id = "incoai/Qwen3.8-27B-Splash";
+              name = "Qwen3.8";
               reasoning = true;
               input = [
                 "text"
-                "image"
+              ];
+              contextWindow = 131072;
+              maxTokens = 32768;
+              cost = {
+                input = 0;
+                output = 0;
+                cacheRead = 0;
+                cacheWrite = 0;
+              };
+            }
+            {
+
+              id = "incoai/Qwen3.6-35B-A3B-Splash";
+              name = "Qwen3.6";
+              reasoning = true;
+              input = [
+                "text"
               ];
               contextWindow = 131072;
               maxTokens = 32768;
@@ -134,18 +85,18 @@ _: {
           models = [
             {
               id = "anthropic.Polaris.Model.Smart.High";
-              contextWindow = 1000000;
-              maxTokens = 128000;
+              contextWindow = 380000;
+              maxTokens = 32768;
             }
             {
               id = "anthropic.Polaris.Model.Smart.Medium";
-              contextWindow = 1000000;
-              maxTokens = 128000;
+              contextWindow = 380000;
+              maxTokens = 32768;
             }
             {
               id = "anthropic.Polaris.Model.Smart.Low";
-              contextWindow = 1000000;
-              maxTokens = 128000;
+              contextWindow = 380000;
+              maxTokens = 32768;
             }
             {
               id = "anthropic.Claude.Sonnet";
@@ -169,13 +120,13 @@ _: {
             }
             {
               id = "anthropic.Zai.GLM5";
-              contextWindow = 200000;
-              maxTokens = 128000;
+              contextWindow = 380000;
+              maxTokens = 32768;
             }
             {
               id = "anthropic.Zai.GLM53Flash";
-              contextWindow = 131072;
-              maxTokens = 128000;
+              contextWindow = 380000;
+              maxTokens = 32768;
             }
           ];
         };
