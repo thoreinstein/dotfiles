@@ -45,7 +45,7 @@
   };
 
   home.file = {
-    ".pi/agent/extensions/guardrails.ts".source = ./guardrails.ts;
+    ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
     ".pi/agent/pi-starship.toml".source = ./starship.toml;
   };
