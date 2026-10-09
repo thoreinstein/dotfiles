@@ -79,7 +79,8 @@ _:
     };
 
     # Findings also show as diagnostics on their lines, so they read next to
-    # the code; ]d / [d jump between them with the full text in a float.
+    # the code. ]r / [r jump only between review findings (LSP diagnostics
+    # would bury them under ]d) and open the full text in a float.
     extraConfigLua = ''
       local wb_review_ns = vim.api.nvim_create_namespace("wb_review")
       local wb_review_severity = {
@@ -87,14 +88,56 @@ _:
         ["should-fix"] = vim.diagnostic.severity.WARN,
         nit = vim.diagnostic.severity.HINT,
       }
+      vim.diagnostic.config({
+        virtual_text = { prefix = "", format = function(d) return "◆ review: " .. d.message end },
+        signs = { text = { "◆", "◆", "◆", "◆" } },
+      }, wb_review_ns)
+
+      local function wb_review_jump(count)
+        local before = vim.api.nvim_win_get_cursor(0)
+        vim.diagnostic.jump({ count = count, namespace = wb_review_ns })
+        local after = vim.api.nvim_win_get_cursor(0)
+        if before[1] == after[1] and #vim.diagnostic.get(0, { namespace = wb_review_ns }) == 0 then
+          vim.notify("No review findings in this file (Tab = next file in Diffview)")
+          return
+        end
+        -- Close on leaving this spot, not on CursorMoved: the jump's own
+        -- CursorMoved can fire after the float opens and close it at once.
+        local _, win = vim.diagnostic.open_float({
+          namespace = wb_review_ns,
+          scope = "line",
+          border = "rounded",
+          source = false,
+          close_events = { "BufLeave", "InsertEnter" },
+        })
+        if not win then
+          return
+        end
+        vim.api.nvim_create_autocmd("CursorMoved", {
+          buffer = 0,
+          callback = function()
+            local pos = vim.api.nvim_win_get_cursor(0)
+            if pos[1] == after[1] and pos[2] == after[2] then
+              return
+            end
+            if vim.api.nvim_win_is_valid(win) then
+              vim.api.nvim_win_close(win, true)
+            end
+            return true
+          end,
+        })
+      end
+      vim.keymap.set("n", "]r", function() wb_review_jump(1) end, { desc = "Next PR review finding" })
+      vim.keymap.set("n", "[r", function() wb_review_jump(-1) end, { desc = "Prev PR review finding" })
 
       -- items: quickfix items (from setqflist input or getqflist output).
+      -- Buffers aren't loaded here (a swap file elsewhere would prompt);
+      -- diagnostics display once Diffview or :edit loads the file.
       function _G.WbReviewDiagnostics(items)
         vim.diagnostic.reset(wb_review_ns)
         local by_buf = {}
         for _, it in ipairs(items) do
           local bufnr = it.bufnr or vim.fn.bufadd(it.filename)
-          vim.fn.bufload(bufnr)
           local severity, message = it.text:match("^(%S+): (.+)$")
           by_buf[bufnr] = by_buf[bufnr] or {}
           table.insert(by_buf[bufnr], {
@@ -179,7 +222,7 @@ _:
           -- --imply-local: the HEAD side is the real files, so the findings
           -- diagnostics show in the diff.
           vim.cmd("DiffviewOpen " .. meta.base .. "...HEAD --imply-local")
-          vim.notify(("PrReview: %d findings shown in the code (]d / [d), list in previous tab, diff vs %s"):format(#items, meta.base))
+          vim.notify(("PrReview: %d findings marked ◆ in the code (]r / [r), list in previous tab, diff vs %s"):format(#items, meta.base))
         end
       '';
     };
