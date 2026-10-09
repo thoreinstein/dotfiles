@@ -12,12 +12,13 @@
   "packages": [
     "git:github.com/apmantza/pi-lens",
     "git:github.com/ferologics/pi-notify",
+    "git:github.com/thoreinstein/pi-obsidian",
+    "npm:@firstpick/pi-extension-tools",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@narumitw/pi-starship",
     "npm:gentle-engram",
     "npm:pi-caveman",
-    "npm:pi-rtk-optimizer",
-    "git:github.com/thoreinstein/pi-obsidian"
+    "npm:pi-rtk-optimizer"
   ],
   "quietStartup": true,
   "showCacheMissNotices": true,

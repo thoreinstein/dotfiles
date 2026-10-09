@@ -17,12 +17,11 @@ _: {
 
     pi-coding-agent = {
       settings = {
-        defaultProvider = "splash";
-        defaultModel = "incoai/Qwen3.6-35B-A3B-Splash";
+        defaultProvider = "omlx";
+        defaultModel = "Qwen3.8-27B-oQ4e-mtp";
         enabledModels = [
-          "incoai/Qwen3.8-27B-Splash"
-          "incoai/Qwen3.6-35B-A3B-Splash"
-          "unsloth/Jundot/Qwen3.8-27B-oQ4e-mtp"
+          "omlx/Qwen3.8-27B-oQ4e-mtp"
+          "strata/qwen3.8-flash-next-iq3_xxs"
           "polaris/anthropic.Polaris.Model.Smart.High"
           "polaris/anthropic.Polaris.Model.Smart.Medium"
           "polaris/anthropic.Polaris.Model.Smart.Low"
@@ -36,32 +35,15 @@ _: {
       };
 
       models.providers = {
-        splash = {
-          baseUrl = "http://localhost:8000/v1";
+        omlx = {
+          baseUrl = "http://127.0.0.1:8000/v1";
           api = "openai-completions";
-          apiKey = "not-needed";
+          # Read at request time from oMLX's own config; keeps the key out of nix.
+          apiKey = "!jq -r .auth.api_key ~/.omlx/settings.json";
           models = [
             {
-
-              id = "incoai/Qwen3.8-27B-Splash";
-              name = "Qwen3.8";
-              reasoning = true;
-              input = [
-                "text"
-              ];
-              contextWindow = 131072;
-              maxTokens = 32768;
-              cost = {
-                input = 0;
-                output = 0;
-                cacheRead = 0;
-                cacheWrite = 0;
-              };
-            }
-            {
-
-              id = "incoai/Qwen3.6-35B-A3B-Splash";
-              name = "Qwen3.6";
+              id = "Qwen3.8-27B-oQ4e-mtp";
+              name = "Qwen3.8 oQ4e (oMLX)";
               reasoning = true;
               input = [
                 "text"
@@ -78,20 +60,21 @@ _: {
           ];
         };
 
-        unsloth = {
-          baseUrl = "http://localhost:8888/v1";
+        # strata on the gaming PC (LAN); no API key.
+        strata = {
+          baseUrl = "http://192.168.4.56:8080/v1";
           api = "openai-completions";
           apiKey = "not-needed";
           models = [
             {
-              id = "Jundot/Qwen3.8-27B-oQ4e-mtp";
-              name = "Qwen3.8 oQ4e";
+              id = "qwen3.8-flash-next-iq3_xxs";
+              name = "Qwen3.8 Flash Next IQ3_XXS (strata)";
               reasoning = true;
               input = [
                 "text"
               ];
-              contextWindow = 131072;
-              maxTokens = 32768;
+              contextWindow = 65536;
+              maxTokens = 16384;
               cost = {
                 input = 0;
                 output = 0;
