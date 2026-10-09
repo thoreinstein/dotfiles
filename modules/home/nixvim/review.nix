@@ -78,6 +78,39 @@ _:
       '';
     };
 
+    # Findings also show as diagnostics on their lines, so they read next to
+    # the code; ]d / [d jump between them with the full text in a float.
+    extraConfigLua = ''
+      local wb_review_ns = vim.api.nvim_create_namespace("wb_review")
+      local wb_review_severity = {
+        blocking = vim.diagnostic.severity.ERROR,
+        ["should-fix"] = vim.diagnostic.severity.WARN,
+        nit = vim.diagnostic.severity.HINT,
+      }
+
+      -- items: quickfix items (from setqflist input or getqflist output).
+      function _G.WbReviewDiagnostics(items)
+        vim.diagnostic.reset(wb_review_ns)
+        local by_buf = {}
+        for _, it in ipairs(items) do
+          local bufnr = it.bufnr or vim.fn.bufadd(it.filename)
+          vim.fn.bufload(bufnr)
+          local severity, message = it.text:match("^(%S+): (.+)$")
+          by_buf[bufnr] = by_buf[bufnr] or {}
+          table.insert(by_buf[bufnr], {
+            lnum = it.lnum - 1,
+            col = 0,
+            severity = wb_review_severity[severity] or vim.diagnostic.severity.INFO,
+            message = message or it.text,
+            source = "wb review",
+          })
+        end
+        for bufnr, diags in pairs(by_buf) do
+          vim.diagnostic.set(wb_review_ns, bufnr, diags)
+        end
+      end
+    '';
+
     # Findings from `wb review` (see workbench) live in <git-dir>/wb/. The
     # quickfix list is the triage surface; `dd` in it writes removals back to
     # the findings file so `wb review --post` only sends what was kept.
@@ -139,10 +172,14 @@ _:
             items = items,
             context = { wb_findings = findings },
           })
-          -- Quickfix stays in this tab; diffview opens its own tab.
-          vim.cmd.copen()
-          vim.cmd("DiffviewOpen " .. meta.base .. "...HEAD")
-          vim.notify(("PrReview: %d findings in quickfix (previous tab), diff vs %s"):format(#items, meta.base))
+          WbReviewDiagnostics(items)
+          -- Quickfix stays in this tab as the index; diffview opens its own tab.
+          vim.cmd("copen 15")
+          vim.wo.wrap = true
+          -- --imply-local: the HEAD side is the real files, so the findings
+          -- diagnostics show in the diff.
+          vim.cmd("DiffviewOpen " .. meta.base .. "...HEAD --imply-local")
+          vim.notify(("PrReview: %d findings shown in the code (]d / [d), list in previous tab, diff vs %s"):format(#items, meta.base))
         end
       '';
     };
@@ -185,6 +222,7 @@ _:
               local idx = vim.fn.line(".")
               table.remove(info.items, idx)
               vim.fn.setqflist({}, "r", { title = info.title, items = info.items, context = ctx })
+              WbReviewDiagnostics(info.items)
               local lines = {}
               for _, it in ipairs(info.items) do
                 table.insert(lines, it.user_data)
