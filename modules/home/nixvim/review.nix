@@ -78,6 +78,70 @@ _:
       '';
     };
 
+    # Findings from `wb review` (see workbench) live in <git-dir>/wb/. The
+    # quickfix list is the triage surface; `dd` in it writes removals back to
+    # the findings file so `wb review --post` only sends what was kept.
+    userCommands.PrReview = {
+      desc = "Diff vs review base + wb review findings in quickfix";
+      command.__raw = ''
+        function()
+          local function git(args)
+            local out = vim.fn.systemlist(vim.list_extend({ "git" }, args))
+            if vim.v.shell_error ~= 0 then
+              return nil, table.concat(out, "\n")
+            end
+            return out, nil
+          end
+
+          local gitdir, err = git({ "rev-parse", "--absolute-git-dir" })
+          if not gitdir then
+            vim.notify("PrReview: not a git repository\n" .. err, vim.log.levels.ERROR)
+            return
+          end
+          local root = git({ "rev-parse", "--show-toplevel" })[1]
+          local dir = gitdir[1] .. "/wb"
+
+          if vim.fn.filereadable(dir .. "/meta") == 0 then
+            vim.notify("PrReview: no review yet (run wb review)", vim.log.levels.WARN)
+            return
+          end
+          local meta = {}
+          for _, l in ipairs(vim.fn.readfile(dir .. "/meta")) do
+            local k, v = l:match("^(%w+)=(.*)$")
+            if k then
+              meta[k] = v
+            end
+          end
+
+          local findings = dir .. "/findings"
+          local items = {}
+          if vim.fn.filereadable(findings) == 1 then
+            for _, l in ipairs(vim.fn.readfile(findings)) do
+              local path, lnum, text = l:match("^(.-):(%d+): (.+)$")
+              if path then
+                table.insert(items, {
+                  filename = root .. "/" .. path,
+                  lnum = tonumber(lnum),
+                  text = text,
+                  user_data = l,
+                })
+              end
+            end
+          end
+
+          vim.fn.setqflist({}, "r", {
+            title = "PR review",
+            items = items,
+            context = { wb_findings = findings },
+          })
+          -- Quickfix stays in this tab; diffview opens its own tab.
+          vim.cmd.copen()
+          vim.cmd("DiffviewOpen " .. meta.base .. "...HEAD")
+          vim.notify(("PrReview: %d findings in quickfix (previous tab), diff vs %s"):format(#items, meta.base))
+        end
+      '';
+    };
+
     keymaps = [
       {
         mode = "n";
@@ -94,6 +158,39 @@ _:
           end
         '';
         options.desc = "Workspace diagnostics → quickfix";
+      }
+    ];
+
+    autoCmd = [
+      {
+        event = "FileType";
+        pattern = "qf";
+        desc = "dd drops a PrReview finding and saves the list";
+        callback.__raw = ''
+          function(ev)
+            vim.keymap.set("n", "dd", function()
+              if vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].loclist == 1 then
+                return
+              end
+              local info = vim.fn.getqflist({ context = 0, items = 0, title = 0 })
+              local ctx = info.context
+              if type(ctx) ~= "table" or not ctx.wb_findings then
+                return
+              end
+              local idx = vim.fn.line(".")
+              table.remove(info.items, idx)
+              vim.fn.setqflist({}, "r", { title = info.title, items = info.items, context = ctx })
+              local lines = {}
+              for _, it in ipairs(info.items) do
+                table.insert(lines, it.user_data)
+              end
+              vim.fn.writefile(lines, ctx.wb_findings)
+              if #info.items > 0 then
+                vim.api.nvim_win_set_cursor(0, { math.min(idx, #info.items), 0 })
+              end
+            end, { buffer = ev.buf, desc = "Drop PR review finding" })
+          end
+        '';
       }
     ];
   };

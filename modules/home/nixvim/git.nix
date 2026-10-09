@@ -150,13 +150,12 @@ _: {
         options.desc = "File history (repo)";
       }
 
-      # PR review: diff the checked-out PR branch against its merge-base
-      # with main. Fetch the PR first, e.g. `gh pr checkout <n>`.
+      # PR review: diff vs the base `wb review` recorded, findings in quickfix.
       {
         mode = "n";
         key = "<leader>gP";
-        action = "<cmd>DiffviewOpen origin/main...HEAD<cr>";
-        options.desc = "Diff vs origin/main (PR review)";
+        action = "<cmd>PrReview<cr>";
+        options.desc = "PR review (diff + findings)";
       }
 
       # Fugitive
