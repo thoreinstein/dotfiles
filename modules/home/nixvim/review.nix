@@ -98,7 +98,12 @@ _:
             vim.notify("PrReview: not a git repository\n" .. err, vim.log.levels.ERROR)
             return
           end
-          local root = git({ "rev-parse", "--show-toplevel" })[1]
+          local top = git({ "rev-parse", "--show-toplevel" })
+          if not top then
+            vim.notify("PrReview: not in a worktree", vim.log.levels.ERROR)
+            return
+          end
+          local root = top[1]
           local dir = gitdir[1] .. "/wb"
 
           if vim.fn.filereadable(dir .. "/meta") == 0 then
