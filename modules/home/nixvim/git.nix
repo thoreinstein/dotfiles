@@ -1,5 +1,11 @@
 _: {
   programs.nixvim = {
+    # CodeDiff otherwise downloads its file-watcher binary into the plugin
+    # dir, which is the read-only nix store. Without it, it polls instead.
+    extraConfigLuaPre = ''
+      vim.env.CODEDIFF_WATCHER_NO_AUTO_INSTALL = "1"
+    '';
+
     plugins = {
       gitsigns = {
         enable = true;
@@ -110,43 +116,45 @@ _: {
         };
       };
 
-      diffview = {
+      # Inline (GitHub-style) diffs by default; `t` in a diff toggles side-by-side.
+      codediff = {
         enable = true;
+        settings.diff.layout = "inline";
       };
 
       fugitive.enable = true;
     };
 
     keymaps = [
-      # Diffview
+      # CodeDiff
       {
         mode = "n";
         key = "<leader>gd";
-        action = "<cmd>DiffviewOpen<cr>";
+        action = "<cmd>CodeDiff<cr>";
         options.desc = "Diff view (working tree vs HEAD)";
       }
       {
         mode = "n";
         key = "<leader>gs";
-        action = "<cmd>DiffviewOpen --staged<cr>";
+        action = "<cmd>CodeDiff --staged<cr>";
         options.desc = "Diff view (staged vs HEAD)";
       }
       {
         mode = "n";
         key = "<leader>gD";
-        action = "<cmd>DiffviewOpen -- %<cr>";
+        action = "<cmd>CodeDiff file HEAD<cr>";
         options.desc = "Diff current file vs HEAD";
       }
       {
         mode = "n";
         key = "<leader>gh";
-        action = "<cmd>DiffviewFileHistory %<cr>";
+        action = "<cmd>CodeDiff history %<cr>";
         options.desc = "File history (current file)";
       }
       {
         mode = "n";
         key = "<leader>gH";
-        action = "<cmd>DiffviewFileHistory<cr>";
+        action = "<cmd>CodeDiff history<cr>";
         options.desc = "File history (repo)";
       }
 

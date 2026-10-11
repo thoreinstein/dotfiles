@@ -98,7 +98,7 @@ _:
         vim.diagnostic.jump({ count = count, namespace = wb_review_ns })
         local after = vim.api.nvim_win_get_cursor(0)
         if before[1] == after[1] and #vim.diagnostic.get(0, { namespace = wb_review_ns }) == 0 then
-          vim.notify("No review findings in this file (Tab = next file in Diffview)")
+          vim.notify("No review findings in this file (]f = next file in CodeDiff)")
           return
         end
         -- Close on leaving this spot, not on CursorMoved: the jump's own
@@ -132,7 +132,7 @@ _:
 
       -- items: quickfix items (from setqflist input or getqflist output).
       -- Buffers aren't loaded here (a swap file elsewhere would prompt);
-      -- diagnostics display once Diffview or :edit loads the file.
+      -- diagnostics display once CodeDiff or :edit loads the file.
       function _G.WbReviewDiagnostics(items)
         vim.diagnostic.reset(wb_review_ns)
         local by_buf = {}
@@ -216,12 +216,12 @@ _:
             context = { wb_findings = findings },
           })
           WbReviewDiagnostics(items)
-          -- Quickfix stays in this tab as the index; diffview opens its own tab.
+          -- Quickfix stays in this tab as the index; CodeDiff opens its own tab.
           vim.cmd("copen 15")
           vim.wo.wrap = true
-          -- --imply-local: the HEAD side is the real files, so the findings
-          -- diagnostics show in the diff.
-          vim.cmd("DiffviewOpen " .. meta.base .. "...HEAD --imply-local")
+          -- `<base>...` diffs against the working tree, so the buffers are the
+          -- real files and the findings diagnostics show in the diff.
+          vim.cmd("CodeDiff " .. meta.base .. "...")
           vim.notify(("PrReview: %d findings marked ◆ in the code (]r / [r), list in previous tab, diff vs %s"):format(#items, meta.base))
         end
       '';
