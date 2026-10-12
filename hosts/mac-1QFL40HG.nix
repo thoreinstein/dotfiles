@@ -32,6 +32,12 @@ let
           contextWindow = 65536;
           maxTokens = 16384;
         })
+        (pi.mkLocalModel {
+          id = "swift-qwen3.8-flash-next-gsq-rco-iq3_xxs";
+          name = "Swift Qwen3.8 Flash Next IQ3_XXS (strata)";
+          contextWindow = 65536;
+          maxTokens = 16384;
+        })
       ];
     };
 

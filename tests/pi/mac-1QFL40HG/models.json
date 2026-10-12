@@ -96,6 +96,22 @@
           "maxTokens": 16384,
           "name": "Qwen3.8 Flash Next IQ3_XXS (strata)",
           "reasoning": true
+        },
+        {
+          "contextWindow": 65536,
+          "cost": {
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "input": 0,
+            "output": 0
+          },
+          "id": "swift-qwen3.8-flash-next-gsq-rco-iq3_xxs",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 16384,
+          "name": "Swift Qwen3.8 Flash Next IQ3_XXS (strata)",
+          "reasoning": true
         }
       ]
     }
