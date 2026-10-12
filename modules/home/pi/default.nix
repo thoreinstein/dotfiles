@@ -30,7 +30,6 @@
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
         "git:github.com/apmantza/pi-lens"
-        "git:github.com/ferologics/pi-notify"
         "git:github.com/thoreinstein/pi-obsidian"
         "npm:@firstpick/pi-extension-tools"
         "npm:@juicesharp/rpiv-ask-user-question"
@@ -44,6 +43,7 @@
 
   home.file = {
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
+    ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
     ".pi/agent/pi-starship.toml".source = ./starship.toml;
   };
