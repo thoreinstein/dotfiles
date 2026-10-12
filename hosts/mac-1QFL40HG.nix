@@ -99,6 +99,8 @@ let
   };
 in
 {
+  imports = [ ./mac-1QFL40HG/claude.nix ];
+
   programs = {
     mcp = {
       enable = true;
