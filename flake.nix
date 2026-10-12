@@ -139,6 +139,11 @@
               # actually land in ~/.pi/agent/. Deriving the home.file key
               # from configDir (rather than hardcoding a path) means this
               # fails loudly in all of those cases instead.
+              #
+              # Every golden is a snapshot of an emitted artifact, AGENTS.md
+              # included. Comparing that file against modules/home/pi/AGENTS.md
+              # compares a store path with itself and always passes; a
+              # snapshot makes a content change show up as a golden diff.
               piFile =
                 host: user: name:
                 let
@@ -162,12 +167,14 @@
                       ${mini "settings.json"} "Jims-Mac-mini settings"
               compare ${./tests/pi/Jims-Mac-mini/models.json} \
                       ${mini "models.json"} "Jims-Mac-mini models"
+              compare ${./tests/pi/Jims-Mac-mini/AGENTS.md} \
+                      ${mini "AGENTS.md"} "Jims-Mac-mini AGENTS.md"
               compare ${./tests/pi/mac-1QFL40HG/settings.json} \
                       ${work "settings.json"} "mac-1QFL40HG settings"
               compare ${./tests/pi/mac-1QFL40HG/models.json} \
                       ${work "models.json"} "mac-1QFL40HG models"
-              compare ${./modules/home/pi/AGENTS.md} \
-                      ${mini "AGENTS.md"} "Jims-Mac-mini AGENTS.md"
+              compare ${./tests/pi/mac-1QFL40HG/AGENTS.md} \
+                      ${work "AGENTS.md"} "mac-1QFL40HG AGENTS.md"
               if [ "$fail" -ne 0 ]; then
                 echo "pi config drifted from tests/pi goldens. See tests/pi/README.md to regenerate."
                 exit 1

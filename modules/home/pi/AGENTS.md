@@ -26,6 +26,10 @@ for h in "Jims-Mac-mini:myers" "mac-1QFL40HG:jimmyers"; do
     nix eval --json ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.$a" \
       | nix shell nixpkgs#jq -c jq . > "tests/pi/$host/$a.json"
   done
+  dir=$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.configDir")
+  cp "$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.home.file.\"$dir/AGENTS.md\".source")" \
+    "tests/pi/$host/AGENTS.md"
+  chmod 644 "tests/pi/$host/AGENTS.md"
 done
 ```
 

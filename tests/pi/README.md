@@ -1,7 +1,8 @@
 # pi config golden files
 
-Snapshots of each host's merged `programs.pi-coding-agent.settings` and `.models`,
-asserted by `checks.aarch64-darwin.pi-config` in `flake.nix`. Local `make check` runs it
+Snapshots of each host's merged `programs.pi-coding-agent.settings`, `.models`, and the
+`AGENTS.md` that the module deploys, asserted by `checks.aarch64-darwin.pi-config` in
+`flake.nix`. Local `make check` runs it
 (`nix flake check` picks up every `checks.<system>` for the current system), so an edit to
 a host file that clobbers the shared baseline in `modules/home/pi/` fails the build instead
 of silently shipping. CI (`.github/workflows/check.yml`) runs on `ubuntu-latest` with bare
@@ -23,6 +24,10 @@ for h in "Jims-Mac-mini:myers" "mac-1QFL40HG:jimmyers"; do
     nix eval --json ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.$a" \
       | nix shell nixpkgs#jq -c jq . > "tests/pi/$host/$a.json"
   done
+  dir=$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.configDir")
+  cp "$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.home.file.\"$dir/AGENTS.md\".source")" \
+    "tests/pi/$host/AGENTS.md"
+  chmod 644 "tests/pi/$host/AGENTS.md"
 done
 ```
 
@@ -32,6 +37,11 @@ a third host's first run fails the redirect silently rather than erroring loudly
 
 The diff is the review: if it shows more than you intended to change, the config
 is wrong, not the golden.
+
+`AGENTS.md` is snapshotted like the other two. Comparing the deployed file against
+`modules/home/pi/AGENTS.md` in the check compares a store path with itself and always
+passes, so the check reads the emitted artifact against these snapshots instead. A content
+change to `modules/home/pi/AGENTS.md` therefore lands as a golden diff to be reviewed.
 
 The `programs.pi-coding-agent` module itself is tested upstream in
 home-manager's `tests/modules/programs/pi-coding-agent/`. These files test our
