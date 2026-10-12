@@ -22,7 +22,7 @@ let
 
     # strata on the gaming PC (LAN); no API key.
     strata = {
-      baseUrl = "http://192.168.4.56:8080/v1";
+      baseUrl = "http://chicago.local:8080/v1";
       api = "openai-completions";
       apiKey = "not-needed";
       models = [
