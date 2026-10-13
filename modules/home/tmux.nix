@@ -38,8 +38,10 @@
       # True color support
       set -ag terminal-overrides ",xterm-256color:RGB"
 
-      # Let Claude Code notification/progress escape sequences reach Ghostty/iTerm/etc.
-      set -g allow-passthrough on
+      # Let Claude Code and pi notification/progress escape sequences reach Ghostty/iTerm/etc.
+      # "all" rather than "on": "on" drops them from panes that aren't visible, which is
+      # exactly when a "done" notification matters.
+      set -g allow-passthrough all
 
       # Session switcher
       bind -r f run-shell "ts"
