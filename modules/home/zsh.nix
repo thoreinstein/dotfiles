@@ -140,7 +140,7 @@
           fi
           [[ -f "$cache" ]] && source "$cache"
         }
-        for cmd in cascade codex rig gt forge; do
+        for cmd in cascade rig gt forge; do
           [[ -x $(command -v "$cmd") ]] && _cache_completion "$cmd"
         done
         unfunction _cache_completion
