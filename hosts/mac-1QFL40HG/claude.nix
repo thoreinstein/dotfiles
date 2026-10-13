@@ -1,10 +1,10 @@
-_:
+{ pkgs, ... }:
 {
-  # Personal Claude Code setup. Claude itself comes from the homebrew cask and
-  # self-updates, so no package here. CLAUDE.md is shared via modules/home/claude.nix.
+  # Personal Claude Code setup. The nixpkgs package disables Claude's own auto-updater;
+  # update it with `make update`. CLAUDE.md is shared via modules/home/claude.nix.
   programs.claude-code = {
     enable = true;
-    package = null;
+    package = pkgs.claude-code;
 
     # Merge into a writable settings.json so /config, permission prompts and plugin
     # installs keep working. Keys not declared here (env, autoMode) stay local-only.

@@ -1,4 +1,4 @@
-{ pkgs, username, homeDirectory, ... }:
+{ lib, pkgs, username, homeDirectory, ... }:
 {
   imports = [
     ./homebrew.nix
@@ -7,6 +7,7 @@
 
   ids.gids.nixbld = 350;
   nix.settings.experimental-features = "nix-command flakes";
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" ];
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono

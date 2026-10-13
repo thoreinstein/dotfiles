@@ -32,7 +32,6 @@ _: {
     # Casks (GUI apps + fonts)
     # ──────────────────────────────────────────────
     casks = [
-      "claude"
       "docker-desktop"
       "finicky"
       "gcloud-cli"

@@ -1,4 +1,4 @@
-{ pkgs, homeDirectory, ... }:
+{ pkgs, username, homeDirectory, ... }:
 let
   engramVaultSync = pkgs.writeShellApplication {
     name = "engram-vault-sync";
@@ -9,8 +9,9 @@ let
     name = "engram-daily-log";
     text = builtins.readFile ../../bin/.bin/engram-daily-log;
   };
-  # engram is installed by homebrew and claude by its own installer; neither is on launchd's default PATH
-  agentPath = "/opt/homebrew/bin:${homeDirectory}/.local/bin:/usr/bin:/bin";
+  # engram is installed by homebrew and claude by nix (or its own installer on hosts that
+  # don't nix-manage it); none of these are on launchd's default PATH
+  agentPath = "/opt/homebrew/bin:/etc/profiles/per-user/${username}/bin:${homeDirectory}/.local/bin:/usr/bin:/bin";
 in
 {
   home.packages = [ engramVaultSync engramDailyLog ];
