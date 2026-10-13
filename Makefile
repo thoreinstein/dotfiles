@@ -19,7 +19,7 @@ check-all:
 	nix flake check --all-systems
 
 fmt:
-	nix fmt
+	nix fmt .
 
 update:
 	nix flake update
