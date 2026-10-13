@@ -1,4 +1,4 @@
-.PHONY: switch build build-all check check-all fmt update
+.PHONY: switch build build-all check check-all fmt update golden
 
 HOST := $(shell scutil --get LocalHostName)
 
@@ -20,6 +20,9 @@ check-all:
 
 fmt:
 	nix fmt .
+
+golden:
+	bash tests/pi/regen.sh
 
 update:
 	nix flake update

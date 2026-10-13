@@ -12,28 +12,8 @@ of silently shipping. CI (`.github/workflows/check.yml`) runs on `ubuntu-latest`
 repo owner given the added runner cost.
 
 These are generated, not hand-written. After an intentional settings change,
-regenerate and review the diff. Run this from the repo root (the relative
-`tests/pi/$host` paths depend on it), and follow it with `make check` to confirm the
-new goldens actually match:
-
-```bash
-for h in "Jims-Mac-mini:myers" "mac-1QFL40HG:jimmyers"; do
-  IFS=: read -r host user <<< "$h"
-  mkdir -p "tests/pi/$host"
-  for a in settings models; do
-    nix eval --json ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.$a" \
-      | nix shell nixpkgs#jq -c jq . > "tests/pi/$host/$a.json"
-  done
-  dir=$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.configDir")
-  cp "$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.home.file.\"$dir/AGENTS.md\".source")" \
-    "tests/pi/$host/AGENTS.md"
-  chmod 644 "tests/pi/$host/AGENTS.md"
-done
-```
-
-(`nix shell nixpkgs#jq` resolves against the registry's nixpkgs, not this flake's locked
-input — fine for formatting output, just not hermetic.) The `mkdir -p` matters: without it,
-a third host's first run fails the redirect silently rather than erroring loudly.
+run `make golden` from the repo root (it runs `tests/pi/regen.sh`), review the
+diff, and follow it with `make check` to confirm the new goldens actually match.
 
 The diff is the review: if it shows more than you intended to change, the config
 is wrong, not the golden.

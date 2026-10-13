@@ -16,24 +16,8 @@ or CLAUDE.md.
 **Verification loop**: `make check` → `make build` → `make switch`
 
 Any change to `programs.pi-coding-agent.settings` (including `AGENTS.md`) requires
-generating new golden files in `tests/pi/`. Run:
-
-```bash
-for h in "Jims-Mac-mini:myers" "mac-1QFL40HG:jimmyers"; do
-  IFS=: read -r host user <<< "$h"
-  mkdir -p "tests/pi/$host"
-  for a in settings models; do
-    nix eval --json ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.$a" \
-      | nix shell nixpkgs#jq -c jq . > "tests/pi/$host/$a.json"
-  done
-  dir=$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.programs.pi-coding-agent.configDir")
-  cp "$(nix eval --raw ".#darwinConfigurations.$host.config.home-manager.users.$user.home.file.\"$dir/AGENTS.md\".source")" \
-    "tests/pi/$host/AGENTS.md"
-  chmod 644 "tests/pi/$host/AGENTS.md"
-done
-```
-
-Then run `make check` to confirm.
+generating new golden files in `tests/pi/`. Run `make golden`, review the diff, then
+run `make check` to confirm.
 
 ## Memory
 
