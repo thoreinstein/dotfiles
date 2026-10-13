@@ -61,7 +61,6 @@ _:
           "mcp__plugin_aic-ai_firehydrant__*"
           "mcp__engram__*"
           "mcp__plugin_engram_engram__*"
-          "mcp__token-optimizer__*"
           "mcp__tokensave__*"
           "mcp__plugin_github_github__*"
           "mcp__plugin_obsidian-rag_obsidian-rag__*"
@@ -98,7 +97,6 @@ _:
         "claude-hud@claude-hud" = true;
         "aic-ai@aic-ai" = true;
         "polaris@polaris" = true;
-        "token-optimizer@token-optimizer" = true;
         "caveman@caveman" = true;
       };
 
@@ -109,7 +107,6 @@ _:
         engram.source = { source = "github"; repo = "Gentleman-Programming/engram"; };
         claude-notifications-go.source = { source = "github"; repo = "777genius/claude-notifications-go"; };
         claude-hud.source = { source = "github"; repo = "jarrodwatts/claude-hud"; };
-        token-optimizer.source = { source = "github"; repo = "ooples/token-optimizer-mcp"; };
         caveman.source = { source = "github"; repo = "JuliusBrussee/caveman"; };
       };
     };

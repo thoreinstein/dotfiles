@@ -88,6 +88,6 @@ No `.codegraph/` directory — skip CodeGraph entirely. Indexing is user's decis
 
 ## Environment Constraints
 
-- **Token stack:** RTK (92% CLI filtering) + caveman (output) + token-optimizer MCP (caching).
+- **Token stack:** RTK (92% CLI filtering) + caveman (output).
 
 @RTK.md
