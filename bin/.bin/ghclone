@@ -58,10 +58,12 @@ main() {
     fi
 
     local github_url="$1"
-    local clone_type org repo
+    local clone_type org repo parsed
 
-    # Parse the GitHub URL
-    read -r clone_type org repo <<< "$(parse_github_url "$github_url")"
+    # Parse the GitHub URL. Assigned on its own line so a parse failure stops the
+    # script; inside `<<< "$(...)"` the error exit only ended the subshell.
+    parsed=$(parse_github_url "$github_url")
+    read -r clone_type org repo <<< "$parsed"
 
     # Create directory structure
     local base_dir="$HOME/src/$org"
