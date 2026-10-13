@@ -221,6 +221,9 @@ has_session() {
 UPDATE_CACHE=false
 
 if [[ "${1:-}" == "--internal-process-repo" ]]; then
+  # GNU xargs runs the command once even on empty input (unlike BSD); guard
+  # against a missing argument instead of dying on unbound $2.
+  [[ $# -ge 2 ]] || exit 0
   internal_process_repo "$2"
   exit 0
 fi

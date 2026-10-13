@@ -1,8 +1,18 @@
 { pkgs, ... }:
 {
   home.packages = [
-    (pkgs.writeShellScriptBin "ghclone" (builtins.readFile ../../bin/.bin/ghclone))
-    (pkgs.writeShellScriptBin "ts" (builtins.readFile ../../bin/.bin/ts))
+    (pkgs.writeShellApplication {
+      name = "ghclone";
+      runtimeInputs = with pkgs; [ git coreutils gnugrep gnused findutils ];
+      text = builtins.readFile ../../bin/.bin/ghclone;
+    })
+    (pkgs.writeShellApplication {
+      name = "ts";
+      # sysctl (macOS CPU count) has no nixpkgs source; it stays on the system
+      # PATH with a fallback. find falls back the same way when fd is absent.
+      runtimeInputs = with pkgs; [ tmux git fzf fd coreutils gnugrep findutils ];
+      text = builtins.readFile ../../bin/.bin/ts;
+    })
     (pkgs.writeShellApplication {
       name = "weekly";
       runtimeInputs = [ pkgs.sqlite ];
