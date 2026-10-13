@@ -102,8 +102,10 @@ in
   imports = [ ./mac-1QFL40HG/claude.nix ];
 
   # codegraph CLI + MCP server (wired for Claude and pi in modules/home/mcp.json).
+  # rtk backs Claude's PreToolUse hook and pi-rtk-optimizer; the nixpkgs build has no
+  # telemetry endpoint.
   home = {
-    packages = [ pkgs.codegraph ];
+    packages = [ pkgs.codegraph pkgs.rtk ];
     sessionVariables.CODEGRAPH_TELEMETRY = "0";
   };
 
