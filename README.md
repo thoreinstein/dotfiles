@@ -63,15 +63,19 @@ dotfiles/
 │       ├── starship.nix   # Prompt
 │       ├── ghostty.nix    # Terminal
 │       ├── bin.nix        # Custom scripts (ts, ghclone)
-│       ├── nixvim/        # Neovim config (14 modules)
+│       ├── engram-vault-sync.nix  # Engram vault sync launchd agents
+│       ├── nixvim/        # Neovim config (16 modules)
 │       │   ├── lsp.nix
 │       │   ├── completion.nix
 │       │   ├── formatting.nix
 │       │   ├── treesitter.nix
 │       │   └── ...
+│       ├── pi/            # pi agent config, model helpers, guard hooks
 │       └── ...            # atuin, bat, eza, fd, ripgrep, etc.
 ├── bat/                   # Bat themes (Rose Pine)
 ├── bin/                   # Custom shell scripts
+└── tests/
+    └── pi/                # pi config golden files (see tests/pi/README.md)
 ```
 
 ## Key Bindings

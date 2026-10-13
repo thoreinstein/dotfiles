@@ -5,11 +5,14 @@ Snapshots of each host's merged `programs.pi-coding-agent.settings`, `.models`, 
 `flake.nix`. Local `make check` runs it
 (`nix flake check` picks up every `checks.<system>` for the current system), so an edit to
 a host file that clobbers the shared baseline in `modules/home/pi/` fails the build instead
-of silently shipping. CI (`.github/workflows/check.yml`) runs on `ubuntu-latest` with bare
-`nix flake check`, which only evaluates `checks.x86_64-linux` — this check lives under
-`checks.aarch64-darwin` and is silently skipped there. Adding a `macos-14` job to
-`check.yml` would make it enforced in CI too; that's left as a deliberate choice for the
-repo owner given the added runner cost.
+of silently shipping. CI (`.github/workflows/check.yml`) runs on `ubuntu-latest` with
+`nix flake check --all-systems`. Despite the flag, nix only builds checks for the
+runner's own platform: the linux checks (`pre-commit-check`, `script-tests`,
+`pi-guard-tests`) build and run there, while this check lives under
+`checks.aarch64-darwin` and is never built — CI logs contain no aarch64-darwin store
+paths at all. So the goldens are enforced only by local `make check` on a mac.
+Adding a `macos-14` job to `check.yml` would enforce them in CI too; that's left as a
+deliberate choice for the repo owner given the added runner cost.
 
 These are generated, not hand-written. After an intentional settings change,
 run `make golden` from the repo root (it runs `tests/pi/regen.sh`), review the

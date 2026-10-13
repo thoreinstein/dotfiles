@@ -12,6 +12,7 @@ make build    # darwin-rebuild build (no apply) — use to surface errors
 make switch   # sudo darwin-rebuild switch — applies config
 make fmt      # nix fmt (nixpkgs-fmt)
 make update   # nix flake update
+make golden   # regenerate tests/pi goldens
 ```
 
 Verification loop for any change: `make check` → `make build` → `make switch`.
@@ -21,7 +22,7 @@ Verification loop for any change: `make check` → `make build` → `make switch
 - `flake.nix` — single entry point. `mkDarwinHost` helper builds each `darwinConfigurations.<host>` entry; two hosts today (`Jims-Mac-mini` / user `myers`, `mac-1QFL40HG` / user `jimmyers`), both `aarch64-darwin`.
 - `modules/darwin/` — shared system config (users, fonts, nix settings, `homebrew.nix`, macOS defaults in `system.nix`).
 - `modules/home/` — shared home-manager config (zsh, tmux, git, starship, ghostty, CLI tools, `bin.nix`).
-- `modules/home/nixvim/` — Neovim config split across ~15 submodules (lsp, completion, formatting, treesitter, keymaps, ui, …). Add Neovim features here, not in a monolith.
+- `modules/home/nixvim/` — Neovim config split across 16 submodules (lsp, completion, formatting, treesitter, keymaps, ui, …). Add Neovim features here, not in a monolith.
 - `hosts/<hostname>.nix` — per-host home-manager overrides. Currently near-empty; this is the intended extension point for host-specific tweaks.
 - `bin/` — custom scripts (`ts`, `ghclone`) wired in via `modules/home/bin.nix`.
 - `tests/` — golden files asserted by `flake.checks`, e.g. `tests/pi/` for
@@ -31,14 +32,14 @@ Verification loop for any change: `make check` → `make build` → `make switch
 ## Conventions & Gotchas
 
 - **Formatter is `nixpkgs-fmt`** (set in `flake.nix` `formatter`). Don't swap for alejandra/nixfmt.
-- **Pre-commit hooks** run via `nix flake check`: `nixpkgs-fmt`, `statix`, `deadnix`, and `shellcheck`. CI (`.github/workflows/check.yml`) runs the same on PR to `main`/`nix`.
-- **direnv**: `.envrc` uses `use flake` — entering the repo loads the devShell (codex, deadnix, nixpkgs-fmt, prettier, shellcheck, statix).
+- **Pre-commit hooks** run via `nix flake check`: `nixpkgs-fmt`, `statix`, `deadnix`, and `shellcheck`. CI (`.github/workflows/check.yml`) runs `nix flake check --all-systems` on `ubuntu-latest` on PR to `main`/`nix`: despite the flag, nix only builds checks for the runner's own platform, so the linux checks (`pre-commit-check`, `script-tests`, `pi-guard-tests`) build and run there while the darwin-only `pi-config` golden check is never built (see `tests/pi/README.md`).
+- **direnv**: `.envrc` uses `use flake` — entering the repo loads the devShell (deadnix, nixpkgs-fmt, prettier, shellcheck, statix).
 - **Two usernames**: `myers` on Mac mini, `jimmyers` on MacBook. Any path like `/Users/<user>` must respect the active host.
 - **Git identity** lives in `~/.gitconfig.local` (untracked); GPG signing is enabled in `git.nix`.
 - **Indent**: 2 spaces everywhere (`.editorconfig`). Lua uses `stylua.toml` (120-char, double quotes, spaces).
 - **Changing pi settings** (`modules/home/pi/`, `hosts/*.nix`'s `programs.pi-coding-agent`)
   requires regenerating `tests/pi/*` or `make check` fails with `FAIL <host> settings` /
-  `models` / `AGENTS.md`. See `tests/pi/README.md` for the regeneration command.
+  `models` / `AGENTS.md`. Regenerate with `make golden` (see `tests/pi/README.md`).
 
 ## Most-touched files
 
