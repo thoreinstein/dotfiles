@@ -27,6 +27,10 @@
       "*.sublime-workspace"
       ".vim/"
       ".pi-lens"
+
+      # CodeGraph side files (.codegraph/ itself is listed below)
+      ".codegraph-wsl/"
+      ".codegraph-probe"
       "*.swp"
       "*.swo"
       "*~"

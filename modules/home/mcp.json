@@ -54,6 +54,11 @@
       "type": "http",
       "url": "https://developerknowledge.googleapis.com/mcp"
     },
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
+    },
     "ynab": {
       "type": "stdio",
       "command": "npx",

@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 let
   pi = import ../modules/home/pi/model.nix lib;
 
@@ -100,6 +100,12 @@ let
 in
 {
   imports = [ ./mac-1QFL40HG/claude.nix ];
+
+  # codegraph CLI + MCP server (wired for Claude and pi in modules/home/mcp.json).
+  home = {
+    packages = [ pkgs.codegraph ];
+    sessionVariables.CODEGRAPH_TELEMETRY = "0";
+  };
 
   programs = {
     mcp = {

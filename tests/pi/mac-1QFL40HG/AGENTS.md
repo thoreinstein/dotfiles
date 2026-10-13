@@ -97,3 +97,14 @@ read-only mirror of engram; never edit it. Layout is in `reference/VAULT_CONVENT
 If you can't locate a file or don't know where something lives, ask me. Do not
 search the repository to find out. A question costs one turn. A search costs
 thousands of tokens and usually finds the wrong thing.
+
+## CodeGraph
+
+In a repo with a `.codegraph/` directory at its root, use the codegraph MCP server's
+`codegraph_explore` tool before grep, find, or reading files. One call returns the relevant
+symbols' current source plus the call paths between them, including dynamic-dispatch hops
+grep can't follow. If the MCP tool isn't available, `codegraph explore "<symbols or question>"`
+in the shell prints the same output.
+
+No `.codegraph/` directory means skip CodeGraph. Don't run `codegraph init`; indexing is my
+decision.
