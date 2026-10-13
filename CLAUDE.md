@@ -23,7 +23,7 @@ Verification loop for any change: `make check` → `make build` → `make switch
 - `modules/darwin/` — shared system config (users, fonts, nix settings, `homebrew.nix`, macOS defaults in `system.nix`).
 - `modules/home/` — shared home-manager config (zsh, tmux, git, starship, ghostty, CLI tools, `bin.nix`).
 - `modules/home/nixvim/` — Neovim config split across 16 submodules (lsp, completion, formatting, treesitter, keymaps, ui, …). Add Neovim features here, not in a monolith.
-- `hosts/<hostname>.nix` — per-host home-manager overrides. Currently near-empty; this is the intended extension point for host-specific tweaks.
+- `hosts/<hostname>.nix` — per-host home-manager overrides. `mac-1QFL40HG.nix` carries pi providers/models and host packages, and imports `mac-1QFL40HG/claude.nix` (Claude Code via `programs.claude-code`).
 - `bin/` — custom scripts (`ts`, `ghclone`) wired in via `modules/home/bin.nix`.
 - `tests/` — golden files asserted by `flake.checks`, e.g. `tests/pi/` for
   `checks.aarch64-darwin.pi-config`. Enforced by local `make check`; see each subdirectory's
