@@ -27,14 +27,8 @@ let
       apiKey = "not-needed";
       models = [
         (pi.mkLocalModel {
-          id = "qwen3.8-flash-next-iq3_xxs";
-          name = "Qwen3.8 Flash Next IQ3_XXS (strata)";
-          contextWindow = 65536;
-          maxTokens = 16384;
-        })
-        (pi.mkLocalModel {
           id = "swift-qwen3.8-flash-next-gsq-rco-iq3_xxs";
-          name = "Swift Qwen3.8 Flash Next IQ3_XXS (strata)";
+          name = "Qwen3.8 Flash Next IQ3_XXS (strata)";
           contextWindow = 65536;
           maxTokens = 16384;
         })
@@ -105,7 +99,10 @@ in
   # rtk backs Claude's PreToolUse hook and pi-rtk-optimizer; the nixpkgs build has no
   # telemetry endpoint.
   home = {
-    packages = [ pkgs.codegraph pkgs.rtk ];
+    packages = [
+      pkgs.codegraph
+      pkgs.rtk
+    ];
     sessionVariables.CODEGRAPH_TELEMETRY = "0";
   };
 
