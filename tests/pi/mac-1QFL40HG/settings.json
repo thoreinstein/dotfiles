@@ -9,7 +9,6 @@
   "enableInstallTelemetry": false,
   "enabledModels": [
     "omlx/Qwen3.8-27B-oQ4e-mtp",
-    "strata/qwen3.8-flash-next-iq3_xxs",
     "strata/swift-qwen3.8-flash-next-gsq-rco-iq3_xxs",
     "polaris/anthropic.Polaris.Model.Smart.High",
     "polaris/anthropic.Polaris.Model.Smart.Medium",
