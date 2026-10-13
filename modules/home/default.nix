@@ -6,6 +6,10 @@ let
     [ "@homeDir@" ]
     [ homeDirectory ]
     (builtins.readFile ./mcp.json);
+  # ynab is personal; pi is the work harness, so it doesn't get it.
+  piMcpJson =
+    let cfg = builtins.fromJSON mcpJson;
+    in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "ynab" ]; });
   # Claude Code gets obsidian tools from its obsidian-rag plugin; only pi needs this server.
   claudeMcpJson =
     let cfg = builtins.fromJSON mcpJson;
@@ -50,6 +54,6 @@ in
   home.file = {
     ".mcp.json".text = claudeMcpJson;
     # pi >= 0.99 reads native MCP config from here
-    ".pi/agent/mcp.json".text = mcpJson;
+    ".pi/agent/mcp.json".text = piMcpJson;
   };
 }

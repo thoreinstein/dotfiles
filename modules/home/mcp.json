@@ -53,6 +53,14 @@
     "gcp-devknowledge": {
       "type": "http",
       "url": "https://developerknowledge.googleapis.com/mcp"
+    },
+    "ynab": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "ynab-mcp-server"],
+      "env": {
+        "YNAB_API_TOKEN": "${YNAB_TOKEN}"
+      }
     }
   }
 }
