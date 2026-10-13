@@ -18,7 +18,8 @@
     "polaris/anthropic.OpenAI.Terra",
     "polaris/anthropic.OpenAI.Luna",
     "polaris/anthropic.Zai.GLM5",
-    "polaris/anthropic.Zai.GLM53Flash"
+    "polaris/anthropic.Zai.GLM53Flash",
+    "kimi-coding/k3"
   ],
   "externalEditor": "nvim",
   "hideThinkingBlock": true,

@@ -126,7 +126,10 @@ in
       settings = {
         defaultProvider = "omlx";
         defaultModel = "Qwen3.8-27B-oQ4e-mtp";
-        enabledModels = pi.mkEnabledModels [ "omlx" "strata" "polaris" ] providers;
+        # kimi-coding is a pi built-in provider (auth via /login), so it has no entry in
+        # `providers` and is listed by id.
+        enabledModels = pi.mkEnabledModels [ "omlx" "strata" "polaris" ] providers
+          ++ [ "kimi-coding/k3" ];
       };
 
       models.providers = providers;
