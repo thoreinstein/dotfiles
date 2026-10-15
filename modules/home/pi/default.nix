@@ -30,6 +30,7 @@
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
         "git:github.com/apmantza/pi-lens"
+        "git:github.com/ibragim-bad/evals-from-sessions"
         "git:github.com/thoreinstein/pi-obsidian"
         "npm:@firstpick/pi-extension-tools"
         "npm:@juicesharp/rpiv-ask-user-question"
