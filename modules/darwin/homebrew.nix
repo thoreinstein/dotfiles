@@ -34,7 +34,6 @@ _: {
     casks = [
       "docker-desktop"
       "finicky"
-      "gcloud-cli"
       "ghostty"
       "obsidian"
       "utm"

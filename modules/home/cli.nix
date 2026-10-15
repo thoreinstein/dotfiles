@@ -4,6 +4,12 @@
     codefresh
     codespell
     dolt
+    gitleaks
+    # `gcloud components install` can't write to the nix store; declare components here.
+    (google-cloud-sdk.withExtraComponents (with google-cloud-sdk.components; [
+      gcloud-crc32c
+      gke-gcloud-auth-plugin
+    ]))
     k9s
     nodejs
     pkg-config
