@@ -3,7 +3,10 @@
     "kubernetes": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "kubernetes-mcp-server@0.0.67"]
+      "args": [
+        "-y",
+        "kubernetes-mcp-server@0.0.67"
+      ]
     },
     "gcp-gke": {
       "type": "http",
@@ -24,7 +27,10 @@
     "exa": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "exa-mcp-server@3.4.2"],
+      "args": [
+        "-y",
+        "exa-mcp-server@3.4.2"
+      ],
       "env": {
         "EXA_API_KEY": "$EXA_API_KEY"
       }
@@ -39,16 +45,18 @@
     },
     "firehydrant": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "firehydrant-mcp@0.0.4", "start", "--transport", "stdio"],
-      "env": {
-        "FIREHYDRANT_API_KEY": "$FIREHYDRANT_API_KEY"
-      }
+      "command": "bash",
+      "args": [
+        "-c",
+        "exec npx -y firehydrant-mcp@0.0.4 start --transport stdio --api-key \"$FIREHYDRANT_API_KEY\""
+      ]
     },
     "obsidian-mcp": {
       "type": "stdio",
       "command": "node",
-      "args": ["@homeDir@/src/thoreinstein/obsidian-mcp/dist/index.js"]
+      "args": [
+        "@homeDir@/src/thoreinstein/obsidian-mcp/dist/index.js"
+      ]
     },
     "gcp-devknowledge": {
       "type": "http",
@@ -57,12 +65,18 @@
     "codegraph": {
       "type": "stdio",
       "command": "codegraph",
-      "args": ["serve", "--mcp"]
+      "args": [
+        "serve",
+        "--mcp"
+      ]
     },
     "ynab": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "ynab-mcp-server@0.4.1"],
+      "args": [
+        "-y",
+        "ynab-mcp-server@0.4.1"
+      ],
       "env": {
         "YNAB_API_TOKEN": "${YNAB_TOKEN}"
       }
