@@ -55,6 +55,13 @@ read-only mirror of engram; never edit it. Layout is in `reference/VAULT_CONVENT
   `stash drop`/`clear`, or `clean`. If they're in the way, ask me. Losing my working tree is
   the one mistake that can't be undone.
 - Don't write Python. Use bash + jq; TypeScript for pi extensions.
+- Don't amend commits. Fix-ups go in a new commit.
+- Don't push unless I say to in this conversation. Approval to commit isn't approval to push.
+
+## Commits
+
+Split work into small atomic commits, one logical change each. Decide the split yourself;
+don't wait for me to stage anything.
 - Don’t install tools with `brew`, `npm -g`, or `pip` — add them to the flake instead.
 - Don’t edit `tests/pi/*` by hand — regenerate them when settings change.
 - Don’t write git identity (`user.name`/`user.email`) to repo config — it lives in `~/.gitconfig.local`.
