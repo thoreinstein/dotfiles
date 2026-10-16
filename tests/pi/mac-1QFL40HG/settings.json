@@ -36,6 +36,7 @@
   ],
   "quietStartup": true,
   "showCacheMissNotices": true,
+  "tuiMode": "fullscreen",
   "warnings": {
     "anthropicExtraUsage": true
   }

@@ -18,6 +18,7 @@
     settings = {
       defaultTools = [ "+codemode" ];
       hideThinkingBlock = true;
+      tuiMode = "fullscreen";
       collapseChangelog = true;
       quietStartup = true;
       enableInstallTelemetry = false;
