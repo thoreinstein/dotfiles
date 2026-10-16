@@ -195,6 +195,7 @@
             inherit (self.checks.${system}.pre-commit-check) shellHook;
             packages = with pkgs; [
               deadnix
+              jq
               nixpkgs-fmt
               prettier
               shellcheck
