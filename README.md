@@ -20,6 +20,7 @@ make build     # Build without applying
 make update    # Update flake inputs
 make check     # Run flake checks
 make fmt       # Format nix files
+make golden    # Regenerate tests/pi goldens (after pi settings changes)
 ```
 
 ## Hosts
@@ -37,7 +38,7 @@ Adding a new host: add a `darwinConfigurations` entry in `flake.nix` using `mkDa
 | ------ | ------------- |
 | **Neovim** | Managed via [NixVim](https://github.com/nix-community/nixvim) — LSP, Treesitter, Telescope, conform |
 | **Zsh** | Autosuggestions, syntax highlighting, cached completions |
-| **Tmux** | Rose Pine theme, vim-tmux-navigator, TPM plugins |
+| **Tmux** | Rose Pine theme, vim-tmux-navigator, nix-managed plugins |
 | **Starship** | Minimal prompt with git status & cmd duration |
 | **Git** | GPG signing, delta diffs, worktree aliases |
 | **Ghostty** | Rose Pine theme, JetBrains Mono Nerd Font |
@@ -49,7 +50,11 @@ Adding a new host: add a `darwinConfigurations` entry in `flake.nix` using `mkDa
 dotfiles/
 ├── flake.nix              # Flake entry point with mkDarwinHost helper
 ├── flake.lock
-├── Makefile               # switch, build, check, fmt, update
+├── Makefile               # switch, build, check, fmt, update, golden
+├── hosts/
+│   ├── Jims-Mac-mini.nix  # Mac mini overrides
+│   ├── mac-1QFL40HG.nix   # MacBook overrides (pi providers/models)
+│   └── mac-1QFL40HG/      # Work Claude Code config
 ├── modules/
 │   ├── darwin/
 │   │   ├── default.nix    # Users, fonts, nix settings
@@ -164,6 +169,5 @@ gpgconf --kill gpg-agent && gpg-agent --daemon
 
 ### Tmux plugins not loading
 
-```bash
-~/.tmux/plugins/tpm/bin/install_plugins
-```
+Plugins are nix-managed; `make switch` rebuilds them. Check `tmux show -g @plugin`
+or rebuild with `make build` to surface errors.
