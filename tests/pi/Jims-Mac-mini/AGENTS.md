@@ -10,6 +10,16 @@ or CLAUDE.md.
   existing example to follow. A question costs less than work in the wrong direction.
 - Match the surrounding code: naming, idiom, comment density. Read a neighbouring file first.
 - Comments explain why; the code already says what.
+- When I ask for suggestions or a review, don't edit anything. Suggestions are text; edits
+  happen only when I say which ones to apply.
+- When working through a list (plan steps, review findings, errors), take one item at a time
+  and wait for my confirmation before the next. Don't batch fixes or clean up adjacent things.
+- Don't edit shared or root files (`root.hcl`, base modules, CI config, anything other stacks
+  import) unless the task names them. Stop and tell me instead.
+- After two failed fix attempts on the same problem, stop and explain what you think is
+  happening. Don't keep trying variations.
+- Before removing code whose purpose isn't obvious, check `git log -L` or blame for why it's
+  there.
 
 ## Changes
 
@@ -41,6 +51,10 @@ read-only mirror of engram; never edit it. Layout is in `reference/VAULT_CONVENT
 
 ## No
 
+- Don't discard uncommitted changes: no `checkout -- <file>`, `restore`, `reset --hard`,
+  `stash drop`/`clear`, or `clean`. If they're in the way, ask me. Losing my working tree is
+  the one mistake that can't be undone.
+- Don't write Python. Use bash + jq; TypeScript for pi extensions.
 - Don’t install tools with `brew`, `npm -g`, or `pip` — add them to the flake instead.
 - Don’t edit `tests/pi/*` by hand — regenerate them when settings change.
 - Don’t write git identity (`user.name`/`user.email`) to repo config — it lives in `~/.gitconfig.local`.
