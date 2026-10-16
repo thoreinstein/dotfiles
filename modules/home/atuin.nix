@@ -1,7 +1,12 @@
-_:
+{ pkgs, ... }:
 {
   programs.atuin = {
     enable = true;
+    # Skip the check phase: atuin's e2e_capture tests are PTY timing tests that
+    # flake in the nix sandbox (e.g. filtered_commands_leave_no_captured_output),
+    # and the binary cache lags new releases, so a flaky test means a wasted
+    # ~30min source build.
+    package = pkgs.atuin.overrideAttrs (_: { doCheck = false; });
     enableZshIntegration = true;
     settings = {
       search_mode = "fuzzy";
