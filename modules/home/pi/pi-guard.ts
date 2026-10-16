@@ -84,6 +84,7 @@ export function check(tokens) {
   if (bin === "git") {
     const sub = subcommand(args, GIT_OPT_ARG);
     if (args.includes("--no-verify")) hits.push(["git-no-verify", "git --no-verify skips hooks"]);
+    if (sub === "commit" && args.includes("--amend")) hits.push(["git-amend", "git commit --amend REWRITES THE LAST COMMIT"]);
     if (GIT_ASK.has(sub)) hits.push([`git-${sub}`, `git ${sub}`]);
     else if (sub === "branch" && args.some((a) => /^-[dDmM]$/.test(a))) hits.push(["git-branch-delete", "git branch delete/rename"]);
     else if (sub === "worktree" && args.includes("remove")) hits.push(["git-worktree-remove", "git worktree remove"]);
@@ -122,6 +123,7 @@ const RAW_RULES = [
   ["terraform-state-rm", "terraform state rm", /\b(terraform|tofu|terragrunt)\b[\s\S]*\bstate\s+rm\b/],
   ["gcloud-delete", "gcloud subcommand that deletes", /\bgcloud\b[\s\S]*\b(delete|destroy|rm)\b/],
   ["gh-delete", "gh subcommand that deletes", /\bgh\b[\s\S]*(\b(delete|destroy|rm)\b|(-X|--method)\s*=?\s*DELETE)/i],
+  ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\b[\s\S]*\bcommit\b[\s\S]*--amend\b/],
   ["git-stash-drop", "git stash drop/clear", /\bgit\b[\s\S]*\bstash\s+(drop|clear)\b/],
   ["git-switch-discard", "git switch that discards changes", /\bgit\b[\s\S]*\bswitch\b[\s\S]*(--discard-changes|\s-f\b|--force)/],
   ...[...GIT_ASK].map((s) => [`git-${s}`, `git ${s}`, new RegExp(`\\bgit\\b[\\s\\S]*\\b${s}\\b`)]),

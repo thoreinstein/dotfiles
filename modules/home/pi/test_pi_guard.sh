@@ -59,5 +59,9 @@ assert.deepEqual(rules("git stash"), []);
 assert.deepEqual(rules("git stash pop"), []);
 assert.deepEqual(rules("git switch main"), []);
 
+// --amend is called out on its own, ahead of the plain commit prompt
+assert.deepEqual(rules("git commit --amend --no-edit"), ["git-amend", "git-commit"]);
+assert.deepEqual(rules("git commit -m fix"), ["git-commit"]);
+
 console.log("pi-guard check: ok");
 EOF
