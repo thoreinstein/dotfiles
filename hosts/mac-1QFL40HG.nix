@@ -69,6 +69,12 @@ let
           maxTokens = 64000;
         })
         (pi.mkModel {
+          # Window sizes assumed from Terra/Luna; the gateway doesn't publish them.
+          id = "anthropic.OpenAI.Sol";
+          contextWindow = 1000000;
+          maxTokens = 128000;
+        })
+        (pi.mkModel {
           id = "anthropic.OpenAI.Terra";
           contextWindow = 1000000;
           maxTokens = 128000;

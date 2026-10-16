@@ -15,6 +15,7 @@
     "polaris/anthropic.Polaris.Model.Smart.Low",
     "polaris/anthropic.Claude.Sonnet",
     "polaris/anthropic.Claude.Haiku",
+    "polaris/anthropic.OpenAI.Sol",
     "polaris/anthropic.OpenAI.Terra",
     "polaris/anthropic.OpenAI.Luna",
     "polaris/anthropic.Zai.GLM5",
