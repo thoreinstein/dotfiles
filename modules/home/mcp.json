@@ -53,9 +53,10 @@
     },
     "obsidian-mcp": {
       "type": "stdio",
-      "command": "node",
+      "command": "npx",
       "args": [
-        "@homeDir@/src/thoreinstein/obsidian-mcp/dist/index.js"
+        "-y",
+        "github:thoreinstein/obsidian-mcp#f24349f"
       ]
     },
     "gcp-devknowledge": {
