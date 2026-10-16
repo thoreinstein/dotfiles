@@ -15,6 +15,8 @@ build-all:
 check:
 	nix flake check
 
+# CI-only: --all-systems builds the linux checks too, which needs a linux
+# builder on macOS. CI runs it on ubuntu-latest.
 check-all:
 	nix flake check --all-systems
 
