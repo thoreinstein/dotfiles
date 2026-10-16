@@ -1,14 +1,16 @@
 ---
 name: pr-review
 description: >-
-  Review a GitHub pull request locally. Use when the user asks to review a PR,
-  review a colleague's changes, look at a pull request, or give review feedback
-  on code that is not their own working-tree changes.
+  Review a GitHub pull request locally, or review my own staged and unstaged
+  changes before I commit. Use when the user asks to review a PR, look at a
+  colleague's changes, "double check my staged changes", be a "second set of
+  eyes", or check their working tree before committing.
 ---
 
 # PR Review
 
-Review a GitHub pull request using `gh` and local git tooling.
+Review a GitHub pull request using `gh` and local git tooling. For my own
+uncommitted changes, use the working-tree mode at the end instead.
 
 ## Workflow
 
@@ -45,3 +47,22 @@ Review a GitHub pull request using `gh` and local git tooling.
   touched functions in full.
 - Do not modify the PR branch's files; this is a read-only review.
 - If tests are slow or flaky, say so rather than skipping silently.
+
+## Working-tree mode (my uncommitted changes)
+
+Use when I ask you to check my staged or unstaged changes before a commit.
+
+1. **Read both sets separately.** `git diff --cached` is what will be
+   committed; `git diff` is what won't. Say which set each finding is in, and
+   flag anything that looks like it belongs in the other set.
+2. **Check scope.** Confirm you are in the repo and on the branch I meant, and
+   that every changed file belongs to the task. Files outside it (shared root
+   files, unrelated modules, generated files) are findings.
+3. **Read in context.** Same as step 3 above: read the touched functions in
+   full, follow the repo's own conventions (its AGENTS.md / CLAUDE.md), and run
+   quick checks per step 4.
+4. **Report one at a time.** Open with a one-line count by severity, then give
+   the most severe finding with file:line and the evidence for it. Wait for me
+   before the next one.
+
+Read-only: never stage, unstage, edit, commit, or stash.
