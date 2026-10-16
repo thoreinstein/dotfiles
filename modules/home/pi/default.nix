@@ -39,6 +39,7 @@
         "npm:gentle-engram"
         "npm:pi-caveman"
         "npm:pi-rtk-optimizer"
+        "npm:pi-split-view"
       ];
     };
   };
