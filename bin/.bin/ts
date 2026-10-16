@@ -158,23 +158,24 @@ internal_process_repo() {
   return 0
 }
 
+# Find repos by their objects directory — this covers both normal repos
+# (X/.git/objects) and bare repos (X/objects, e.g. worktree hosts like
+# tf-gcp-org-v2 that don't end in .git). Worktrees are enumerated via
+# `git worktree list`, so depth only limits where repos themselves live.
+find_objects_dirs() {
+  if command -v fd &> /dev/null; then
+    fd -H -I -d 5 -t d '^objects$' "$BASE_DIR" -0
+  else
+    find "$BASE_DIR" -maxdepth 5 -type d -name objects -print0
+  fi
+}
+
 # Function to build repository list
 build_repo_list() {
   local verbose="${1:-true}"
   
   if [[ "$verbose" == "true" ]]; then
     echo "Scanning repositories in $BASE_DIR..." >&2
-  fi
-
-  # Find repos by their objects directory — this covers both normal repos
-  # (X/.git/objects) and bare repos (X/objects, e.g. worktree hosts like
-  # tf-gcp-org-v2 that don't end in .git). Worktrees are enumerated via
-  # `git worktree list`, so depth only limits where repos themselves live.
-  local find_cmd
-  if command -v fd &> /dev/null; then
-    find_cmd="fd -H -I -d 5 -t d '^objects$' \"$BASE_DIR\" -0 || true"
-  else
-    find_cmd="find \"$BASE_DIR\" -maxdepth 5 -type d -name objects -print0 || true"
   fi
 
   # Determine parallelism
@@ -192,7 +193,7 @@ build_repo_list() {
   mkdir -p "$(dirname "$CACHE_FILE")"
 
   # Run discovery and processing in parallel
-  eval "$find_cmd" | xargs -0 -P "$nproc" -n 1 "$SCRIPT_PATH" --internal-process-repo > "$temp_cache"
+  { find_objects_dirs || true; } | xargs -0 -P "$nproc" -n 1 "$SCRIPT_PATH" --internal-process-repo > "$temp_cache"
 
   mv "$temp_cache" "$CACHE_FILE"
 
