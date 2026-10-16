@@ -33,7 +33,7 @@ range you used at the top of your answer.
 Run the collector. It is read-only and prints one markdown digest:
 
 ```bash
-python3 ~/.pi/agent/skills/weekly-status/scripts/week-sources.py --start YYYY-MM-DD --end YYYY-MM-DD
+~/.pi/agent/skills/weekly-status/scripts/week-sources.sh --start YYYY-MM-DD --end YYYY-MM-DD
 ```
 
 It has three sections:
