@@ -6,7 +6,15 @@
   ];
 
   ids.gids.nixbld = 350;
-  nix.settings.experimental-features = "nix-command flakes";
+  nix = {
+    settings.experimental-features = "nix-command flakes";
+    # Keep the store bounded; launchd runs gc weekly (default Sun 03:15).
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 30d";
+    };
+    optimise.automatic = true;
+  };
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" ];
 
   fonts.packages = with pkgs; [
