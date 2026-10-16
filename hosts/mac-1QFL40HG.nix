@@ -109,7 +109,13 @@ in
       pkgs.codegraph
       pkgs.rtk
     ];
-    sessionVariables.CODEGRAPH_TELEMETRY = "0";
+    sessionVariables = {
+      CODEGRAPH_TELEMETRY = "0";
+      # The python.org python3 on PATH ships with no CA bundle, so Python HTTPS (e.g. the
+      # security-guidance plugin's review hook) fails CERTIFICATE_VERIFY_FAILED. Use the
+      # nix-darwin bundle.
+      SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+    };
   };
 
   programs = {
