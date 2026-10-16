@@ -48,7 +48,6 @@
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
-    ".pi/agent/skills/weekly-status".source = ./skills/weekly-status;
     ".pi/agent/pi-starship.toml".source = ./starship.toml;
   };
 }
