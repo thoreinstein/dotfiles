@@ -31,11 +31,21 @@ run `make check` to confirm.
 
 ## Memory
 
-Engram is the memory shared with Claude Code. Save decisions, bugfixes and discoveries with
-`mem_save` as they happen, and write a session summary before finishing. Before asking me about
-prior work, conventions or past decisions, search engram (`mem_search`), then the Obsidian vault at
-`~/Documents/second_brain` if its tools are available. The vault's `engram/` folder is a
-read-only mirror of engram; never edit it. Layout is in `reference/VAULT_CONVENTIONS.md`.
+Two stores. Engram holds raw agent memory, shared with Claude Code. The Obsidian vault at
+`~/Documents/second_brain` holds durable knowledge. Engram is mirrored into the vault's `engram/`
+folder automatically; never edit that folder. Layout and note templates are in
+`reference/VAULT_CONVENTIONS.md`. All vault access goes through the obsidian-mcp tools.
+
+- **Read first.** Before non-trivial work, search both: `mem_search` and `obsidian_rag_query`
+  on the task. Start from the thematic MOC that fits (see VAULT_CONVENTIONS). Do the same before
+  asking me about prior work, conventions or past decisions.
+- **Save raw memory to engram.** Decisions, bugfixes and discoveries go in `mem_save` as they
+  happen; write a session summary before finishing. Don't copy these into vault notes.
+- **Promote durable knowledge to the vault.** When a finding generalizes beyond one project,
+  write it to `Engineering/Patterns`, `Engineering/Traps` or `Engineering/Decisions` using the
+  templates in VAULT_CONVENTIONS, and link it from the matching MOC. Project artifacts (plans,
+  summaries, how-tos) go in `working/<project>/`. Check for an existing note first and update it
+  rather than creating a duplicate.
 
 ## Workbench tickets
 
