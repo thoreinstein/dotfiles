@@ -2,6 +2,11 @@
 {
   home.packages = [
     (pkgs.writeShellApplication {
+      name = "agent-resume";
+      runtimeInputs = [ pkgs.tmux ];
+      text = builtins.readFile ../../bin/.bin/agent-resume;
+    })
+    (pkgs.writeShellApplication {
       name = "ghclone";
       runtimeInputs = with pkgs; [ git coreutils gnugrep gnused findutils ];
       text = builtins.readFile ../../bin/.bin/ghclone;

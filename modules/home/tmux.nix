@@ -1,4 +1,20 @@
 { pkgs, ... }:
+let
+  # The nix nvim wrapper execs nvim with unquoted `--cmd set rtp^=/nix/store/…` args,
+  # which resurrect can't replay. Save plain `nvim <file>` instead. Resurrect skips
+  # unchanged saves by comparing its raw save to `last`, which this rewrite already
+  # changed, so drop the new save here when it matches the previous one.
+  resurrectPostSave = pkgs.writeShellScript "resurrect-post-save" ''
+    dir=~/.local/share/tmux/resurrect
+    new=$(readlink -f "$dir/last")
+    ${pkgs.gnused}/bin/sed -i -E "s#[^:\t]*/bin/nvim( --cmd set [^ \t]+)*#nvim#" "$new"
+    prev=$(ls -t "$dir"/tmux_resurrect_*.txt | sed -n 2p)
+    if [ -n "$prev" ] && cmp -s "$new" "$prev"; then
+      rm "$new"
+      ln -sf "$(basename "$prev")" "$dir/last"
+    fi
+  '';
+in
 {
   programs.tmux = {
     enable = true;
@@ -30,6 +46,22 @@
           set -g @rose_pine_show_current_program 'off'
           set -g @rose_pine_show_pane_directory 'off'
           set -g @rose_pine_default_window_behavior 'on'
+        '';
+      }
+      {
+        plugin = tmuxPlugins.resurrect;
+        extraConfig = ''
+          set -g @resurrect-dir '~/.local/share/tmux/resurrect'
+          set -g @resurrect-capture-pane-contents 'on'
+          set -g @resurrect-hook-post-save-all '${resurrectPostSave}'
+        '';
+      }
+      # Must stay last: continuum's autosave rides on status-right, which rose-pine resets.
+      {
+        plugin = tmuxPlugins.continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '5'
         '';
       }
     ];

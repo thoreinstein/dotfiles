@@ -45,6 +45,7 @@
   };
 
   home.file = {
+    ".pi/agent/extensions/agent-resume.ts".source = ./agent-resume.ts;
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;

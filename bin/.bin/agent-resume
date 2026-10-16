@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# agent-resume - Resume the last Claude Code or pi session started in this
+# tmux session, e.g. after tmux-resurrect brings the tmux session back.
+#
+# The agents record their own session as they start (Claude's SessionStart
+# hook, pi's agent-resume.ts extension), keyed by tmux session name:
+#
+#   agent-resume record <claude|pi> <session id or file> <cwd>
+#
+# Usage: agent-resume
+
+set -euo pipefail
+
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/agent-resume"
+
+if [ -z "${TMUX:-}" ]; then
+  # Recording outside tmux is a no-op; there is nothing to key it by.
+  [ "${1:-}" = record ] && exit 0
+  echo "agent-resume: not inside tmux" >&2
+  exit 1
+fi
+
+name=$(tmux display-message -p -t "$TMUX_PANE" '#S')
+file="$STATE/${name//\//_}"
+
+if [ "${1:-}" = record ]; then
+  mkdir -p "$STATE"
+  printf '%s\n%s\n%s\n' "$2" "$3" "$4" >"$file.tmp"
+  mv "$file.tmp" "$file"
+  exit 0
+fi
+
+if [ ! -f "$file" ]; then
+  echo "agent-resume: no agent session recorded for tmux session '$name'" >&2
+  exit 1
+fi
+
+{
+  read -r agent
+  read -r id
+  read -r dir
+} <"$file"
+
+cd "$dir"
+case "$agent" in
+  claude) exec claude --resume "$id" ;;
+  pi) exec pi --session "$id" ;;
+  *)
+    echo "agent-resume: unknown agent '$agent' in $file" >&2
+    exit 1
+    ;;
+esac
