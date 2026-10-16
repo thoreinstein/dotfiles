@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const { agentMessage } = await import(pathToFileURL(resolve(process.argv[2])).href);
+const { agentMessage, check } = await import(pathToFileURL(resolve(process.argv[2])).href);
 
 const call = (id) => ({ type: "toolCall", id, name: "bash", arguments: {} });
 const reply = (...content) => ({ type: "message", message: { role: "assistant", content } });
@@ -46,4 +46,18 @@ assert.equal(agentMessage(branch, "b/1", "b"), "second");
 assert.equal(agentMessage([reply({ type: "text", text: "one" }, { type: "text", text: "two" }, call("a"))], "a"), "one\ntwo");
 
 console.log("pi-guard agent_message: ok");
+
+// commands that discard uncommitted work ask; harmless neighbours don't
+const rules = (cmd) => check(cmd.split(" ")).map(([name]) => name);
+assert.deepEqual(rules("git checkout -- foo.nix"), ["git-checkout"]);
+assert.deepEqual(rules("git checkout ."), ["git-checkout"]);
+assert.deepEqual(rules("git stash drop"), ["git-stash-drop"]);
+assert.deepEqual(rules("git stash clear"), ["git-stash-drop"]);
+assert.deepEqual(rules("git switch --discard-changes main"), ["git-switch-discard"]);
+assert.deepEqual(rules("git switch -f main"), ["git-switch-discard"]);
+assert.deepEqual(rules("git stash"), []);
+assert.deepEqual(rules("git stash pop"), []);
+assert.deepEqual(rules("git switch main"), []);
+
+console.log("pi-guard check: ok");
 EOF

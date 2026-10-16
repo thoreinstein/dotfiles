@@ -12,6 +12,8 @@ const LOOP_LIMIT = 3;
 const GIT_ASK = new Set([
   "commit", "push", "rebase", "reset", "filter-branch", "filter-repo", "update-ref", "replace",
   "cherry-pick", "revert", "merge", "restore", "clean",
+  // `git checkout <file>` discards edits and can't be told apart from a branch switch here.
+  "checkout",
 ]);
 // Global git options that take their value as the next token.
 const GIT_OPT_ARG = new Set(["-C", "-c", "--git-dir", "--work-tree", "--namespace"]);
@@ -74,7 +76,7 @@ function family(tokens) {
 }
 
 // Rules that a single command stage trips: [name, why] pairs.
-function check(tokens) {
+export function check(tokens) {
   const t = strip(tokens);
   if (!t.length) return [];
   const bin = base(t[0]), args = t.slice(1);
@@ -86,6 +88,8 @@ function check(tokens) {
     else if (sub === "branch" && args.some((a) => /^-[dDmM]$/.test(a))) hits.push(["git-branch-delete", "git branch delete/rename"]);
     else if (sub === "worktree" && args.includes("remove")) hits.push(["git-worktree-remove", "git worktree remove"]);
     else if (sub === "reflog" && args.some((a) => a === "expire" || a === "delete")) hits.push(["git-reflog", "git reflog expire/delete"]);
+    else if (sub === "stash" && args.some((a) => a === "drop" || a === "clear")) hits.push(["git-stash-drop", "git stash drop/clear"]);
+    else if (sub === "switch" && args.some((a) => a === "--discard-changes" || a === "-f" || a === "--force")) hits.push(["git-switch-discard", "git switch that discards changes"]);
   } else if (bin === "rm" || bin === "rmdir") {
     hits.push([bin, bin]);
   } else if (TF.has(bin)) {
@@ -118,6 +122,8 @@ const RAW_RULES = [
   ["terraform-state-rm", "terraform state rm", /\b(terraform|tofu|terragrunt)\b[\s\S]*\bstate\s+rm\b/],
   ["gcloud-delete", "gcloud subcommand that deletes", /\bgcloud\b[\s\S]*\b(delete|destroy|rm)\b/],
   ["gh-delete", "gh subcommand that deletes", /\bgh\b[\s\S]*(\b(delete|destroy|rm)\b|(-X|--method)\s*=?\s*DELETE)/i],
+  ["git-stash-drop", "git stash drop/clear", /\bgit\b[\s\S]*\bstash\s+(drop|clear)\b/],
+  ["git-switch-discard", "git switch that discards changes", /\bgit\b[\s\S]*\bswitch\b[\s\S]*(--discard-changes|\s-f\b|--force)/],
   ...[...GIT_ASK].map((s) => [`git-${s}`, `git ${s}`, new RegExp(`\\bgit\\b[\\s\\S]*\\b${s}\\b`)]),
 ];
 
