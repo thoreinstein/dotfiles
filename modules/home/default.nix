@@ -10,10 +10,6 @@ let
   piMcpJson =
     let cfg = builtins.fromJSON mcpJson;
     in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "ynab" ]; });
-  # Claude Code gets obsidian tools from its obsidian-rag plugin; only pi needs this server.
-  claudeMcpJson =
-    let cfg = builtins.fromJSON mcpJson;
-    in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "obsidian-mcp" ]; });
 in
 {
   imports = [
@@ -52,7 +48,7 @@ in
   programs.home-manager.enable = true;
 
   home.file = {
-    ".mcp.json".text = claudeMcpJson;
+    ".mcp.json".text = mcpJson;
     # pi >= 0.99 reads native MCP config from here
     ".pi/agent/mcp.json".text = piMcpJson;
   };

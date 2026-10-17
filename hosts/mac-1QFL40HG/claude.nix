@@ -38,11 +38,11 @@
           "Bash(cat *)"
           "Bash(rtk *)"
           "mcp__codegraph__*"
-          "mcp__plugin_obsidian-rag_obsidian-rag__obsidian_read_note"
-          "mcp__plugin_obsidian-rag_obsidian-rag__obsidian_search_notes"
-          "mcp__plugin_obsidian-rag_obsidian-rag__obsidian_rag_query"
-          "mcp__plugin_obsidian-rag_obsidian-rag__obsidian_get_links"
-          "mcp__plugin_obsidian-rag_obsidian-rag__obsidian_list_notes"
+          "mcp__obsidian-mcp__obsidian_read_note"
+          "mcp__obsidian-mcp__obsidian_search_notes"
+          "mcp__obsidian-mcp__obsidian_rag_query"
+          "mcp__obsidian-mcp__obsidian_get_links"
+          "mcp__obsidian-mcp__obsidian_list_notes"
           "mcp__plugin_engram_engram__mem_search"
           "mcp__plugin_engram_engram__mem_context"
           "mcp__plugin_engram_engram__mem_get_observation"
@@ -63,7 +63,7 @@
           "mcp__plugin_engram_engram__*"
           "mcp__tokensave__*"
           "mcp__plugin_github_github__*"
-          "mcp__plugin_obsidian-rag_obsidian-rag__*"
+          "mcp__obsidian-mcp__*"
         ];
       };
 
@@ -92,7 +92,7 @@
         "skill-creator@claude-plugins-official" = true;
         "superpowers@claude-plugins-official" = true;
         "typescript-lsp@claude-plugins-official" = true;
-        "obsidian-rag@thoreinstein-plugins" = true;
+        "obsidian-rag@thoreinstein-plugins" = false;
         "claude-md-management@claude-plugins-official" = true;
         "engram@engram" = true;
         "claude-notifications-go@claude-notifications-go" = true;
