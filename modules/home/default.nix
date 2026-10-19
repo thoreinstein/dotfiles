@@ -1,4 +1,4 @@
-{ username, homeDirectory, ... }:
+{ pkgs, lib, username, homeDirectory, ... }:
 let
   # mcp.json references the home directory; expand it at build time since
   # consumers (node stdio servers) don't expand ~ or $HOME in args.
@@ -10,6 +10,9 @@ let
   piMcpJson =
     let cfg = builtins.fromJSON mcpJson;
     in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "ynab" ]; });
+  # npx installs a github: package on first launch (clone + npm install + build).
+  # That can outlast pi's 60s MCP startup timeout, so install it at switch time.
+  obsidianMcpSpec = lib.last (builtins.fromJSON mcpJson).mcpServers."obsidian-mcp".args;
 in
 {
   imports = [
@@ -52,4 +55,10 @@ in
     # pi >= 0.99 reads native MCP config from here
     ".pi/agent/mcp.json".text = piMcpJson;
   };
+
+  home.activation.warmObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    PATH="${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:$PATH" \
+      run ${pkgs.nodejs}/bin/npx -y -p ${lib.escapeShellArg obsidianMcpSpec} true \
+      || echo "warning: could not pre-install ${obsidianMcpSpec}; first MCP launch will install it"
+  '';
 }
