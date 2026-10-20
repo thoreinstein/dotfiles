@@ -21,7 +21,7 @@ let
     session=$(tmux list-sessions -F '#{session_last_attached} #S' \
       | sort -rn | cut -d' ' -f2- | grep -vxF "$current" \
       | ${pkgs.fzf}/bin/fzf --tmux 80%,70% --layout=reverse --prompt='Session > ' \
-          --preview 'tmux capture-pane -ep -t ={}:' --preview-window=right,60%) || exit 0
+          --preview 'tmux capture-pane -ep -t "="{}:' --preview-window=right,60%) || exit 0
     tmux switch-client -t "=$session"
   '';
 in
