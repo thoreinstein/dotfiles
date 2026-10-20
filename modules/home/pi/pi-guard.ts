@@ -241,6 +241,43 @@ export function mcpBypass(command, vars = new Map(), depth = 0) {
   return found;
 }
 
+// Policy for MCP tool calls, keyed on the tool name the pi MCP adapter resolves (`<server>_<tool>`).
+// action: "allow" passes silently, "prompt" asks like a risky bash command, "deny" blocks with
+// `reason` and never asks. A tool not listed here is left to the adapter.
+export const MCP_POLICY = {
+  glean_chat: {
+    rule: "glean-chat",
+    action: "deny",
+    reason: "Glean chat returns an AI summary, not the source. Use glean_search to find the documents or Slack "
+      + 'threads (use app: slack and channel or type: "direct message" for Slack), then glean_read_document on the '
+      + "result URLs to get the full content. Quote messages verbatim with their author, timestamp and URL instead "
+      + "of paraphrasing.",
+  },
+};
+
+// The adapter treats `-`, `.` and `_` alike and also accepts `mcp__<server>__<tool>`.
+const toolKey = (s) => String(s ?? "").toLowerCase().replace(/^mcp__(.+?)__/, "$1_").replace(/[-.]/g, "_");
+
+// The policy for a tool name as an agent wrote it, or null. A bare name (`chat`) is matched by its
+// `server`, or with no server against every entry, as the adapter resolves it across servers.
+export function mcpPolicy(tool, server, bare = true) {
+  const key = toolKey(tool);
+  const find = (want) => Object.keys(MCP_POLICY).find(want);
+  const name = find((k) => toolKey(k) === key)
+    ?? (server ? find((k) => toolKey(k) === `${toolKey(server)}_${key}`) : bare ? find((k) => toolKey(k).endsWith(`_${key}`)) : undefined);
+  return name ? { tool: name, ...MCP_POLICY[name] } : null;
+}
+
+function mcpArgs(args) {
+  if (typeof args !== "string") return args ?? {};
+  try { return JSON.parse(args); } catch { return { raw: args }; }
+}
+
+function appendLog(entry) {
+  mkdirSync(dirname(LOG), { recursive: true });
+  appendFileSync(LOG, JSON.stringify({ timestamp: new Date().toISOString(), ...entry }) + "\n");
+}
+
 function userText(entry) {
   const c = entry.message.content;
   return typeof c === "string" ? c : c.filter((b) => b.type === "text").map((b) => b.text).join("\n");
@@ -274,10 +311,75 @@ export function agentMessage(branch, toolCallId, parentToolCallId) {
 export default function (pi: ExtensionAPI) {
   // Per-session run of identical command families; edits and writes count as progress.
   const runs = new Map();
+  // The latest tool call, for MCP calls that reach only the adapter's approval event (no ctx there).
+  let last = null;
+  // MCP calls let through on a yes here, so the adapter's approval event doesn't ask again.
+  const approved = new Map();
+
+  // Applies an MCP_POLICY entry and logs it. Returns [answer, reason], answer "allow" or "deny".
+  async function decideMcp(policy, call, ctx, entry) {
+    if (policy.action === "allow") return ["allow"];
+    let answer, reason;
+    if (policy.action === "deny") [answer, reason] = ["deny", policy.reason];
+    else if (!ctx?.hasUI) [answer, reason] = ["deny", "Denied by pi-guard: this MCP call needs confirmation and no UI is available."];
+    else {
+      const ok = await ctx.ui.confirm("pi-guard", `${policy.reason ?? policy.rule}\n\n${policy.tool} ${JSON.stringify(call.args)}`);
+      [answer, reason] = [ok ? "allow" : "deny", "Denied by user via pi-guard."];
+    }
+    try {
+      appendLog({
+        ...entry,
+        rules: [policy.rule],
+        last_user_message: ctx ? lastUserMessage(ctx) : null,
+        agent_message: ctx ? agentMessage(ctx.sessionManager.getBranch(), call.toolCallId, call.parentToolCallId) : null,
+        mcp: { tool: policy.tool, args: call.args, origin: call.origin },
+        answer,
+        auto: policy.action === "deny" || !ctx?.hasUI,
+      });
+    } catch (err) {
+      return ["deny", `pi-guard could not write ${LOG}: ${err}`];
+    }
+    return [answer, reason];
+  }
+
+  // Backstop for MCP calls pi's tool_call hook never sees (mcpScript, and any direct tool call
+  // the hook missed). It can only allow or deny: the agent gets the adapter's own denial text.
+  pi.events?.on("pi-mcp-adapter:tool-approval-request", (request) => {
+    const policy = mcpPolicy(request.prefixedToolName, request.serverName, false);
+    if (!policy || policy.action === "allow") return;
+    const yes = approved.get(policy.tool) ?? 0;
+    if (yes && (request.origin === "proxy" || request.origin === "direct")) {
+      approved.set(policy.tool, yes - 1);
+      request.claim(() => "allow_once");
+      return;
+    }
+    request.claim(async () => {
+      const call = { args: request.args ?? {}, origin: request.origin, toolCallId: last?.toolCallId, parentToolCallId: last?.parentToolCallId };
+      const [answer] = await decideMcp(policy, call, last?.ctx, {
+        session_id: last?.sid ?? null, tool: request.prefixedToolName, args: request.args,
+      });
+      return answer === "allow" ? "allow_once" : "deny";
+    });
+  });
 
   pi.on("tool_call", async (event, ctx) => {
     const sid = ctx.sessionManager.getSessionId();
+    last = { sid, ctx, toolCallId: event.toolCallId, parentToolCallId: event.parentToolCallId };
     if (event.toolName === "edit" || event.toolName === "write") runs.delete(sid);
+
+    // MCP calls through the `mcp` proxy tool, or a direct tool registered under its own name.
+    const proxied = event.toolName === "mcp" && event.input?.tool;
+    const policy = proxied ? mcpPolicy(event.input.tool, event.input.server) : mcpPolicy(event.toolName, undefined, false);
+    if (policy) {
+      const call = {
+        args: mcpArgs(proxied ? event.input.args : event.input), origin: proxied ? "proxy" : "direct",
+        toolCallId: event.toolCallId, parentToolCallId: event.parentToolCallId,
+      };
+      const [answer, reason] = await decideMcp(policy, call, ctx, { session_id: sid, tool: event.toolName, args: event.input });
+      if (answer === "deny") return { block: true, reason };
+      if (policy.action === "prompt") approved.set(policy.tool, (approved.get(policy.tool) ?? 0) + 1);
+      return;
+    }
     if (event.toolName !== "bash") return;
 
     const command = String(event.input.command ?? "");
@@ -324,9 +426,7 @@ export default function (pi: ExtensionAPI) {
     if (looping && answer === "allow") run.count = 0;
 
     try {
-      mkdirSync(dirname(LOG), { recursive: true });
-      appendFileSync(LOG, JSON.stringify({
-        timestamp: new Date().toISOString(),
+      appendLog({
         session_id: sid,
         tool: event.toolName,
         args: event.input,
@@ -336,7 +436,7 @@ export default function (pi: ExtensionAPI) {
         ...(requests.length && { requests: requests.map(({ host, path, method }) => ({ host, path, method })) }),
         answer,
         auto: noVerify || requests.length > 0 || !ctx.hasUI,
-      }) + "\n");
+      });
     } catch (err) {
       // Failing closed beats running an unlogged call.
       return { block: true, reason: `pi-guard could not write ${LOG}: ${err}` };

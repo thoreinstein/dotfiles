@@ -14,7 +14,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const { default: guard, agentMessage, bypassReason, check, mcpBypass } = await import(pathToFileURL(resolve(process.argv[2])).href);
+const { default: guard, MCP_POLICY, agentMessage, bypassReason, check, mcpBypass, mcpPolicy } = await import(pathToFileURL(resolve(process.argv[2])).href);
 
 const call = (id) => ({ type: "toolCall", id, name: "bash", arguments: {} });
 const reply = (...content) => ({ type: "message", message: { role: "assistant", content } });
@@ -127,4 +127,73 @@ assert.deepEqual(log.map((e) => [e.session_id, e.rules, e.requests, e.answer, e.
 ]);
 
 console.log("pi-guard mcp-bypass handler: ok");
+
+// MCP tool names resolve the way the adapter resolves them
+const policyOf = (...a) => mcpPolicy(...a)?.tool ?? null;
+assert.equal(policyOf("glean_chat"), "glean_chat");
+assert.equal(policyOf("glean-chat"), "glean_chat");
+assert.equal(policyOf("mcp__glean__chat"), "glean_chat");
+assert.equal(policyOf("chat", "glean"), "glean_chat");
+assert.equal(policyOf("chat"), "glean_chat");
+assert.equal(policyOf("chat", "other"), null);
+assert.equal(policyOf("chat", undefined, false), null);
+assert.equal(policyOf("glean_search"), null);
+assert.equal(policyOf("glean_read_document"), null);
+
+console.log("pi-guard mcp policy: ok");
+
+// glean_chat is denied with no prompt on the proxy and direct paths; search and read_document pass
+const GLEAN_CHAT = "Glean chat returns an AI summary, not the source. Use glean_search to find the documents or Slack "
+  + 'threads (use app: slack and channel or type: "direct message" for Slack), then glean_read_document on the '
+  + "result URLs to get the full content. Quote messages verbatim with their author, timestamp and URL instead "
+  + "of paraphrasing.";
+let mcpHandler, approval;
+let confirms = 0;
+guard({
+  on: (event, fn) => { if (event === "tool_call") mcpHandler = fn; },
+  events: { on: (event, fn) => { if (event === "pi-mcp-adapter:tool-approval-request") approval = fn; } },
+});
+const mcpCtx = {
+  hasUI: true,
+  ui: { confirm: async () => { confirms++; return true; } },
+  sessionManager: { getSessionId: () => "sess-2", getBranch: () => [] },
+};
+const callTool = (toolName, input) => mcpHandler({ toolName, toolCallId: "t2", input }, mcpCtx);
+const blocked = { block: true, reason: GLEAN_CHAT };
+assert.deepEqual(await callTool("mcp", { tool: "glean_chat", args: { message: "what did ops decide?" } }), blocked);
+assert.deepEqual(await callTool("mcp", { tool: "chat", server: "glean", args: '{"message":"as a string"}' }), blocked);
+assert.deepEqual(await callTool("glean_chat", { message: "direct" }), blocked);
+assert.equal(await callTool("mcp", { tool: "glean_search", args: { query: "deploy", app: "slack", channel: "ops" } }), undefined);
+assert.equal(await callTool("mcp", { tool: "glean_read_document", args: { urls: ["https://x.slack.com/archives/C1/p1"] } }), undefined);
+assert.equal(await callTool("mcp", { search: "glean chat" }), undefined);
+assert.equal(confirms, 0);
+
+// the approval backstop denies script calls the hook never saw, and leaves other tools alone
+const broker = (prefixedToolName, origin, args = {}) => {
+  let handler = null;
+  approval({ serverName: "glean", prefixedToolName, originalToolName: prefixedToolName.replace(/^glean_/, ""), args, origin, claim: (h) => { handler = h; return true; } });
+  return handler && handler();
+};
+assert.equal(await broker("glean_chat", "script", { message: "from a script" }), "deny");
+assert.equal(broker("glean_search", "script"), null);
+assert.equal(broker("glean_read_document", "proxy"), null);
+
+const mcpLog = readFileSync(join(homedir(), ".pi", "agent", "guard-log.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l)).slice(2);
+assert.deepEqual(mcpLog.map((e) => [e.session_id, e.tool, e.rules, e.mcp.args.message, e.mcp.origin, e.answer, e.auto]), [
+  ["sess-2", "mcp", ["glean-chat"], "what did ops decide?", "proxy", "deny", true],
+  ["sess-2", "mcp", ["glean-chat"], "as a string", "proxy", "deny", true],
+  ["sess-2", "glean_chat", ["glean-chat"], "direct", "direct", "deny", true],
+  ["sess-2", "glean_chat", ["glean-chat"], "from a script", "script", "deny", true],
+]);
+
+// a prompt entry asks once: the adapter's approval for the same call doesn't ask again
+MCP_POLICY.test_tool = { rule: "test-prompt", action: "prompt", reason: "test tool" };
+assert.equal(await callTool("mcp", { tool: "test_tool", args: {} }), undefined);
+assert.equal(await broker("test_tool", "proxy"), "allow_once");
+assert.equal(confirms, 1);
+assert.equal(await broker("test_tool", "script"), "allow_once");
+assert.equal(confirms, 2);
+delete MCP_POLICY.test_tool;
+
+console.log("pi-guard mcp policy handler: ok");
 EOF
