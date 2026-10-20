@@ -8,22 +8,6 @@
         "kubernetes-mcp-server@0.0.67"
       ]
     },
-    "gcp-gke": {
-      "type": "http",
-      "url": "https://container.googleapis.com/mcp"
-    },
-    "gcp-logging": {
-      "type": "http",
-      "url": "https://logging.googleapis.com/mcp"
-    },
-    "gcp-monitoring": {
-      "type": "http",
-      "url": "https://monitoring.googleapis.com/mcp"
-    },
-    "gcp-firestore": {
-      "type": "http",
-      "url": "https://firestore.googleapis.com/mcp"
-    },
     "exa": {
       "type": "stdio",
       "command": "npx",
@@ -58,10 +42,6 @@
         "-y",
         "github:thoreinstein/obsidian-mcp#0a17de3"
       ]
-    },
-    "gcp-devknowledge": {
-      "type": "http",
-      "url": "https://developerknowledge.googleapis.com/mcp"
     },
     "codegraph": {
       "type": "stdio",
