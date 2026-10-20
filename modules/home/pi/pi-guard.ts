@@ -243,7 +243,30 @@ export function mcpBypass(command, vars = new Map(), depth = 0) {
 
 // Policy for MCP tool calls, keyed on the tool name the pi MCP adapter resolves (`<server>_<tool>`).
 // action: "allow" passes silently, "prompt" asks like a risky bash command, "deny" blocks with
-// `reason` and never asks. A tool not listed here is left to the adapter.
+// `reason` and never asks. An entry with `match(args)` applies only when it returns true. A tool not
+// listed here (or whose entry doesn't match) is allowed: pi sets no adapter `approveTools`.
+// Prompts below were audited from each server's tools/list; IRREVERSIBLE and NOTIFIES/PAGES call out
+// what can't be undone from pi or reaches other people.
+
+// Kubernetes kinds as these tools take them: `Secret`, `secrets`, `v1/Secret`, `secret/name`, `pods,secrets`.
+const isSecretKind = (v) => String(v ?? "").split(/[,\s]+/).some((t) => t.split(/[/.]/).some((p) => /^secrets?$/i.test(p)));
+const SECRET = {
+  rule: "k8s-secret-read",
+  action: "deny",
+  match: (args) => isSecretKind(args?.kind) || isSecretKind(args?.resourceType),
+  reason: "Reading Secret values is blocked. If you need to know a Secret exists or what keys it has, tell the user and ask.",
+};
+const DAILY = {
+  rule: "obsidian-daily",
+  action: "deny",
+  reason: "Daily/ is generated and read-only. Use mem_save to record work; use obsidian_read_note to read an existing daily note.",
+};
+const FIRESTORE_DELETE = {
+  rule: "firestore-delete-blocked",
+  action: "deny",
+  reason: "Deleting Firestore databases and backups is blocked: tell the user what to delete and why; they will do it.",
+};
+
 export const MCP_POLICY = {
   glean_chat: {
     rule: "glean-chat",
@@ -253,18 +276,109 @@ export const MCP_POLICY = {
       + "result URLs to get the full content. Quote messages verbatim with their author, timestamp and URL instead "
       + "of paraphrasing.",
   },
+  glean_memory: { rule: "glean-memory", action: "deny", reason: "Glean Memory is not used. Use engram (mem_save / mem_search) for memory." },
+  glean_upload_artifact: { rule: "glean-artifact", action: "prompt", reason: "publishes content to your Glean Library with a shareable link" },
+  glean_update_artifact: { rule: "glean-artifact", action: "prompt", reason: "uploads a new version of a Glean artifact others may be viewing" },
+  glean_share_artifact: { rule: "glean-share", action: "prompt", reason: "grants people or departments access to a Glean artifact; notify: true EMAILS them" },
+
+  // jira (Atlassian: Jira + Confluence)
+  jira_search: {
+    rule: "jira-rovo-search",
+    action: "deny",
+    reason: "jira_search (Rovo Search) spends Rovo credits and is not used. Use jira_searchJiraIssuesUsingJql for Jira "
+      + "issues and jira_searchConfluenceUsingCql for Confluence.",
+  },
+  jira_createJiraIssue: { rule: "jira-create-issue", action: "prompt", reason: "creates a Jira issue; NOTIFIES the assignee and watchers; no tool can delete it" },
+  jira_editJiraIssue: { rule: "jira-edit-issue", action: "prompt", reason: "edits Jira issue fields; NOTIFIES watchers" },
+  jira_addCommentToJiraIssue: { rule: "jira-comment", action: "prompt", reason: "adds a Jira comment, or overwrites one when commentId is set; NOTIFIES watchers and @mentions" },
+  jira_transitionJiraIssue: { rule: "jira-transition", action: "prompt", reason: "changes Jira issue status; NOTIFIES watchers and can fire workflow automation" },
+  jira_addWorklogToJiraIssue: { rule: "jira-worklog", action: "prompt", reason: "logs work time on a Jira issue, or overwrites a worklog when worklogId is set" },
+  jira_createIssueLink: { rule: "jira-issue-link", action: "prompt", reason: "links two Jira issues; visible on both" },
+  jira_createConfluencePage: { rule: "confluence-create-page", action: "prompt", reason: "publishes a Confluence page or blog post visible to others" },
+  jira_updateConfluencePage: { rule: "confluence-update-page", action: "prompt", reason: "overwrites a Confluence page (old version kept in page history)" },
+  jira_createConfluenceFooterComment: { rule: "confluence-comment", action: "prompt", reason: "posts a Confluence comment; NOTIFIES page watchers" },
+  jira_createConfluenceInlineComment: { rule: "confluence-comment", action: "prompt", reason: "posts an inline Confluence comment; NOTIFIES page watchers" },
+
+  // firehydrant
+  "firehydrant_create-incident": { rule: "firehydrant-create-incident", action: "prompt", reason: "opens a FireHydrant incident: PAGES and NOTIFIES responders and starts incident workflows; IRREVERSIBLE" },
+  "firehydrant_update-retrospective-field": { rule: "firehydrant-retro", action: "prompt", reason: "overwrites a field in a shared FireHydrant retrospective" },
+
+  // gcp-devknowledge
+  "gcp-devknowledge_answer_query": {
+    rule: "devknowledge-answer",
+    action: "deny",
+    reason: "answer_query returns an AI summary, not the source. Use gcp-devknowledge_search_documents to find the docs, "
+      + "then gcp-devknowledge_get_documents on the result names to get the full content, and quote it.",
+  },
+
+  // gcp-gke
+  "gcp-gke_get_k8s_resource": SECRET,
+  "gcp-gke_describe_k8s_resource": SECRET,
+  "gcp-gke_create_cluster": { rule: "gke-cluster", action: "prompt", reason: "creates a billable GKE cluster" },
+  "gcp-gke_update_cluster": { rule: "gke-cluster", action: "prompt", reason: "changes a GKE cluster; some updates recreate nodes" },
+  "gcp-gke_cancel_operation": { rule: "gke-operation", action: "prompt", reason: "cancels an in-flight GKE operation; can leave an upgrade or resize half-done" },
+  "gcp-gke_create_node_pool": { rule: "gke-node-pool", action: "prompt", reason: "creates a billable GKE node pool" },
+  "gcp-gke_update_node_pool": { rule: "gke-node-pool", action: "prompt", reason: "changes a GKE node pool; some updates recreate nodes" },
+  "gcp-gke_apply_k8s_manifest": { rule: "gke-k8s-write", action: "prompt", reason: "server-side applies a manifest to a live cluster" },
+  "gcp-gke_patch_k8s_resource": { rule: "gke-k8s-write", action: "prompt", reason: "patches a live Kubernetes resource" },
+  "gcp-gke_delete_k8s_resource": { rule: "gke-k8s-delete", action: "prompt", reason: "deletes a Kubernetes resource; IRREVERSIBLE" },
+
+  // gcp-firestore
+  "gcp-firestore_delete_database": FIRESTORE_DELETE,
+  "gcp-firestore_delete_backup": FIRESTORE_DELETE,
+  "gcp-firestore_add_document": { rule: "firestore-write", action: "prompt", reason: "writes a Firestore document" },
+  "gcp-firestore_update_document": { rule: "firestore-write", action: "prompt", reason: "overwrites a Firestore document" },
+  "gcp-firestore_delete_document": { rule: "firestore-delete", action: "prompt", reason: "deletes a Firestore document; IRREVERSIBLE" },
+  "gcp-firestore_create_database": { rule: "firestore-database", action: "prompt", reason: "creates a billable Firestore database" },
+  "gcp-firestore_update_database": { rule: "firestore-database", action: "prompt", reason: "changes Firestore database config" },
+  "gcp-firestore_create_index": { rule: "firestore-index", action: "prompt", reason: "creates a Firestore composite index" },
+  "gcp-firestore_delete_index": { rule: "firestore-delete", action: "prompt", reason: "deletes a Firestore index; queries that need it fail; IRREVERSIBLE" },
+  "gcp-firestore_create_backup_schedule": { rule: "firestore-backup-schedule", action: "prompt", reason: "creates a Firestore backup schedule" },
+  "gcp-firestore_update_backup_schedule": { rule: "firestore-backup-schedule", action: "prompt", reason: "changes a Firestore backup schedule" },
+  "gcp-firestore_delete_backup_schedule": { rule: "firestore-delete", action: "prompt", reason: "deletes a Firestore backup schedule; backups stop" },
+
+  // kubernetes
+  kubernetes_configuration_view: {
+    rule: "k8s-kubeconfig",
+    action: "deny",
+    reason: "Kubeconfig contents never go into model context. Use kubernetes_configuration_contexts_list to see context names and server URLs.",
+  },
+  kubernetes_resources_get: SECRET,
+  kubernetes_resources_list: SECRET,
+  kubernetes_pods_exec: { rule: "k8s-exec", action: "prompt", reason: "runs an arbitrary command inside a pod" },
+  kubernetes_pods_run: { rule: "k8s-write", action: "prompt", reason: "starts a pod in the cluster" },
+  kubernetes_resources_create_or_update: { rule: "k8s-write", action: "prompt", reason: "server-side applies a manifest; fields it omits are removed" },
+  kubernetes_resources_scale: { rule: "k8s-write", action: "prompt", reason: "reads or CHANGES replica count" },
+  kubernetes_pods_delete: { rule: "k8s-delete", action: "prompt", reason: "deletes a pod; IRREVERSIBLE" },
+  kubernetes_resources_delete: { rule: "k8s-delete", action: "prompt", reason: "deletes a Kubernetes resource; IRREVERSIBLE" },
+
+  // obsidian-mcp
+  "obsidian-mcp_obsidian_get_daily_note": DAILY,
+  "obsidian-mcp_obsidian_append_daily_log": DAILY,
+  "obsidian-mcp_obsidian_create_note": { rule: "obsidian-write", action: "prompt", reason: "creates a vault note" },
+  "obsidian-mcp_obsidian_append_note": { rule: "obsidian-write", action: "prompt", reason: "appends to a vault note" },
+  "obsidian-mcp_obsidian_move_note": { rule: "obsidian-write", action: "prompt", reason: "moves or renames a note and rewrites links to it in other notes" },
+  "obsidian-mcp_obsidian_update_frontmatter": { rule: "obsidian-write", action: "prompt", reason: "edits a note's frontmatter" },
+  "obsidian-mcp_obsidian_replace_section": { rule: "obsidian-write", action: "prompt", reason: "overwrites a section of a note" },
+  "obsidian-mcp_obsidian_insert_at_heading": { rule: "obsidian-write", action: "prompt", reason: "inserts into a note" },
+  "obsidian-mcp_obsidian_replace_in_note": { rule: "obsidian-write", action: "prompt", reason: "edits text in a note" },
 };
 
 // The adapter treats `-`, `.` and `_` alike and also accepts `mcp__<server>__<tool>`.
 const toolKey = (s) => String(s ?? "").toLowerCase().replace(/^mcp__(.+?)__/, "$1_").replace(/[-.]/g, "_");
+const STRICTNESS = { allow: 0, prompt: 1, deny: 2 };
 
-// The policy for a tool name as an agent wrote it, or null. A bare name (`chat`) is matched by its
-// `server`, or with no server against every entry, as the adapter resolves it across servers.
-export function mcpPolicy(tool, server, bare = true) {
+// The policy for a tool name as an agent wrote it and its args, or null. A bare name (`chat`) is
+// matched by its `server`, or with no server against every entry, as the adapter resolves it across
+// servers; when that matches more than one server's tool the strictest action wins.
+export function mcpPolicy(tool, server, bare = true, args = {}) {
   const key = toolKey(tool);
-  const find = (want) => Object.keys(MCP_POLICY).find(want);
-  const name = find((k) => toolKey(k) === key)
-    ?? (server ? find((k) => toolKey(k) === `${toolKey(server)}_${key}`) : bare ? find((k) => toolKey(k).endsWith(`_${key}`)) : undefined);
+  const names = (want) => Object.keys(MCP_POLICY).filter((k) => want(toolKey(k)));
+  let candidates = names((k) => k === key);
+  if (!candidates.length && server) candidates = names((k) => k === `${toolKey(server)}_${key}`);
+  else if (!candidates.length && bare) candidates = names((k) => k.endsWith(`_${key}`));
+  const applies = candidates.filter((k) => !MCP_POLICY[k].match || MCP_POLICY[k].match(args));
+  const name = applies.sort((a, b) => STRICTNESS[MCP_POLICY[b].action] - STRICTNESS[MCP_POLICY[a].action])[0];
   return name ? { tool: name, ...MCP_POLICY[name] } : null;
 }
 
@@ -345,7 +459,7 @@ export default function (pi: ExtensionAPI) {
   // Backstop for MCP calls pi's tool_call hook never sees (mcpScript, and any direct tool call
   // the hook missed). It can only allow or deny: the agent gets the adapter's own denial text.
   pi.events?.on("pi-mcp-adapter:tool-approval-request", (request) => {
-    const policy = mcpPolicy(request.prefixedToolName, request.serverName, false);
+    const policy = mcpPolicy(request.prefixedToolName, request.serverName, false, request.args ?? {});
     if (!policy || policy.action === "allow") return;
     const yes = approved.get(policy.tool) ?? 0;
     if (yes && (request.origin === "proxy" || request.origin === "direct")) {
@@ -369,10 +483,11 @@ export default function (pi: ExtensionAPI) {
 
     // MCP calls through the `mcp` proxy tool, or a direct tool registered under its own name.
     const proxied = event.toolName === "mcp" && event.input?.tool;
-    const policy = proxied ? mcpPolicy(event.input.tool, event.input.server) : mcpPolicy(event.toolName, undefined, false);
+    const args = mcpArgs(proxied ? event.input.args : event.input);
+    const policy = proxied ? mcpPolicy(event.input.tool, event.input.server, true, args) : mcpPolicy(event.toolName, undefined, false, args);
     if (policy) {
       const call = {
-        args: mcpArgs(proxied ? event.input.args : event.input), origin: proxied ? "proxy" : "direct",
+        args, origin: proxied ? "proxy" : "direct",
         toolCallId: event.toolCallId, parentToolCallId: event.parentToolCallId,
       };
       const [answer, reason] = await decideMcp(policy, call, ctx, { session_id: sid, tool: event.toolName, args: event.input });

@@ -196,4 +196,65 @@ assert.equal(confirms, 2);
 delete MCP_POLICY.test_tool;
 
 console.log("pi-guard mcp policy handler: ok");
+
+// Secret reads are denied on the four read tools; every other kind passes
+const SECRET_DENY = "Reading Secret values is blocked. If you need to know a Secret exists or what keys it has, tell the user and ask.";
+const secretRule = (tool, args) => mcpPolicy(tool, undefined, false, args)?.rule ?? null;
+for (const kind of ["Secret", "secret", "SECRETS", "v1/Secret", "secret/db-creds", "pods,secrets"]) {
+  assert.equal(secretRule("kubernetes_resources_get", { apiVersion: "v1", kind, name: "x" }), "k8s-secret-read", kind);
+  assert.equal(secretRule("kubernetes_resources_list", { apiVersion: "v1", kind }), "k8s-secret-read", kind);
+  assert.equal(secretRule("gcp-gke_get_k8s_resource", { resourceType: kind }), "k8s-secret-read", kind);
+  assert.equal(secretRule("gcp-gke_describe_k8s_resource", { resourceType: kind, name: "x" }), "k8s-secret-read", kind);
+}
+for (const kind of ["Pod", "pods", "apps/v1/Deployment", "configmaps", "SecretProviderClass"]) {
+  assert.equal(secretRule("kubernetes_resources_get", { apiVersion: "v1", kind }), null, kind);
+  assert.equal(secretRule("gcp-gke_get_k8s_resource", { resourceType: kind }), null, kind);
+}
+assert.deepEqual(await callTool("mcp", { tool: "kubernetes_resources_get", args: { apiVersion: "v1", kind: "Secret", name: "db" } }),
+  { block: true, reason: SECRET_DENY });
+assert.deepEqual(await callTool("gcp-gke_describe_k8s_resource", { parent: "p", resourceType: "secrets", name: "db" }), { block: true, reason: SECRET_DENY });
+assert.equal(await callTool("mcp", { tool: "kubernetes_resources_list", args: { apiVersion: "v1", kind: "Pod" } }), undefined);
+assert.equal(await callTool("gcp-gke_get_k8s_resource", { parent: "p", resourceType: "deployments" }), undefined);
+assert.equal(await broker("kubernetes_resources_get", "script", { apiVersion: "v1", kind: "Secret" }), "deny");
+assert.equal(broker("kubernetes_resources_get", "script", { apiVersion: "v1", kind: "Pod" }), null);
+
+console.log("pi-guard mcp secret reads: ok");
+
+// a bare name shared by two servers takes the strictest matching action, whatever the table order
+const bareRule = (tool) => mcpPolicy(tool)?.tool ?? null;
+assert.equal(bareRule("search"), "jira_search");
+MCP_POLICY.glean_search = { rule: "test-allow", action: "allow" };
+assert.equal(bareRule("search"), "jira_search");
+assert.equal(mcpPolicy("search", "glean").tool, "glean_search");
+delete MCP_POLICY.glean_search;
+assert.equal(bareRule("list_alerts"), null);
+for (const [first, second] of [["firehydrant_list-alerts", "gcp-monitoring_list_alerts"], ["gcp-monitoring_list_alerts", "firehydrant_list-alerts"]]) {
+  MCP_POLICY[first] = { rule: "test-prompt", action: "prompt", reason: "x" };
+  MCP_POLICY[second] = { rule: "test-deny", action: "deny", reason: "x" };
+  assert.equal(bareRule("list_alerts"), second);
+  assert.equal(bareRule("list-alerts"), second);
+  delete MCP_POLICY[first];
+  delete MCP_POLICY[second];
+}
+
+console.log("pi-guard mcp bare-name collisions: ok");
+
+// every entry in the table does what it says through the hook: deny blocks with its reason, prompt asks
+assert.equal(MCP_POLICY.glean_memory.reason, "Glean Memory is not used. Use engram (mem_save / mem_search) for memory.");
+assert.equal(MCP_POLICY["obsidian-mcp_obsidian_get_daily_note"].reason,
+  "Daily/ is generated and read-only. Use mem_save to record work; use obsidian_read_note to read an existing daily note.");
+assert.match(MCP_POLICY["gcp-firestore_delete_database"].reason, /tell the user what to delete and why; they will do it\.$/);
+assert.match(MCP_POLICY.kubernetes_configuration_view.reason, /kubernetes_configuration_contexts_list/);
+assert.match(MCP_POLICY.jira_search.reason, /jira_searchJiraIssuesUsingJql[\s\S]*jira_searchConfluenceUsingCql/);
+assert.match(MCP_POLICY["gcp-devknowledge_answer_query"].reason, /gcp-devknowledge_search_documents[\s\S]*gcp-devknowledge_get_documents/);
+for (const [tool, entry] of Object.entries(MCP_POLICY)) {
+  if (entry.match) continue;
+  const before = confirms;
+  const result = await callTool("mcp", { tool, args: {} });
+  if (entry.action === "deny") assert.deepEqual(result, { block: true, reason: entry.reason }, tool);
+  else assert.equal(result, undefined, tool);
+  assert.equal(confirms - before, entry.action === "prompt" ? 1 : 0, tool);
+}
+
+console.log("pi-guard mcp policy table: ok");
 EOF
