@@ -56,7 +56,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "github:thoreinstein/obsidian-mcp#a89c989"
+        "github:thoreinstein/obsidian-mcp#8464a2a"
       ]
     },
     "gcp-devknowledge": {
