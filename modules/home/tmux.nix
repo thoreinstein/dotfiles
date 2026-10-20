@@ -14,6 +14,16 @@ let
       ln -sf "$(basename "$prev")" "$dir/last"
     fi
   '';
+
+  # Fuzzy-pick an open session, most recently used first, previewing its active pane.
+  sessionPicker = pkgs.writeShellScript "tmux-session-picker" ''
+    current=$(tmux display-message -p '#S')
+    session=$(tmux list-sessions -F '#{session_last_attached} #S' \
+      | sort -rn | cut -d' ' -f2- | grep -vxF "$current" \
+      | ${pkgs.fzf}/bin/fzf --tmux 80%,70% --layout=reverse --prompt='Session > ' \
+          --preview 'tmux capture-pane -ep -t ={}:' --preview-window=right,60%) || exit 0
+    tmux switch-client -t "=$session"
+  '';
 in
 {
   programs.tmux = {
@@ -77,6 +87,8 @@ in
 
       # Session switcher
       bind -r f run-shell "ts"
+      bind s run-shell "${sessionPicker}"
+      bind S choose-tree -Zs
 
       # Turn on extended keys support
       set -g extended-keys on
