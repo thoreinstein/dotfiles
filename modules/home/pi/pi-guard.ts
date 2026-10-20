@@ -136,6 +136,111 @@ function isNested(stage, command) {
     || (bin === "find" && rest.some((a) => /^-(exec|execdir|ok|okdir|delete)$/.test(a)));
 }
 
+// Direct HTTP calls to APIs that have an MCP server, so the agent uses the tools instead.
+// Tool names are what the pi MCP adapter exposes (server-prefixed) for the `jira` and
+// `firehydrant` servers in modules/home/mcp.json, taken from each server's tools/list.
+const HTTP_CLIENTS = new Set(["curl", "wget", "http", "https"]);
+const MCP_TOOLS = {
+  jira: [
+    "jira_getJiraIssue", "jira_searchJiraIssuesUsingJql", "jira_createJiraIssue", "jira_editJiraIssue",
+    "jira_addCommentToJiraIssue", "jira_getTransitionsForJiraIssue", "jira_transitionJiraIssue",
+    "jira_getJiraIssueRemoteIssueLinks", "jira_getVisibleJiraProjects", "jira_getJiraProjectIssueTypesMetadata",
+    "jira_getJiraIssueTypeMetaWithFields", "jira_lookupJiraAccountId", "jira_addWorklogToJiraIssue",
+    "jira_getIssueLinkTypes", "jira_createIssueLink",
+  ],
+  firehydrant: [
+    "firehydrant_list-incidents", "firehydrant_create-incident", "firehydrant_list-retros-by-incident",
+    "firehydrant_update-retrospective-field", "firehydrant_list-alerts",
+  ],
+};
+const API_NAME = { jira: "Atlassian (Jira)", firehydrant: "FireHydrant" };
+
+function mcpServer(host) {
+  if (host === "api.atlassian.com" || host.endsWith(".atlassian.net")) return "jira";
+  if (host === "api.firehydrant.io") return "firehydrant";
+  return null;
+}
+
+export function bypassReason(server) {
+  return `Denied by pi-guard (mcp-bypass): do not call the ${API_NAME[server]} API directly. `
+    + `Use the ${server} MCP tools through the mcp tool, e.g. mcp({ tool: "${MCP_TOOLS[server][0]}", args: { ... } }): `
+    + `${MCP_TOOLS[server].join(", ")}. If none of these can do the job, stop and tell the user what you `
+    + "needed instead of finding another route to the API.";
+}
+
+function toUrl(arg) {
+  const a = arg.replace(/^--url=/, "");
+  try {
+    if (/^https?:\/\//i.test(a)) return new URL(a);
+    if (!a.startsWith("-") && /^[\w.-]+\.[a-z]{2,}(:\d+)?([/?]|$)/i.test(a)) return new URL(`https://${a}`);
+  } catch {}
+  return null;
+}
+
+function httpMethod(client, args) {
+  const flagValue = (flags) => {
+    for (let i = 0; i < args.length; i++) {
+      for (const f of flags) {
+        if (args[i] === f) return args[i + 1];
+        if (args[i].startsWith(`${f}=`)) return args[i].slice(f.length + 1);
+        if (f === "-X" && args[i].startsWith("-X") && args[i].length > 2) return args[i].slice(2);
+      }
+    }
+  };
+  if (client === "curl") {
+    const explicit = flagValue(["-X", "--request"]);
+    if (explicit) return explicit.toUpperCase();
+    if (args.some((a) => a === "-I" || a === "--head")) return "HEAD";
+    if (args.some((a) => a === "-G" || a === "--get")) return "GET";
+    if (args.some((a) => a === "-T" || a === "--upload-file")) return "PUT";
+    if (args.some((a) => /^(-d|-F|--data(-\w+)?|--json|--form(-string)?)(=|$)/.test(a) || /^-[dF]./.test(a))) return "POST";
+    return "GET";
+  }
+  if (client === "wget") {
+    const explicit = flagValue(["--method"]);
+    if (explicit) return explicit.toUpperCase();
+    return args.some((a) => /^--post-(data|file)(=|$)/.test(a)) ? "POST" : "GET";
+  }
+  // httpie: http [flags] [METHOD] URL [ITEM...]; data items (key=value, key:=json) make it a POST.
+  const positional = args.filter((a) => !a.startsWith("-"));
+  if (/^[A-Z]+$/.test(positional[0] ?? "")) return positional[0];
+  return positional.slice(1).some((a) => /^[^=:]+(:=|=(?!=))/.test(a)) ? "POST" : "GET";
+}
+
+// Requests in a bash command that go to a host covered by MCP_TOOLS: [{ server, host, path, method }].
+// URLs held in a variable assigned earlier in the same command are expanded. Command
+// substitutions, backticks and strings handed to a shell wrapper (`bash -c "..."`) are parsed as
+// commands too; a quoted string given to anything else (`echo "curl ..."`) is not.
+export function mcpBypass(command, vars = new Map(), depth = 0) {
+  const expand = (s) => s.replace(/\$\{(\w+)\}|\$(\w+)/g, (m, a, b) => vars.get(a ?? b) ?? m);
+  const found = [];
+  for (const stage of parse(command.replace(/\$\(|`|<\(|>\(|\)/g, "\n")).flat()) {
+    let t = stage;
+    if (["export", "local", "declare", "readonly"].includes(t[0])) t = t.slice(1);
+    for (const tok of t) {
+      const m = /^(\w+)=([\s\S]*)$/.exec(tok);
+      if (!m) break;
+      vars.set(m[1], expand(m[2]));
+    }
+    const s = strip(stage);
+    const wrapped = WRAPPERS.has(base(s[0] ?? ""));
+    if (depth < 3) {
+      for (const tok of s.slice(1)) {
+        if (tok.includes("\n") || (wrapped && /\s/.test(tok))) found.push(...mcpBypass(tok, vars, depth + 1));
+      }
+    }
+    const i = s.findIndex((a, j) => HTTP_CLIENTS.has(base(a)) && (j === 0 || wrapped));
+    if (i < 0) continue;
+    const client = base(s[i]) === "https" ? "http" : base(s[i]);
+    const args = s.slice(i + 1).map(expand);
+    for (const url of args.map(toUrl).filter(Boolean)) {
+      const server = mcpServer(url.hostname.toLowerCase());
+      if (server) found.push({ server, host: url.hostname, path: url.pathname + url.search, method: httpMethod(client, args) });
+    }
+  }
+  return found;
+}
+
 function userText(entry) {
   const c = entry.message.content;
   return typeof c === "string" ? c : c.filter((b) => b.type === "text").map((b) => b.text).join("\n");
@@ -178,6 +283,8 @@ export default function (pi: ExtensionAPI) {
     const command = String(event.input.command ?? "");
     const stages = parse(command).flat();
     const hits = stages.flatMap(check);
+    const requests = mcpBypass(command);
+    if (requests.length) hits.push(["mcp-bypass", "direct call to an API that has an MCP server"]);
     if (stages.some((s) => isNested(s, command)) || NESTED.test(command)) {
       for (const [name, why, re] of RAW_RULES) {
         if (re.test(command) && !hits.some(([n]) => n === name)) hits.push([name, why]);
@@ -201,6 +308,9 @@ export default function (pi: ExtensionAPI) {
     if (noVerify) {
       answer = "deny";
       reason = "Denied by pi-guard: --no-verify is never allowed. Hooks must run; fix what the hook reports instead of skipping it.";
+    } else if (requests.length) {
+      answer = "deny";
+      reason = [...new Set(requests.map((r) => r.server))].map(bypassReason).join("\n\n");
     } else if (!ctx.hasUI) {
       answer = "deny";
       reason = "Denied by pi-guard: this command needs confirmation and no UI is available.";
@@ -223,8 +333,9 @@ export default function (pi: ExtensionAPI) {
         rules,
         last_user_message: lastUserMessage(ctx),
         agent_message: agentMessage(ctx.sessionManager.getBranch(), event.toolCallId, event.parentToolCallId),
+        ...(requests.length && { requests: requests.map(({ host, path, method }) => ({ host, path, method })) }),
         answer,
-        auto: noVerify || !ctx.hasUI,
+        auto: noVerify || requests.length > 0 || !ctx.hasUI,
       }) + "\n");
     } catch (err) {
       // Failing closed beats running an unlogged call.
