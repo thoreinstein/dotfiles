@@ -61,4 +61,22 @@ in
       run ${pkgs.nodejs}/bin/npx -y -p ${lib.escapeShellArg obsidianMcpSpec} true \
       || echo "warning: could not pre-install ${obsidianMcpSpec}; first MCP launch will install it"
   '';
+
+  home.activation.claudeDesktopObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    cfg="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+    if [ -f "$cfg" ]; then
+      entry=$(${pkgs.jq}/bin/jq -n \
+        --arg cmd "${pkgs.nodejs}/bin/npx" \
+        --arg spec ${lib.escapeShellArg obsidianMcpSpec} \
+        --arg path "${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:/usr/bin:/bin" \
+        '{command: $cmd, args: ["-y", $spec], env: {PATH: $path}}')
+      tmp=$(mktemp "$(dirname "$cfg")/.claude_desktop_config.XXXXXX")
+      if [ -n "$entry" ] && ${pkgs.jq}/bin/jq --argjson e "$entry" '.mcpServers["obsidian-mcp"] = $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
+        if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else chmod 600 "$tmp"; run mv "$tmp" "$cfg"; fi
+      else
+        rm -f "$tmp"
+        echo "warning: could not update Claude Desktop config; left unchanged"
+      fi
+    fi
+  '';
 }
