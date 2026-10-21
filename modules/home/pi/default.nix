@@ -46,6 +46,7 @@
   };
 
   home.file = {
+    ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;
     ".pi/agent/extensions/agent-resume.ts".source = ./agent-resume.ts;
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
