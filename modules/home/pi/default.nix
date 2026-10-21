@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   programs.pi-coding-agent = {
     enable = true;
@@ -49,6 +49,11 @@
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
-    ".pi/agent/pi-starship.toml".source = ./starship.toml;
   };
+
+  # pi-starship refuses a symlinked settings file, so copy it in as a regular file.
+  home.activation.piStarshipConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run rm -f "$HOME/.pi/agent/pi-starship.toml"
+    run install -m 644 ${./starship.toml} "$HOME/.pi/agent/pi-starship.toml"
+  '';
 }
