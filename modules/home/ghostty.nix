@@ -1,4 +1,4 @@
-_:
+{ lib, ... }:
 {
   programs.ghostty = {
     enable = true;
@@ -16,6 +16,8 @@ _:
       confirm-close-surface = false;
       shell-integration = "zsh";
       shell-integration-features = "cursor,sudo,title";
+      # AeroSpace owns alt-1..9; send tmux's M-1..9 from cmd-1..9 instead.
+      keybind = map (n: "cmd+digit_${toString n}=text:\\x1b${toString n}") (lib.range 1 9);
     };
   };
 }

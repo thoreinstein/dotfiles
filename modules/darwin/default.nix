@@ -1,6 +1,7 @@
 { lib, pkgs, username, homeDirectory, ... }:
 {
   imports = [
+    ./aerospace.nix
     ./homebrew.nix
     ./system.nix
   ];

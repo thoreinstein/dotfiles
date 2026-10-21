@@ -110,7 +110,7 @@ dotfiles/
 | `<prefix>\|` | Split vertical |
 | `<prefix>-` | Split horizontal |
 | `C-h/j/k/l` | Navigate panes (vim-style) |
-| `Alt-1..9` | Switch windows |
+| `Cmd-1..9` | Switch windows (Ghostty sends `M-1..9`; AeroSpace owns `Alt`) |
 
 ## Git Workflow
 
