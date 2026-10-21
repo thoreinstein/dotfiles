@@ -16,11 +16,14 @@ let
   '';
 
   # Fuzzy-pick an open session, most recently used first, previewing its active pane.
+  # ctrl-x kills the highlighted session and reloads the list.
   sessionPicker = pkgs.writeShellScript "tmux-session-picker" ''
     current=$(tmux display-message -p '#S')
-    session=$(tmux list-sessions -F '#{session_last_attached} #S' \
-      | sort -rn | cut -d' ' -f2- | grep -vxF "$current" \
+    list="tmux list-sessions -F '#{session_last_attached} #S' | sort -rn | cut -d' ' -f2- | grep -vxF '$current'"
+    session=$(eval "$list" \
       | ${pkgs.fzf}/bin/fzf --tmux 80%,70% --layout=reverse --prompt='Session > ' \
+          --header 'ctrl-x: kill session' \
+          --bind "ctrl-x:execute-silent(tmux kill-session -t \"=\"{})+reload($list)" \
           --preview 'tmux capture-pane -ep -t "="{}:' --preview-window=right,60%) || exit 0
     tmux switch-client -t "=$session"
   '';
