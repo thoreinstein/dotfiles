@@ -117,6 +117,11 @@
       brain-dump = ./claude/commands/brain-dump.md;
       synthesize = ./claude/commands/synthesize.md;
     };
+
+    # Shared with pi, which installs the same files from modules/home/pi/default.nix.
+    skills = {
+      compound = ../../modules/home/pi/skills/compound/SKILL.md;
+    };
   };
 
   home.file.".claude/keybindings.json".source = ./claude/keybindings.json;
