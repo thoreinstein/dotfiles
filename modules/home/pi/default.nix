@@ -38,6 +38,7 @@
         "npm:@narumitw/pi-starship"
         "npm:gentle-engram"
         "npm:pi-caveman"
+        "npm:pi-rewind"
         "npm:pi-rtk-optimizer"
         "npm:pi-split-view"
       ];
