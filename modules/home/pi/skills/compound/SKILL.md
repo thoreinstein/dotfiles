@@ -28,6 +28,14 @@ you can look up.
   squash commit on the default branch. If the range is unclear, ask for it.
 - **Memory.** `mem_search` the ticket key and project for decisions and
   bugfixes saved while the work was in progress.
+- **Manual commands.** What I ran by hand in the ticket's worktree over the
+  work's date range: workarounds, retries, failed commands the agent never
+  saw. `--cwd` is an exact match, so filter `{directory}` with `grep` for
+  subdirectories.
+  ```bash
+  atuin search --filter-mode global --include-duplicates --author '$all-user' \
+    --after "YYYY-MM-DD" --format '{time}|{exit}|{directory}|{command}'
+  ```
 
 ## 2. Compare
 
