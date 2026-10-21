@@ -14,6 +14,8 @@ or CLAUDE.md.
   happen only when I say which ones to apply.
 - When working through a list (plan steps, review findings, errors), take one item at a time
   and wait for my confirmation before the next. Don't batch fixes or clean up adjacent things.
+- Scope is the plan or the request. Related work you find along the way goes on a follow-ups
+  list you report at the end; don't do it, even when it looks small or helpful.
 - Don't edit shared or root files (`root.hcl`, base modules, CI config, anything other stacks
   import) unless the task names them. Stop and tell me instead.
 - After two failed fix attempts on the same problem, stop and explain what you think is
@@ -72,6 +74,8 @@ folder automatically; never edit that folder. Layout and note templates are in
 
 Split work into small atomic commits, one logical change each. Decide the split yourself;
 don't wait for me to stage anything.
+- Run the project's checks (tests, lint, build) before each commit and commit only when they
+  pass. Never `--no-verify`; a failing hook is a problem to fix or report.
 - Don’t install tools with `brew`, `npm -g`, or `pip` — add them to the flake instead.
 - Don’t edit `tests/pi/*` by hand — regenerate them when settings change.
 - Don’t write git identity (`user.name`/`user.email`) to repo config — it lives in `~/.gitconfig.local`.
