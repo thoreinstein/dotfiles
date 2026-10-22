@@ -98,6 +98,7 @@
       rerere.enabled = true;
       gpg.program = "gpg";
       advice.skippedCherryPicks = false;
+      fetch.prune = true;
 
       alias = {
         ca = "commit --amend";
@@ -109,6 +110,9 @@
         mt = "mergetool";
         rewrite = "rebase -i";
         s = "status -sb";
+        # wb branches (<ticket> off origin/<trunk>) have no upstream, so plain `git pull` fails.
+        # Rebase onto the remote's default branch instead. Never pushes.
+        sync = "!git fetch origin && git rebase --autostash origin/HEAD";
         wl = "worktree list";
         wr = "worktree remove";
         d = "diff --stat";
