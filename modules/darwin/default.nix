@@ -16,7 +16,7 @@
     };
     optimise.automatic = true;
   };
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" ];
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" "rtk" ];
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
