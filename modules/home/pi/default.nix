@@ -73,6 +73,7 @@ in
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
     ".pi/agent/skills/rebase/SKILL.md".source = ./skills/rebase/SKILL.md;
     ".pi/agent/skills/standup/SKILL.md".source = ./skills/standup/SKILL.md;
+    ".pi/agent/skills/wrap-up/SKILL.md".source = ./skills/wrap-up/SKILL.md;
   };
 
   # pi-starship refuses a symlinked settings file, so copy it in as a regular file.

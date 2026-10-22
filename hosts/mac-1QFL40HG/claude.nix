@@ -126,6 +126,7 @@
       plan-review = ../../modules/home/pi/skills/plan-review/SKILL.md;
       rebase = ../../modules/home/pi/skills/rebase/SKILL.md;
       standup = ../../modules/home/pi/skills/standup/SKILL.md;
+      wrap-up = ../../modules/home/pi/skills/wrap-up/SKILL.md;
     };
   };
 
