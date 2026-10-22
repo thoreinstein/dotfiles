@@ -1,7 +1,7 @@
 // @ts-nocheck -- Pi provides this API only when loading extensions.
-import { appendFileSync, existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, realpathSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { basename, dirname, join } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const LOG = join(homedir(), ".pi", "agent", "guard-log.jsonl");
@@ -75,6 +75,19 @@ function family(tokens) {
   return sub ? `${bin} ${sub}` : bin;
 }
 
+// Something inside a temp dir, so cleaning it up needs no yes. Fails closed: the parent must
+// resolve on disk (following symlinks) to /tmp or pi's own temp dir, and anything the shell
+// could expand or a symlink could redirect ($VAR, `..`, ~, braces, a trailing /) asks. A glob is
+// fine below a temp dir, never directly in it: `/tmp/*` would take tmux's socket with it.
+const TEMP_DIRS = [...new Set(["/tmp", tmpdir()].flatMap((d) => { try { return [realpathSync(d)]; } catch { return []; } }))];
+function isTempPath(p) {
+  if (!p.startsWith("/") || p.endsWith("/") || /[$`{}\\~]/.test(p)) return false;
+  if (p.split("/").some((s) => s === ".." || s === ".")) return false;
+  let parent;
+  try { parent = realpathSync(dirname(p)); } catch { return false; }
+  return TEMP_DIRS.some((d) => parent.startsWith(`${d}/`) || (parent === d && !/[*?[]/.test(basename(p))));
+}
+
 // Rules that a single command stage trips: [name, why] pairs.
 export function check(tokens) {
   const t = strip(tokens);
@@ -92,7 +105,8 @@ export function check(tokens) {
     else if (sub === "stash" && args.some((a) => a === "drop" || a === "clear")) hits.push(["git-stash-drop", "git stash drop/clear"]);
     else if (sub === "switch" && args.some((a) => a === "--discard-changes" || a === "-f" || a === "--force")) hits.push(["git-switch-discard", "git switch that discards changes"]);
   } else if (bin === "rm" || bin === "rmdir") {
-    hits.push([bin, bin]);
+    const paths = args.filter((a) => !a.startsWith("-"));
+    if (!paths.length || !paths.every(isTempPath)) hits.push([bin, bin]);
   } else if (TF.has(bin)) {
     if (args.includes("destroy")) hits.push(["terraform-destroy", `${bin} destroy`]);
     const i = args.indexOf("state");

@@ -66,6 +66,30 @@ assert.deepEqual(rules("git switch main"), []);
 assert.deepEqual(rules("git commit --amend --no-edit"), ["git-amend", "git-commit"]);
 assert.deepEqual(rules("git commit -m fix"), ["git-commit"]);
 
+// rm of paths inside a real temp dir doesn't ask; anything that could land elsewhere does
+const fsm = await import("node:fs");
+const osm = await import("node:os");
+const tmp = fsm.mkdtempSync(join(osm.tmpdir(), "rm-"));
+fsm.mkdirSync(join(tmp, "sub"));
+fsm.symlinkSync("/", join(tmp, "link"));
+assert.deepEqual(rules(`rm -rf ${tmp}/sub`), []);
+assert.deepEqual(rules(`rm -rf ${tmp}/sub/*`), []);
+assert.deepEqual(rules(`rmdir ${tmp}/sub`), []);
+assert.deepEqual(rules(`rm ${tmp}/link`), []); // removes the link, not its target
+assert.deepEqual(rules(`rm -rf ${tmp}/link/`), ["rm"]); // trailing / follows the link
+assert.deepEqual(rules(`rm -rf ${tmp}/link/Users`), ["rm"]);
+assert.deepEqual(rules(`rm -rf ${tmp}/missing/x`), ["rm"]);
+assert.deepEqual(rules(`rm -rf ${tmp}/sub src`), ["rm"]);
+assert.deepEqual(rules(`rm -rf ${tmp}/../x`), ["rm"]);
+assert.deepEqual(rules(`rm -rf ${osm.tmpdir()}/*`), ["rm"]);
+assert.deepEqual(rules("rm -rf /tmp"), ["rm"]);
+assert.deepEqual(rules("rm -rf /tmp/$X"), ["rm"]);
+assert.deepEqual(rules("TMPDIR=/Users rm -rf $TMPDIR/me"), ["rm"]);
+assert.deepEqual(rules("rm -rf /tmp/{a,/Users}"), ["rm"]);
+assert.deepEqual(rules("rm -rf $tmp"), ["rm"]);
+assert.deepEqual(rules("rm -rf"), ["rm"]);
+fsm.rmSync(tmp, { recursive: true });
+
 console.log("pi-guard check: ok");
 
 // direct calls to APIs that have an MCP server are found, with host, path and method
