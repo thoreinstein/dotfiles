@@ -121,6 +121,7 @@
 
     # Shared with pi, which installs the same files from modules/home/pi/default.nix.
     skills = {
+      ci-fix = ../../modules/home/pi/skills/ci-fix/SKILL.md;
       compound = ../../modules/home/pi/skills/compound/SKILL.md;
       plan-review = ../../modules/home/pi/skills/plan-review/SKILL.md;
       rebase = ../../modules/home/pi/skills/rebase/SKILL.md;
