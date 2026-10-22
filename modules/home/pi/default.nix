@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
+let
+  # Tool shorthands from zsh that agents type too. Aliases that swap a standard command
+  # (cat -> bat, ls -> eza) stay out: they change output the agent parses.
+  agentAliases = lib.getAttrs [ "k" "tf" "tg" ] config.programs.zsh.shellAliases;
+in
 {
   programs.pi-coding-agent = {
     enable = true;
@@ -26,6 +31,15 @@
       showCacheMissNotices = true;
       externalEditor = "nvim";
 
+      # pi runs each command with a non-interactive `bash -c`: no aliases, and no direnv hook,
+      # so a worktree's .envrc (mise tools, env vars) never loads after a cd. Load both per command,
+      # and again after any cd inside it (`cd worktree && tg plan`).
+      shellCommandPrefix = ''
+        shopt -s expand_aliases
+        source ~/.pi/agent/bash_aliases
+        cd() { builtin cd "$@" && eval "$(direnv export bash 2>/dev/null)"; }
+        eval "$(direnv export bash 2>/dev/null)"'';
+
       warnings.anthropicExtraUsage = true;
 
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
@@ -46,6 +60,9 @@
   };
 
   home.file = {
+    ".pi/agent/bash_aliases".text = lib.concatStrings (
+      lib.mapAttrsToList (n: v: "alias ${n}=${lib.escapeShellArg v}\n") agentAliases
+    );
     ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;
     ".pi/agent/extensions/agent-resume.ts".source = ./agent-resume.ts;
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;

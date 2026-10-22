@@ -23,6 +23,7 @@
     "npm:pi-split-view"
   ],
   "quietStartup": true,
+  "shellCommandPrefix": "shopt -s expand_aliases\nsource ~/.pi/agent/bash_aliases\ncd() { builtin cd \"$@\" && eval \"$(direnv export bash 2>/dev/null)\"; }\neval \"$(direnv export bash 2>/dev/null)\"",
   "showCacheMissNotices": true,
   "tuiMode": "fullscreen",
   "warnings": {
