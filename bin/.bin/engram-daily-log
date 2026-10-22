@@ -4,7 +4,8 @@
 #
 # Reads the vault's engram/ mirror (see engram-vault-sync), asks `claude -p` to
 # summarize that day's observations, and rewrites the daily note. Skips the call
-# when the day's notes have not changed since the last run.
+# when the day's notes have not changed since the last run. A "## Standup" section
+# (written by the standup skill) is carried over into the rewritten note.
 set -euo pipefail
 
 log="$HOME/.cache/engram-daily-log.log"
@@ -30,6 +31,10 @@ for day in "$(date -v-1d +%F)" "$(date +%F)"; do
   mkdir -p "$(dirname "$out")"
   body=$(echo "$files" | xargs cat | claude -p "$prompt" --tools "" --no-session-persistence --disable-slash-commands --strict-mcp-config)
 
-  printf -- '---\ntype: daily\ncreated: %s\n---\n\n# %s\n\n%s\n' "$day" "$day" "$body" >"$out"
+  standup=""
+  [ -f "$out" ] && standup=$(awk '/^## /{f = ($0 == "## Standup")} f' "$out")
+  [ -n "$standup" ] && standup="$standup"$'\n\n'
+
+  printf -- '---\ntype: daily\ncreated: %s\n---\n\n# %s\n\n%s%s\n' "$day" "$day" "$standup" "$body" >"$out"
   echo "$sum" >"$state/$day"
 done
