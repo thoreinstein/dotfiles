@@ -97,8 +97,12 @@ export function check(tokens) {
   if (bin === "git") {
     const sub = subcommand(args, GIT_OPT_ARG);
     if (args.includes("--no-verify")) hits.push(["git-no-verify", "git --no-verify skips hooks"]);
-    if (sub === "commit" && args.includes("--amend")) hits.push(["git-amend", "git commit --amend REWRITES THE LAST COMMIT"]);
-    if (GIT_ASK.has(sub)) hits.push([`git-${sub}`, `git ${sub}`]);
+    // `ca` and `can` are the git.nix aliases for `commit --amend`.
+    if ((sub === "commit" && args.includes("--amend")) || sub === "ca" || sub === "can") hits.push(["git-amend", "git commit --amend REWRITES THE LAST COMMIT"]);
+    // Continuing a rebase that already stopped only commits the resolution; starting, skipping
+    // (drops the commit) or aborting one still asks.
+    const continuing = sub === "rebase" && args.slice(args.indexOf("rebase") + 1).join(" ") === "--continue";
+    if (GIT_ASK.has(sub) && !continuing) hits.push([`git-${sub}`, `git ${sub}`]);
     else if (sub === "branch" && args.some((a) => /^-[dDmM]$/.test(a))) hits.push(["git-branch-delete", "git branch delete/rename"]);
     else if (sub === "worktree" && args.includes("remove")) hits.push(["git-worktree-remove", "git worktree remove"]);
     else if (sub === "reflog" && args.some((a) => a === "expire" || a === "delete")) hits.push(["git-reflog", "git reflog expire/delete"]);
@@ -138,6 +142,7 @@ const RAW_RULES = [
   ["gcloud-delete", "gcloud subcommand that deletes", /\bgcloud\b[\s\S]*\b(delete|destroy|rm)\b/],
   ["gh-delete", "gh subcommand that deletes", /\bgh\b[\s\S]*(\b(delete|destroy|rm)\b|(-X|--method)\s*=?\s*DELETE)/i],
   ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\b[\s\S]*\bcommit\b[\s\S]*--amend\b/],
+  ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\s+can?\b/],
   ["git-stash-drop", "git stash drop/clear", /\bgit\b[\s\S]*\bstash\s+(drop|clear)\b/],
   ["git-switch-discard", "git switch that discards changes", /\bgit\b[\s\S]*\bswitch\b[\s\S]*(--discard-changes|\s-f\b|--force)/],
   ...[...GIT_ASK].map((s) => [`git-${s}`, `git ${s}`, new RegExp(`\\bgit\\b[\\s\\S]*\\b${s}\\b`)]),
@@ -559,10 +564,14 @@ export default function (pi: ExtensionAPI) {
 
     const rules = hits.map(([name]) => name);
     const noVerify = rules.includes("git-no-verify");
+    const amend = rules.includes("git-amend");
     let answer, reason;
     if (noVerify) {
       answer = "deny";
       reason = "Denied by pi-guard: --no-verify is never allowed. Hooks must run; fix what the hook reports instead of skipping it.";
+    } else if (amend) {
+      answer = "deny";
+      reason = "Denied by pi-guard: never amend commits. Make a new commit instead.";
     } else if (requests.length) {
       answer = "deny";
       reason = [...new Set(requests.map((r) => r.server))].map(bypassReason).join("\n\n");
@@ -588,7 +597,7 @@ export default function (pi: ExtensionAPI) {
         agent_message: agentMessage(ctx.sessionManager.getBranch(), event.toolCallId, event.parentToolCallId),
         ...(requests.length && { requests: requests.map(({ host, path, method }) => ({ host, path, method })) }),
         answer,
-        auto: noVerify || requests.length > 0 || !ctx.hasUI,
+        auto: noVerify || amend || requests.length > 0 || !ctx.hasUI,
       });
     } catch (err) {
       // Failing closed beats running an unlogged call.

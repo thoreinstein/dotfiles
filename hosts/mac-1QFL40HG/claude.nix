@@ -123,6 +123,7 @@
     skills = {
       compound = ../../modules/home/pi/skills/compound/SKILL.md;
       plan-review = ../../modules/home/pi/skills/plan-review/SKILL.md;
+      rebase = ../../modules/home/pi/skills/rebase/SKILL.md;
       standup = ../../modules/home/pi/skills/standup/SKILL.md;
     };
   };

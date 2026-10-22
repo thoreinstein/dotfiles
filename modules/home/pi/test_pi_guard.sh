@@ -66,6 +66,14 @@ assert.deepEqual(rules("git switch main"), []);
 assert.deepEqual(rules("git commit --amend --no-edit"), ["git-amend", "git-commit"]);
 assert.deepEqual(rules("git commit -m fix"), ["git-commit"]);
 
+// continuing a rebase that already stopped doesn't ask; starting, skipping or aborting one does
+assert.deepEqual(rules("git rebase --continue"), []);
+assert.deepEqual(rules("GIT_EDITOR=true git rebase --continue"), []);
+assert.deepEqual(rules("git rebase origin/main"), ["git-rebase"]);
+assert.deepEqual(rules("git rebase --skip"), ["git-rebase"]);
+assert.deepEqual(rules("git rebase --abort"), ["git-rebase"]);
+assert.deepEqual(rules("git rebase -i --continue HEAD~3"), ["git-rebase"]);
+
 // rm of paths inside a real temp dir doesn't ask; anything that could land elsewhere does
 const fsm = await import("node:fs");
 const osm = await import("node:os");
@@ -152,6 +160,14 @@ assert.deepEqual(log.map((e) => [e.session_id, e.rules, e.requests, e.answer, e.
 
 console.log("pi-guard mcp-bypass handler: ok");
 
+// amending is never allowed: denied without prompting, also through the ca/can git aliases
+for (const cmd of ["git commit --amend --no-edit", "git can", "git ca -m x", "bash -c 'git commit --amend'"]) {
+  const res = await run(cmd);
+  assert.equal(res?.block, true, cmd);
+  assert.match(res.reason, /never amend/, cmd);
+}
+console.log("pi-guard amend: ok");
+
 // MCP tool names resolve the way the adapter resolves them
 const policyOf = (...a) => mcpPolicy(...a)?.tool ?? null;
 assert.equal(policyOf("glean_chat"), "glean_chat");
@@ -202,7 +218,7 @@ assert.equal(await broker("glean_chat", "script", { message: "from a script" }),
 assert.equal(broker("glean_search", "script"), null);
 assert.equal(broker("glean_read_document", "proxy"), null);
 
-const mcpLog = readFileSync(join(homedir(), ".pi", "agent", "guard-log.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l)).slice(2);
+const mcpLog = readFileSync(join(homedir(), ".pi", "agent", "guard-log.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l)).filter((e) => e.mcp);
 assert.deepEqual(mcpLog.map((e) => [e.session_id, e.tool, e.rules, e.mcp.args.message, e.mcp.origin, e.answer, e.auto]), [
   ["sess-2", "mcp", ["glean-chat"], "what did ops decide?", "proxy", "deny", true],
   ["sess-2", "mcp", ["glean-chat"], "as a string", "proxy", "deny", true],
