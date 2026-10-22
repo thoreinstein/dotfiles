@@ -7,9 +7,15 @@ let
     [ homeDirectory ]
     (builtins.readFile ./mcp.json);
   # ynab is personal; pi is the work harness, so it doesn't get it.
+  # pi's MCP adapter hides tools behind its `mcp` proxy; directTools lists
+  # codegraph_explore beside read/bash so pi actually reaches for it.
   piMcpJson =
     let cfg = builtins.fromJSON mcpJson;
-    in builtins.toJSON (cfg // { mcpServers = removeAttrs cfg.mcpServers [ "ynab" ]; });
+    in builtins.toJSON (cfg // {
+      mcpServers = removeAttrs cfg.mcpServers [ "ynab" ] // {
+        codegraph = cfg.mcpServers.codegraph // { directTools = [ "codegraph_explore" ]; };
+      };
+    });
   # npx installs a github: package on first launch (clone + npm install + build).
   # That can outlast pi's 60s MCP startup timeout, so install it at switch time.
   obsidianMcpSpec = lib.last (builtins.fromJSON mcpJson).mcpServers."obsidian-mcp".args;
