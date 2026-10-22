@@ -1,4 +1,13 @@
 { pkgs, ... }:
+let
+  # Claude's Bash commands don't run direnv's prompt hook, so a directory's .envrc (mise tools,
+  # env vars) never loads. Claude sources $CLAUDE_ENV_FILE before every command and clears it on
+  # each cd, so export the new directory's env into it. Applies from the command after the cd.
+  direnvEnv = {
+    type = "command";
+    command = ''cd "$(${pkgs.jq}/bin/jq -r '.new_cwd // .cwd')" 2>/dev/null && direnv export zsh 2>/dev/null >> "$CLAUDE_ENV_FILE"; true'';
+  };
+in
 {
   # Personal Claude Code setup. The nixpkgs package disables Claude's own auto-updater;
   # update it with `make update`. CLAUDE.md is shared via modules/home/claude.nix.
@@ -68,7 +77,8 @@
 
       hooks = {
         # Lets `agent-resume` pick this session back up after a reboot.
-        SessionStart = [{ hooks = [{ type = "command"; command = ''agent-resume record claude "$(${pkgs.jq}/bin/jq -r .session_id)" "$PWD"''; }]; }];
+        SessionStart = [{ hooks = [{ type = "command"; command = ''agent-resume record claude "$(${pkgs.jq}/bin/jq -r .session_id)" "$PWD"''; } direnvEnv]; }];
+        CwdChanged = [{ hooks = [ direnvEnv ]; }];
         UserPromptSubmit = [{ hooks = [{ type = "command"; command = "codegraph prompt-hook"; }]; }];
         PreToolUse = [{ matcher = "Bash"; hooks = [{ type = "command"; command = "rtk hook claude"; }]; }];
         # Points code searches in a CodeGraph-indexed repo at codegraph_explore; never blocks.
