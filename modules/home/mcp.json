@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "kubernetes": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "kubernetes-mcp-server@0.0.67"
-      ]
-    },
     "exa": {
       "type": "stdio",
       "command": "npx",
