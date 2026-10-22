@@ -22,6 +22,9 @@ or CLAUDE.md.
   happening. Don't keep trying variations.
 - Before removing code whose purpose isn't obvious, check `git log -L` or blame for why it's
   there.
+- When I need to run a command myself (a login, sudo, anything interactive), give it as
+  `!<command>` so I can type it here and the output lands in this session. Don't tell me to
+  run it in my terminal.
 
 ## Changes
 
