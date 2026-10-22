@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# codegraph-nudge - Claude Code PostToolUse hook.
+#
+# After a code search (Grep, Glob, or a shell grep/rg/find/fd/ag) in a repo
+# indexed by CodeGraph, add a one-line pointer to codegraph_explore. Never
+# blocks: the search result goes through unchanged.
+#
+# Reads the hook JSON ({tool_name, tool_input, cwd}) on stdin.
+
+set -euo pipefail
+
+input="$(cat)"
+tool="$(jq -r '.tool_name // ""' <<<"$input")"
+cwd="$(jq -r '.cwd // ""' <<<"$input")"
+
+# A search counts only as the first stage of a pipeline, so `ps | grep x`
+# filtering another command's output does not.
+is_code_search() {
+  local command="$1" segment word words
+  while IFS= read -r segment; do
+    read -ra words <<<"${segment%%|*}"
+    for word in "${words[@]}"; do
+      case "$word" in
+        *=* | command | sudo | env | time | nohup | rtk) continue ;;
+      esac
+      case "${word##*/}" in
+        grep | rg | find | fd | ag) return 0 ;;
+      esac
+      break
+    done
+  done < <(sed -E 's/(&&|\|\||;)/\n/g' <<<"$command")
+  return 1
+}
+
+case "$tool" in
+  Grep | Glob) ;;
+  Bash) is_code_search "$(jq -r '.tool_input.command // ""' <<<"$input")" || exit 0 ;;
+  *) exit 0 ;;
+esac
+
+# Only the repo root's .codegraph/ counts; ~/.codegraph is codegraph's own state dir.
+root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)" || exit 0
+[[ -d "$root/.codegraph" ]] || exit 0
+
+jq -n '{hookSpecificOutput: {
+  hookEventName: "PostToolUse",
+  additionalContext: "Indexed repo: codegraph_explore \"<symbol or question>\" returns source + callers in one call. Prefer it for code questions."
+}}'

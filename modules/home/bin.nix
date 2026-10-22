@@ -7,6 +7,11 @@
       text = builtins.readFile ../../bin/.bin/agent-resume;
     })
     (pkgs.writeShellApplication {
+      name = "codegraph-nudge";
+      runtimeInputs = with pkgs; [ jq git gnused ];
+      text = builtins.readFile ../../bin/.bin/codegraph-nudge;
+    })
+    (pkgs.writeShellApplication {
       name = "ghclone";
       runtimeInputs = with pkgs; [ git coreutils gnugrep gnused findutils ];
       text = builtins.readFile ../../bin/.bin/ghclone;

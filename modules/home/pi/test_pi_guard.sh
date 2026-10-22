@@ -14,7 +14,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const { default: guard, MCP_POLICY, agentMessage, bypassReason, check, mcpBypass, mcpPolicy } = await import(pathToFileURL(resolve(process.argv[2])).href);
+const { default: guard, CODEGRAPH_NUDGE, MCP_POLICY, agentMessage, bypassReason, check, codeSearch, indexedRepo, mcpBypass, mcpPolicy } = await import(pathToFileURL(resolve(process.argv[2])).href);
 
 const call = (id) => ({ type: "toolCall", id, name: "bash", arguments: {} });
 const reply = (...content) => ({ type: "message", message: { role: "assistant", content } });
@@ -257,4 +257,44 @@ for (const [tool, entry] of Object.entries(MCP_POLICY)) {
 }
 
 console.log("pi-guard mcp policy table: ok");
+
+// codegraph nudge: code searches only, never another command's output being filtered
+for (const command of ["grep -rn foo .", "rg foo", "find . -name '*.ts'", "fd foo", "ag foo",
+  "/usr/bin/grep foo x", "FOO=1 rg foo", "rtk grep foo .", "cd src && rg foo", "rg foo | head"]) {
+  assert.equal(codeSearch("bash", { command }), true, command);
+}
+for (const command of ["ps aux | grep node", "git log | rg fix", "cat x", 'echo "grep foo"', "git grep foo", ""]) {
+  assert.equal(codeSearch("bash", { command }), false, command);
+}
+assert.equal(codeSearch("grep", { pattern: "foo" }), true);
+assert.equal(codeSearch("find", { pattern: "*.ts" }), true);
+assert.equal(codeSearch("read", { path: "x" }), false);
+
+// only the repo root's .codegraph/ counts; a parent's (like ~/.codegraph) does not
+const { mkdtempSync, mkdirSync: mkdir } = await import("node:fs");
+const { tmpdir } = await import("node:os");
+const scratch = mkdtempSync(join(tmpdir(), "nudge-"));
+mkdir(join(scratch, ".codegraph"));
+mkdir(join(scratch, "indexed", ".git"), { recursive: true });
+mkdir(join(scratch, "indexed", ".codegraph"));
+mkdir(join(scratch, "indexed", "src", "deep"), { recursive: true });
+mkdir(join(scratch, "plain", ".git"), { recursive: true });
+mkdir(join(scratch, "plain", "src"), { recursive: true });
+assert.equal(indexedRepo(join(scratch, "indexed")), true);
+assert.equal(indexedRepo(join(scratch, "indexed", "src", "deep")), true);
+assert.equal(indexedRepo(join(scratch, "plain", "src")), false);
+assert.equal(indexedRepo(join(scratch, "nogit")), false);
+
+let resultHandler;
+guard({ on: (event, fn) => { if (event === "tool_result") resultHandler = fn; } });
+const result = (toolName, input, cwd) =>
+  resultHandler({ toolName, input, content: [{ type: "text", text: "out" }] }, { cwd });
+const indexed = join(scratch, "indexed", "src");
+assert.deepEqual(await result("bash", { command: "rg foo" }, indexed),
+  { content: [{ type: "text", text: "out" }, { type: "text", text: CODEGRAPH_NUDGE }] });
+assert.deepEqual((await result("grep", { pattern: "foo" }, indexed)).content.at(-1).text, CODEGRAPH_NUDGE);
+assert.equal(await result("bash", { command: "ps | grep x" }, indexed), undefined);
+assert.equal(await result("bash", { command: "rg foo" }, join(scratch, "plain", "src")), undefined);
+
+console.log("pi-guard codegraph nudge: ok");
 EOF

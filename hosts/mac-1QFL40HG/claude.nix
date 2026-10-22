@@ -71,6 +71,8 @@
         SessionStart = [{ hooks = [{ type = "command"; command = ''agent-resume record claude "$(${pkgs.jq}/bin/jq -r .session_id)" "$PWD"''; }]; }];
         UserPromptSubmit = [{ hooks = [{ type = "command"; command = "codegraph prompt-hook"; }]; }];
         PreToolUse = [{ matcher = "Bash"; hooks = [{ type = "command"; command = "rtk hook claude"; }]; }];
+        # Points code searches in a CodeGraph-indexed repo at codegraph_explore; never blocks.
+        PostToolUse = [{ matcher = "Grep|Glob|Bash"; hooks = [{ type = "command"; command = "codegraph-nudge"; }]; }];
         PreCompact = [{
           hooks = [{
             type = "agent";

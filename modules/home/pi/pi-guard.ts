@@ -1,5 +1,5 @@
 // @ts-nocheck -- Pi provides this API only when loading extensions.
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -422,6 +422,30 @@ export function agentMessage(branch, toolCallId, parentToolCallId) {
   return null;
 }
 
+// Code searches that codegraph_explore usually answers better. A search counts only as the first
+// stage of a pipeline, so `ps | grep x` filtering another command's output does not.
+const SEARCHERS = new Set(["grep", "rg", "find", "fd", "ag"]);
+export const CODEGRAPH_NUDGE = 'Indexed repo: codegraph_explore "<symbol or question>" returns source + callers in one call. Prefer it for code questions.';
+
+export function codeSearch(toolName, input) {
+  if (toolName === "grep" || toolName === "find") return true;
+  if (toolName !== "bash") return false;
+  return parse(String(input?.command ?? "")).some((pipeline) => {
+    let t = strip(pipeline[0] ?? []);
+    if (base(t[0] ?? "") === "rtk") t = t.slice(1);
+    return SEARCHERS.has(base(t[0] ?? ""));
+  });
+}
+
+// True when the git repo holding dir has a .codegraph/ index at its root. ~/.codegraph is
+// codegraph's own state dir, so only the repo root counts, not any parent.
+export function indexedRepo(dir) {
+  for (let d = dir; d && d !== dirname(d); d = dirname(d)) {
+    if (existsSync(join(d, ".git"))) return existsSync(join(d, ".codegraph"));
+  }
+  return false;
+}
+
 export default function (pi: ExtensionAPI) {
   // Per-session run of identical command families; edits and writes count as progress.
   const runs = new Map();
@@ -558,5 +582,11 @@ export default function (pi: ExtensionAPI) {
     }
 
     if (answer === "deny") return { block: true, reason };
+  });
+
+  // Nudge, never block: the search result goes through with a pointer to codegraph appended.
+  pi.on("tool_result", async (event, ctx) => {
+    if (!codeSearch(event.toolName, event.input) || !indexedRepo(ctx.cwd)) return;
+    return { content: [...(event.content ?? []), { type: "text", text: CODEGRAPH_NUDGE }] };
   });
 }
