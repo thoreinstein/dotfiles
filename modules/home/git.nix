@@ -76,7 +76,6 @@
       ".repo-mix.mxl"
       "roadmap*.json"
 
-      ".tokensave/"
       ".pi/"
       ".token-optimizer/"
     ];

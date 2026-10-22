@@ -61,7 +61,6 @@
           "mcp__plugin_aic-ai_firehydrant__*"
           "mcp__engram__*"
           "mcp__plugin_engram_engram__*"
-          "mcp__tokensave__*"
           "mcp__plugin_github_github__*"
           "mcp__obsidian-mcp__*"
         ];
