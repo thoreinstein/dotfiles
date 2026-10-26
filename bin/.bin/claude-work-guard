@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#
+# claude-work-guard - Claude Code PreToolUse hook.
+#
+# Claude Code must not read work data. Work sessions run in pi. This denies
+# the paths by which work content in engram and the Obsidian vault could reach
+# a Claude session:
+#
+#   engram   a `project` argument that is not a personal project, all_projects,
+#            lookups by id (no project to check), and any call made from a
+#            directory under ~/src/forgecloud
+#   vault    notes under engram/ and working/ unless the folder is personal;
+#            applies to the obsidian-mcp tools, Read/Edit/Write/Grep/Glob and
+#            paths named in Bash commands
+#   forgecloud  any file path or Bash command under ~/src/forgecloud
+#
+# The personal lists below are allowlists, so a new work project is blocked
+# until someone adds it. Search results from obsidian_rag_query can still
+# surface work notes; that needs a server-side filter in obsidian-mcp.
+#
+# Reads the hook JSON ({tool_name, tool_input, cwd}) on stdin. A deny decision
+# on stdout blocks the call; no output lets it through.
+
+set -euo pipefail
+
+PERSONAL_ENGRAM_PROJECTS="dotfiles obsidian-mcp gemini-obsidian obsidian-backup workbench thoreinstein .claude .pi jimmyers pi-obsidian second_brain wiki"
+PERSONAL_VAULT_ENGRAM="dotfiles gemini-obsidian jimmyers obsidian-backup obsidian-mcp workbench thoreinstein"
+PERSONAL_VAULT_WORKING="dotfiles-nix finances health obsidian-mcp workbench"
+
+input="$(cat)"
+tool="$(jq -r '.tool_name // ""' <<<"$input")"
+cwd="$(jq -r '.cwd // ""' <<<"$input")"
+
+deny() {
+  jq -n --arg reason "Denied by claude-work-guard: $1. Claude Code does not read work data; use pi for work tasks." \
+    '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
+  exit 0
+}
+
+in_list() {
+  local item="$1" list="$2" x
+  for x in $list; do [[ "$item" == "$x" ]] && return 0; done
+  return 1
+}
+
+# vault_blocked <path>: true when the path points at work content in the vault.
+# Accepts a vault-relative path or one that contains .../second_brain/.
+vault_blocked() {
+  local p
+  p="$(tr "[:upper:]" "[:lower:]" <<<"$1")"
+  p="${p#*second_brain/}"
+  p="${p#./}"
+  p="${p#/}"
+  case "$p" in
+    engram | engram/*)
+      local sub="${p#engram/}"
+      sub="${sub%%/*}"
+      [[ "$p" != engram && -n "$sub" ]] && in_list "$sub" "$PERSONAL_VAULT_ENGRAM" && return 1
+      return 0
+      ;;
+    working | working/*)
+      local sub="${p#working/}"
+      sub="${sub%%/*}"
+      [[ "$p" != working && -n "$sub" ]] && in_list "$sub" "$PERSONAL_VAULT_WORKING" && return 1
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+forgecloud_path() {
+  [[ "$1" == *"/src/forgecloud"* ]]
+}
+
+case "$tool" in
+  mcp__engram__* | mcp__plugin_engram_engram__*)
+    name="${tool##*__}"
+    case "$name" in
+      mem_get_observation | mem_timeline | mem_review)
+        deny "$name looks up by id and cannot be checked against a project"
+        ;;
+    esac
+    forgecloud_path "$cwd" && deny "engram call from a work directory"
+    [[ "$(jq -r '.tool_input.all_projects // false' <<<"$input")" == "true" ]] && deny "all_projects reaches work memories"
+    project="$(jq -r '.tool_input.project // .tool_input.expected_project // ""' <<<"$input")"
+    if [[ -n "$project" ]] && ! in_list "$project" "$PERSONAL_ENGRAM_PROJECTS"; then
+      deny "engram project '$project' is not a personal project"
+    fi
+    forgecloud_path "$(jq -r '.tool_input.cwd // ""' <<<"$input")" && deny "engram call aimed at a work directory"
+    ;;
+
+  mcp__obsidian-mcp__*)
+    while IFS= read -r p; do
+      [[ -n "$p" ]] || continue
+      vault_blocked "$p" && deny "vault path '$p' is work content"
+    done < <(jq -r '.tool_input | [.file_path, .dest_path, .source_path, .folder, .subfolder, .path] | .[] | select(. != null)' <<<"$input")
+    ;;
+
+  Read | Edit | Write | MultiEdit | NotebookEdit | Grep | Glob)
+    while IFS= read -r p; do
+      [[ -n "$p" ]] || continue
+      forgecloud_path "$p" && deny "'$p' is under ~/src/forgecloud"
+      vault_blocked "$p" && deny "vault path '$p' is work content"
+    done < <(jq -r '.tool_input | [.file_path, .notebook_path, .path, .pattern] | .[] | select(. != null)' <<<"$input")
+    ;;
+
+  Bash)
+    command="$(jq -r '.tool_input.command // ""' <<<"$input")"
+    forgecloud_path "$command" && deny "the command touches ~/src/forgecloud"
+    while IFS= read -r p; do
+      [[ -n "$p" ]] || continue
+      vault_blocked "$p" && deny "vault path '$p' is work content"
+    done < <(grep -oE 'second_brain/[^[:space:]"'"'"';|&)]*' <<<"$command" || true)
+    ;;
+esac

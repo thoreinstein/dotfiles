@@ -94,7 +94,7 @@
             in
             pkgs.runCommand "script-tests"
               {
-                nativeBuildInputs = with pkgs; [ bash git jq gnugrep gnused ];
+                nativeBuildInputs = with pkgs; [ bash git jq gnugrep gnused coreutils ];
               } ''
               mkdir -p test-bin
               cp ${./bin/.bin/ts} test-bin/ts
@@ -103,6 +103,9 @@
               cp ${./bin/.bin/git-bypass-guard} test-bin/git-bypass-guard
               cp ${./bin/.bin/test_git_bypass_guard.sh} test-bin/test_git_bypass_guard.sh
               bash test-bin/test_git_bypass_guard.sh
+              cp ${./bin/.bin/claude-work-guard} test-bin/claude-work-guard
+              cp ${./bin/.bin/test_claude_work_guard.sh} test-bin/test_claude_work_guard.sh
+              bash test-bin/test_claude_work_guard.sh
               touch $out
             '';
 

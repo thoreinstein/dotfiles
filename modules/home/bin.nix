@@ -12,6 +12,11 @@
       text = builtins.readFile ../../bin/.bin/codegraph-nudge;
     })
     (pkgs.writeShellApplication {
+      name = "claude-work-guard";
+      runtimeInputs = with pkgs; [ jq gnugrep coreutils ];
+      text = builtins.readFile ../../bin/.bin/claude-work-guard;
+    })
+    (pkgs.writeShellApplication {
       name = "git-bypass-guard";
       runtimeInputs = with pkgs; [ jq gnugrep gnused ];
       text = builtins.readFile ../../bin/.bin/git-bypass-guard;
