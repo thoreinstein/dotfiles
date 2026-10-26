@@ -16,6 +16,7 @@ let
         (pi.mkLocalModel {
           id = "Qwen3.8-27B-oQ4e-mtp";
           name = "Qwen3.8 oQ4e (oMLX)";
+          # oMLX serves 262144; capped at half to bound KV-cache memory.
           contextWindow = 131072;
           maxTokens = 32768;
         })
@@ -39,13 +40,14 @@ let
 
     # Cloud gateway: these ids are custom to the gateway, so pi has no built-in
     # metadata for them. Window sizes and reasoning are declared here; reasoning
-    # defaults to false, which would disable thinking.
+    # defaults to false, which would disable thinking. Cost is zero: the company
+    # pays, spend isn't tracked in pi, and the aliases have no published price.
     polaris = {
       baseUrl = "https://llm-gateway.polaris.pingidentity.com";
       api = "anthropic-messages";
       apiKey = "$POLARIS_AUTH_TOKEN";
       authHeader = true;
-      models = [
+      models = map (m: m // { cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; }; }) [
         (pi.mkModel {
           id = "anthropic.Polaris.Model.Smart.High";
           reasoning = true;
@@ -154,7 +156,10 @@ in
         modelThinkingLevels."kimi-coding/k3" = "high";
       };
 
-      models.providers = providers;
+      models = {
+        "$schema" = "https://pi.dev/schemas/models.schema.json";
+        inherit providers;
+      };
     };
   };
 }
