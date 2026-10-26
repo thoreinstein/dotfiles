@@ -26,6 +26,14 @@
       runtimeInputs = with pkgs; [ git coreutils gnugrep gnused findutils ];
       text = builtins.readFile ../../bin/.bin/ghclone;
     })
+    # Standard library only, so no vendor hash; `go test` runs during the build.
+    # engram, node and claude-work-guard come from PATH at run time.
+    (pkgs.buildGoModule {
+      pname = "recall";
+      version = "0.1.0";
+      src = ../../bin/recall;
+      vendorHash = null;
+    })
     (pkgs.writeShellApplication {
       name = "ts";
       # sysctl (macOS CPU count) has no nixpkgs source; it stays on the system

@@ -79,7 +79,8 @@ in
         # Lets `agent-resume` pick this session back up after a reboot.
         SessionStart = [{ hooks = [{ type = "command"; command = ''agent-resume record claude "$(${pkgs.jq}/bin/jq -r .session_id)" "$PWD"''; } direnvEnv]; }];
         CwdChanged = [{ hooks = [ direnvEnv ]; }];
-        UserPromptSubmit = [{ hooks = [{ type = "command"; command = "codegraph prompt-hook"; }]; }];
+        # recall adds pointers to related engram memories and vault notes (work data filtered via claude-work-guard).
+        UserPromptSubmit = [{ hooks = [{ type = "command"; command = "codegraph prompt-hook"; } { type = "command"; command = "recall --claude"; timeout = 5; }]; }];
         # git-bypass-guard denies --no-verify, commit -n, SKIP=, --no-gpg-sign and the like; pi-guard.ts does the same for pi.
         # claude-work-guard keeps work data out of Claude Code: work engram projects, work vault folders, ~/src/forgecloud.
         PreToolUse = [
