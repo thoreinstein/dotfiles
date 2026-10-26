@@ -62,6 +62,10 @@ expect deny mcp__obsidian-mcp__obsidian_list_notes '{"folder":"working"}'
 expect deny mcp__obsidian-mcp__obsidian_list_notes '{"subfolder":"engram"}'
 expect deny mcp__obsidian-mcp__obsidian_move_note '{"source_path":"Notes/a.md","dest_path":"working/inc/a.md"}'
 expect deny mcp__obsidian-mcp__obsidian_read_note '{"file_path":"/Users/me/Documents/second_brain/working/self-review/log.md"}'
+expect deny mcp__obsidian-mcp__obsidian_read_note '{"file_path":"ForgeRock/ADRs/ADR-002.md"}'
+expect deny mcp__obsidian-mcp__obsidian_list_notes '{"folder":"ForgeRock"}'
+expect deny Read '{"file_path":"/Users/me/Documents/second_brain/ForgeRock/x.md"}'
+expect allow mcp__obsidian-mcp__obsidian_read_note '{"file_path":"Presentations/proposals/x.md"}'
 
 # built-in file tools
 expect allow Read '{"file_path":"/Users/me/src/thoreinstein/dotfiles/README.md"}'

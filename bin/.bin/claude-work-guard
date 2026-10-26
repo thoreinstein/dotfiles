@@ -9,7 +9,8 @@
 #   engram   a `project` argument that is not a personal project, all_projects,
 #            lookups by id (no project to check), and any call made from a
 #            directory under ~/src/forgecloud
-#   vault    notes under engram/ and working/ unless the folder is personal;
+#   vault    notes under engram/ and working/ unless the folder is personal,
+#            and everything under ForgeRock/;
 #            applies to the obsidian-mcp tools, Read/Edit/Write/Grep/Glob and
 #            paths named in Bash commands
 #   forgecloud  any file path or Bash command under ~/src/forgecloud
@@ -62,6 +63,9 @@ vault_blocked() {
       local sub="${p#working/}"
       sub="${sub%%/*}"
       [[ "$p" != working && -n "$sub" ]] && in_list "$sub" "$PERSONAL_VAULT_WORKING" && return 1
+      return 0
+      ;;
+    forgerock | forgerock/*)
       return 0
       ;;
   esac
