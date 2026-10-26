@@ -82,6 +82,11 @@ folder automatically; never edit that folder. Layout and note templates are in
 
 Commit only when I tell you to. This section is how to commit once I have.
 
+Commit message format depends on where the repo lives:
+- Under `~/src/forgecloud`: subject `FRAAS-XXXXX short message`, a blank line, then a longer
+  body with more detail. No `fix(...)`/`feat(...)` prefixes.
+- Anywhere else: match that repo's existing style. Read `git log --oneline` first.
+
 Split work into small atomic commits, one logical change each. Decide the split yourself;
 don't wait for me to stage anything.
 - Run the project's checks (tests, lint, build) before each commit and commit only when they

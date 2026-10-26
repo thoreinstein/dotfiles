@@ -44,8 +44,11 @@ For each fixable failure, one at a time:
    work from the log.
 2. Fix the cause. Don't silence the check.
 3. Re-run the same command and confirm it passes.
-4. Commit only the files for this fix, with a message naming the check:
-   `fix(<check>): <what was wrong>`. One commit per fix.
+4. Commit only the files for this fix, with a message naming the check. Follow
+   the repo's commit convention: read `git log --oneline` first, and in
+   ForgeCloud repos use the Jira key as the subject prefix (`FRAAS-NNNNN
+   <what was wrong with the <check> check>`), not `fix(...)` prefixes. One
+   commit per fix.
 
 If a failure is still failing after two attempts, stop working on it and
 note what you see. Move on to the next one.
