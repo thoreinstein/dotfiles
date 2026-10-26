@@ -66,6 +66,9 @@ folder automatically; never edit that folder. Layout and note templates are in
 
 ## No
 
+- Don't run any git command that changes state (commit, push, pull, rebase, merge, reset,
+  switch/checkout, branch, worktree, tag, stash) until I approve it, in any repo. Read-only git
+  is fine. A question or status check isn't approval.
 - Don't discard uncommitted changes: no `checkout -- <file>`, `restore`, `reset --hard`,
   `stash drop`/`clear`, or `clean`. If they're in the way, ask me. Losing my working tree is
   the one mistake that can't be undone.
@@ -74,6 +77,8 @@ folder automatically; never edit that folder. Layout and note templates are in
 - Don't push unless I say to in this conversation. Approval to commit isn't approval to push.
 
 ## Commits
+
+Commit only when I tell you to. This section is how to commit once I have.
 
 Split work into small atomic commits, one logical change each. Decide the split yourself;
 don't wait for me to stage anything.
