@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#
+# git-bypass-guard - Claude Code PreToolUse hook for Bash.
+#
+# Denies git commands that skip hooks or commit signing: --no-verify, commit -n,
+# SKIP=<hook>, core.hooksPath overrides, --no-gpg-sign, commit.gpgsign=false.
+# When a hook or a locked GPG key fails a commit, the answer is to fix the cause
+# or stop and tell the user, never to route around it. pi-guard.ts enforces the
+# same rules for pi.
+#
+# Reads the hook JSON ({tool_input: {command}}) on stdin. Exit 0 with a deny
+# decision on stdout blocks the call; exit 0 with no output lets it through.
+
+set -euo pipefail
+
+input="$(cat)"
+command="$(jq -r '.tool_input.command // ""' <<<"$input")"
+[[ "$command" == *git* ]] || exit 0
+
+# Blank out quoted strings so "--no-verify" inside a commit message is not
+# mistaken for a flag. A shell or eval wrapper hides the real command inside
+# quotes, so for those the raw text is checked too.
+stripped="$(sed -E "s/'[^']*'/''/g; s/\"[^\"]*\"/\"\"/g" <<<"$command")"
+texts=("$stripped")
+if grep -Eq '(^|[[:space:];&|(])(bash|sh|zsh|dash|eval|xargs|ssh)([[:space:]]|$)|\$\(|`' <<<"$command"; then
+  texts+=("$command")
+fi
+
+# [^|;&]* keeps each rule inside one command, so `git status && ls -n` is not a
+# commit -n.
+hooks_re='git[^|;&]*(--no-verify|[[:space:]]commit[^|;&]*[[:space:]]-[A-Za-z]*n[A-Za-z]*([[:space:]]|$)|-c[[:space:]]*core\.hookspath=|config[[:space:]]+core\.hookspath[[:space:]]+[^-])'
+skip_re='(^|[[:space:];&|(])SKIP=[^[:space:]]*[[:space:]]+([^|;&]*[[:space:]])?git[[:space:]][^|;&]*(commit|push|merge|rebase|cherry-pick)'
+sign_re='git[^|;&]*(--no-gpg-sign|gpgsign(=|[[:space:]]+)(false|0|no|off)([[:space:]]|$))'
+
+reason=""
+for text in "${texts[@]}"; do
+  if grep -Eiq "$hooks_re" <<<"$text" || grep -Eq "$skip_re" <<<"$text"; then
+    reason="Denied: skipping git hooks (--no-verify, commit -n, SKIP=, core.hooksPath) is never allowed. Fix what the hook reports, or stop and tell the user."
+    break
+  fi
+  if grep -Eiq "$sign_re" <<<"$text"; then
+    reason="Denied: bypassing commit signing (--no-gpg-sign, gpgsign=false) is never allowed. If signing failed the key is probably locked: tell the user to unlock it, then retry the same command."
+    break
+  fi
+done
+
+[[ -n "$reason" ]] || exit 0
+jq -n --arg reason "$reason" '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'

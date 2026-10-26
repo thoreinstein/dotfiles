@@ -80,7 +80,10 @@ in
         SessionStart = [{ hooks = [{ type = "command"; command = ''agent-resume record claude "$(${pkgs.jq}/bin/jq -r .session_id)" "$PWD"''; } direnvEnv]; }];
         CwdChanged = [{ hooks = [ direnvEnv ]; }];
         UserPromptSubmit = [{ hooks = [{ type = "command"; command = "codegraph prompt-hook"; }]; }];
-        PreToolUse = [{ matcher = "Bash"; hooks = [{ type = "command"; command = "rtk hook claude"; }]; }];
+        # git-bypass-guard denies --no-verify, commit -n, SKIP=, --no-gpg-sign and the like; pi-guard.ts does the same for pi.
+        PreToolUse = [
+          { matcher = "Bash"; hooks = [{ type = "command"; command = "rtk hook claude"; } { type = "command"; command = "git-bypass-guard"; }]; }
+        ];
         # Points code searches in a CodeGraph-indexed repo at codegraph_explore; never blocks.
         PostToolUse = [{ matcher = "Grep|Glob|Bash"; hooks = [{ type = "command"; command = "codegraph-nudge"; }]; }];
         PreCompact = [{

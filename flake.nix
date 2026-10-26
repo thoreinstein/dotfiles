@@ -94,12 +94,15 @@
             in
             pkgs.runCommand "script-tests"
               {
-                nativeBuildInputs = with pkgs; [ bash git ];
+                nativeBuildInputs = with pkgs; [ bash git jq gnugrep gnused ];
               } ''
               mkdir -p test-bin
               cp ${./bin/.bin/ts} test-bin/ts
               cp ${./bin/.bin/test_ts.sh} test-bin/test_ts.sh
               bash test-bin/test_ts.sh
+              cp ${./bin/.bin/git-bypass-guard} test-bin/git-bypass-guard
+              cp ${./bin/.bin/test_git_bypass_guard.sh} test-bin/test_git_bypass_guard.sh
+              bash test-bin/test_git_bypass_guard.sh
               touch $out
             '';
 
