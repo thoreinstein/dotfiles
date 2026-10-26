@@ -66,6 +66,21 @@ assert.deepEqual(rules("git switch main"), []);
 assert.deepEqual(rules("git commit --amend --no-edit"), ["git-amend", "git-commit"]);
 assert.deepEqual(rules("git commit -m fix"), ["git-commit"]);
 
+// hook and signing bypasses are their own rules; -n is only a bypass on commit (push -n is a dry run)
+assert.deepEqual(rules("git commit --no-verify -m x"), ["git-no-verify", "git-commit"]);
+assert.deepEqual(rules("git commit -n -m x"), ["git-no-verify", "git-commit"]);
+assert.deepEqual(rules("git commit -anm x"), ["git-no-verify", "git-commit"]);
+assert.deepEqual(rules("git -c core.hooksPath=/dev/null commit -m x"), ["git-no-verify", "git-commit"]);
+assert.deepEqual(rules("git config core.hooksPath /dev/null"), ["git-no-verify"]);
+assert.deepEqual(rules("git config --get core.hooksPath"), []);
+assert.deepEqual(rules("SKIP=shellcheck git commit -m x"), ["git-no-verify", "git-commit"]);
+assert.deepEqual(rules("SKIP=shellcheck git status"), []);
+assert.deepEqual(rules("git push -n"), ["git-push"]);
+assert.deepEqual(rules("git commit --no-gpg-sign -m x"), ["git-no-sign", "git-commit"]);
+assert.deepEqual(rules("git -c commit.gpgsign=false commit -m x"), ["git-no-sign", "git-commit"]);
+assert.deepEqual(rules("git config commit.gpgsign false"), ["git-no-sign"]);
+assert.deepEqual(rules("git config --get commit.gpgsign"), []);
+
 // continuing a rebase that already stopped doesn't ask; starting, skipping or aborting one does
 assert.deepEqual(rules("git rebase --continue"), []);
 assert.deepEqual(rules("GIT_EDITOR=true git rebase --continue"), []);
@@ -167,6 +182,19 @@ for (const cmd of ["git commit --amend --no-edit", "git can", "git ca -m x", "ba
   assert.match(res.reason, /never amend/, cmd);
 }
 console.log("pi-guard amend: ok");
+
+// skipping hooks or signing is never allowed either, including nested in a wrapper
+for (const cmd of ["git commit --no-verify -m x", "git commit -n -m x", "SKIP=lint git commit -m x", "bash -c 'git commit --no-verify'", "bash -c 'git commit -n -m x'"]) {
+  const res = await run(cmd);
+  assert.equal(res?.block, true, cmd);
+  assert.match(res.reason, /skipping hooks/, cmd);
+}
+for (const cmd of ["git commit --no-gpg-sign -m x", "git -c commit.gpgsign=false commit -m x", "bash -c 'git commit --no-gpg-sign'"]) {
+  const res = await run(cmd);
+  assert.equal(res?.block, true, cmd);
+  assert.match(res.reason, /commit signing/, cmd);
+}
+console.log("pi-guard hook/signing bypass: ok");
 
 // MCP tool names resolve the way the adapter resolves them
 const policyOf = (...a) => mcpPolicy(...a)?.tool ?? null;

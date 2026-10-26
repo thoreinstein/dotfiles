@@ -96,7 +96,20 @@ export function check(tokens) {
   const hits = [];
   if (bin === "git") {
     const sub = subcommand(args, GIT_OPT_ARG);
-    if (args.includes("--no-verify")) hits.push(["git-no-verify", "git --no-verify skips hooks"]);
+    // Ways to skip hooks or signing. `-n` is --no-verify only on commit (on push it is a dry run).
+    // A leading SKIP=<hook> env assignment is stripped from `t`, so read it off the raw tokens.
+    const optValues = args.filter((a, i) => args[i - 1] === "-c");
+    const skipEnv = tokens.slice(0, tokens.length - t.length).some((e) => /^SKIP=/.test(e));
+    if (args.includes("--no-verify")
+      || (sub === "commit" && args.some((a) => /^-[A-Za-z]*n[A-Za-z]*$/.test(a)))
+      || optValues.some((v) => /^core\.hookspath=/i.test(v))
+      || (sub === "config" && args.some((a) => /^core\.hookspath$/i.test(a)) && !args.some((a) => a === "--get" || a === "--unset"))
+      || (skipEnv && ["commit", "push", "merge", "rebase", "cherry-pick"].includes(sub)))
+      hits.push(["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)"]);
+    if (args.includes("--no-gpg-sign")
+      || optValues.some((v) => /^(commit|tag)\.gpgsign=(false|0|no|off)$/i.test(v))
+      || (sub === "config" && args.some((a) => /gpgsign/i.test(a)) && args.some((a) => /^(false|0|no|off)$/i.test(a))))
+      hits.push(["git-no-sign", "git signing bypass (--no-gpg-sign, gpgsign=false)"]);
     // `ca` and `can` are the git.nix aliases for `commit --amend`.
     if ((sub === "commit" && args.includes("--amend")) || sub === "ca" || sub === "can") hits.push(["git-amend", "git commit --amend REWRITES THE LAST COMMIT"]);
     // Continuing a rebase that already stopped only commits the resolution; starting, skipping
@@ -133,7 +146,9 @@ const WRAPPERS = new Set([
 ]);
 const NESTED = /\$\(|`|<\(|>\(/;
 const RAW_RULES = [
-  ["git-no-verify", "git --no-verify skips hooks", /\bgit\b[\s\S]*--no-verify/],
+  ["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)", /\bgit\b[\s\S]*(--no-verify|\bcommit\b[\s\S]*\s-[A-Za-z]*n[A-Za-z]*(\s|$)|core\.hookspath)/i],
+  ["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)", /\bSKIP=[\s\S]*\bgit\b[\s\S]*\b(commit|push|merge|rebase|cherry-pick)\b/],
+  ["git-no-sign", "git signing bypass (--no-gpg-sign, gpgsign=false)", /\bgit\b[\s\S]*(--no-gpg-sign|gpgsign[=\s]+(false|0|no|off)\b)/i],
   ["rm", "rm", /(^|[\s;&|(`"'])rm\b/],
   ["find-delete", "find -delete", /\bfind\b[\s\S]*\s-delete\b/],
   ["rmdir", "rmdir", /(^|[\s;&|(`"'])rmdir\b/],
@@ -564,11 +579,15 @@ export default function (pi: ExtensionAPI) {
 
     const rules = hits.map(([name]) => name);
     const noVerify = rules.includes("git-no-verify");
+    const noSign = rules.includes("git-no-sign");
     const amend = rules.includes("git-amend");
     let answer, reason;
     if (noVerify) {
       answer = "deny";
-      reason = "Denied by pi-guard: --no-verify is never allowed. Hooks must run; fix what the hook reports instead of skipping it.";
+      reason = "Denied by pi-guard: skipping hooks (--no-verify, commit -n, SKIP=, core.hooksPath) is never allowed. Fix what the hook reports, or stop and tell the user.";
+    } else if (noSign) {
+      answer = "deny";
+      reason = "Denied by pi-guard: bypassing commit signing (--no-gpg-sign, gpgsign=false) is never allowed. If signing failed, the key is probably locked: tell the user to unlock it, then retry the same command.";
     } else if (amend) {
       answer = "deny";
       reason = "Denied by pi-guard: never amend commits. Make a new commit instead.";
