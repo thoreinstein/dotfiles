@@ -67,6 +67,7 @@ in
     ".pi/agent/extensions/agent-resume.ts".source = ./agent-resume.ts;
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
+    ".pi/agent/extensions/recall.ts".source = ./recall.ts;
     ".pi/agent/skills/ci-fix/SKILL.md".source = ./skills/ci-fix/SKILL.md;
     ".pi/agent/skills/compound/SKILL.md".source = ./skills/compound/SKILL.md;
     ".pi/agent/skills/plan-review/SKILL.md".source = ./skills/plan-review/SKILL.md;
