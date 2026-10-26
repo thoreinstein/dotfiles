@@ -18,12 +18,14 @@
     "polaris/anthropic.OpenAI.Sol",
     "polaris/anthropic.OpenAI.Terra",
     "polaris/anthropic.OpenAI.Luna",
-    "polaris/anthropic.Zai.GLM5",
     "polaris/anthropic.Zai.GLM53Flash",
     "kimi-coding/k3"
   ],
   "externalEditor": "nvim",
   "hideThinkingBlock": true,
+  "modelThinkingLevels": {
+    "kimi-coding/k3": "high"
+  },
   "packages": [
     "git:github.com/apmantza/pi-lens",
     "git:github.com/ibragim-bad/evals-from-sessions",

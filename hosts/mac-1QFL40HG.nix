@@ -10,6 +10,8 @@ let
       api = "openai-completions";
       # Read at request time from oMLX's own config; keeps the key out of nix.
       apiKey = "!jq -r .auth.api_key ~/.omlx/settings.json";
+      # Every oMLX model is Qwen; pi can't detect the format from a localhost URL.
+      compat.thinkingFormat = "qwen-chat-template";
       models = [
         (pi.mkLocalModel {
           id = "Qwen3.8-27B-oQ4e-mtp";
@@ -35,8 +37,9 @@ let
       ];
     };
 
-    # Cloud gateway: pi knows cost and capabilities for these, so only the
-    # window sizes are declared.
+    # Cloud gateway: these ids are custom to the gateway, so pi has no built-in
+    # metadata for them. Window sizes and reasoning are declared here; reasoning
+    # defaults to false, which would disable thinking.
     polaris = {
       baseUrl = "https://llm-gateway.polaris.pingidentity.com";
       api = "anthropic-messages";
@@ -45,26 +48,31 @@ let
       models = [
         (pi.mkModel {
           id = "anthropic.Polaris.Model.Smart.High";
+          reasoning = true;
           contextWindow = 380000;
           maxTokens = 32768;
         })
         (pi.mkModel {
           id = "anthropic.Polaris.Model.Smart.Medium";
+          reasoning = true;
           contextWindow = 380000;
           maxTokens = 32768;
         })
         (pi.mkModel {
           id = "anthropic.Polaris.Model.Smart.Low";
+          reasoning = true;
           contextWindow = 380000;
           maxTokens = 32768;
         })
         (pi.mkModel {
           id = "anthropic.Claude.Sonnet";
+          reasoning = true;
           contextWindow = 1000000;
           maxTokens = 128000;
         })
         (pi.mkModel {
           id = "anthropic.Claude.Haiku";
+          reasoning = true;
           contextWindow = 200000;
           maxTokens = 64000;
         })
@@ -85,12 +93,8 @@ let
           maxTokens = 128000;
         })
         (pi.mkModel {
-          id = "anthropic.Zai.GLM5";
-          contextWindow = 380000;
-          maxTokens = 32768;
-        })
-        (pi.mkModel {
           id = "anthropic.Zai.GLM53Flash";
+          reasoning = true;
           contextWindow = 380000;
           maxTokens = 32768;
         })
@@ -142,6 +146,8 @@ in
         # `providers` and is listed by id.
         enabledModels = pi.mkEnabledModels [ "omlx" "strata" "polaris" ] providers
           ++ [ "kimi-coding/k3" ];
+        # k3 has no medium level, so the global default would leave it without thinking.
+        modelThinkingLevels."kimi-coding/k3" = "high";
       };
 
       models.providers = providers;
