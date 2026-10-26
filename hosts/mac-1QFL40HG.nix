@@ -119,6 +119,10 @@ in
       # security-guidance plugin's review hook) fails CERTIFICATE_VERIFY_FAILED. Use the
       # nix-darwin bundle.
       SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+      # claude-code 2.1.308 lost its bundled root store on macOS
+      # (UNABLE_TO_GET_ISSUER_CERT_LOCALLY); point it at the nix-darwin bundle. Drop
+      # once upstream ships a fix (2.1.303 and earlier didn't need it).
+      NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
     };
   };
 
