@@ -113,3 +113,7 @@ case "$tool" in
     done < <(grep -oE 'second_brain/[^[:space:]"'"'"';|&)]*' <<<"$command" || true)
     ;;
 esac
+
+# No deny above: allow. Exit 0 explicitly; a false `check && deny` as the last
+# command would otherwise make the exit status 1.
+exit 0

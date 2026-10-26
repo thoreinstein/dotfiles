@@ -10,11 +10,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GUARD="$SCRIPT_DIR/claude-work-guard"
 FAILED=0
 
-# verdict <tool> <tool_input json> [cwd] prints "deny" or "allow".
+# verdict <tool> <tool_input json> [cwd] prints "deny", "allow", or "error" when the
+# guard exits nonzero (callers such as recall can't tell an allow from a crash then).
 verdict() {
   local out
-  out="$(jq -n --arg t "$1" --argjson i "$2" --arg c "${3:-/Users/me/src/thoreinstein/dotfiles}" \
-    '{tool_name: $t, tool_input: $i, cwd: $c}' | bash "$GUARD")"
+  if ! out="$(jq -n --arg t "$1" --argjson i "$2" --arg c "${3:-/Users/me/src/thoreinstein/dotfiles}" \
+    '{tool_name: $t, tool_input: $i, cwd: $c}' | bash "$GUARD")"; then
+    echo error
+    return
+  fi
   if [[ -z "$out" ]]; then echo allow; else jq -r '.hookSpecificOutput.permissionDecision' <<<"$out"; fi
 }
 
