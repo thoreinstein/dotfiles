@@ -69,6 +69,8 @@ folder automatically; never edit that folder. Layout and note templates are in
 - Don't run any git command that changes state (commit, push, pull, rebase, merge, reset,
   switch/checkout, branch, worktree, tag, stash) until I approve it, in any repo. Read-only git
   is fine. A question or status check isn't approval.
+- Don't create, delete or switch branches or worktrees. I handle those. If the current one is
+  wrong for the task, tell me and stop.
 - Don't discard uncommitted changes: no `checkout -- <file>`, `restore`, `reset --hard`,
   `stash drop`/`clear`, or `clean`. If they're in the way, ask me. Losing my working tree is
   the one mistake that can't be undone.
