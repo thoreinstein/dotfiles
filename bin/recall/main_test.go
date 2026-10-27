@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +13,11 @@ func TestKeywords(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %q, want %q", got, want)
 	}
-	if n := len(keywords("alpha bravo charlie delta echo foxtrot golf hotel india juliet")); n != maxKeywords {
+	var many []string
+	for i := range maxKeywords + 5 {
+		many = append(many, fmt.Sprintf("word%02d", i))
+	}
+	if n := len(keywords(strings.Join(many, " "))); n != maxKeywords {
 		t.Fatalf("got %d keywords, want %d", n, maxKeywords)
 	}
 }
@@ -31,8 +37,10 @@ Found 2 memories:
 `)
 	got := parseEngram(out)
 	want := []hit{
-		{key: "engram:375", line: "engram #375 (session_summary) Compaction recovery summary", project: "dotfiles"},
-		{key: "engram:513", line: "engram #513 (decision) ci-fix skill: fix all red checks", project: "work-thing"},
+		{key: "engram:375", line: "engram #375 (session_summary) Compaction recovery summary", project: "dotfiles",
+			text: "compaction recovery summary\n    ## goal\n[not a header] #1 (x) — y"},
+		{key: "engram:513", line: "engram #513 (decision) ci-fix skill: fix all red checks", project: "work-thing",
+			text: "ci-fix skill: fix all red checks\n    **what**: ..."},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v\nwant %+v", got, want)
@@ -41,22 +49,40 @@ Found 2 memories:
 
 func TestParseVault(t *testing.T) {
 	out := []byte(`Results:
+---
 File: a/One.md
+Meta: reference · 2026-02-09 · type: clipping
 Section: One > Rationale
-Some content
+Content: Some content
+---
 File: b/Two.md
 File: c/Three.md
 Section: Three
 Section: stray second section
+File: engram/dotfiles/decision/gauth-switcher-561.md
+Section: gauth
+File: engram/_sessions/35bc6e68-02a3-1234.md
 `)
 	got := parseVault(out)
 	want := []hit{
 		{key: "vault:a/One.md#One > Rationale", line: "vault a/One.md § One > Rationale", path: "a/One.md"},
 		{key: "vault:b/Two.md", line: "vault b/Two.md", path: "b/Two.md"},
 		{key: "vault:c/Three.md#Three", line: "vault c/Three.md § Three", path: "c/Three.md"},
+		{key: "engram:561", line: "vault engram/dotfiles/decision/gauth-switcher-561.md § gauth",
+			path: "engram/dotfiles/decision/gauth-switcher-561.md"},
+		{key: "vault:engram/_sessions/35bc6e68-02a3-1234.md", line: "vault engram/_sessions/35bc6e68-02a3-1234.md",
+			path: "engram/_sessions/35bc6e68-02a3-1234.md"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestFirst(t *testing.T) {
+	a, b, c, d := hit{key: "a"}, hit{key: "b"}, hit{key: "c"}, hit{key: "d"}
+	got := first([]hit{a, b, c, d}, map[string]bool{"b": true})
+	if want := []hit{a, c, d}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %+v, want %+v", got, want)
 	}
 }
 
@@ -71,5 +97,17 @@ func TestUnseen(t *testing.T) {
 	}
 	if got := unseen("other", []hit{a}); len(got) != 1 {
 		t.Fatalf("other session: got %v", got)
+	}
+}
+
+func TestRelevant(t *testing.T) {
+	kw := []string{"recall", "relevance", "built", "day"}
+	both := hit{key: "a", text: "recall: prompt-time pointers\n    built with buildgomodule"}
+	prefix := hit{key: "b", text: "recalls and relevance"}
+	one := hit{key: "c", text: "aerospace built-in defaults"}
+	inner := hit{key: "d", text: "holiday prebuilt"}
+	got := relevant([]hit{both, prefix, one, inner}, kw)
+	if want := []hit{both, prefix}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got %+v, want %+v", got, want)
 	}
 }

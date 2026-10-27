@@ -30,7 +30,9 @@ import (
 const (
 	minWords      = 6
 	maxPromptLen  = 1000
-	maxKeywords   = 8
+	maxKeywords   = 20
+	maxHits       = 3 // per source
+	minMatches    = 2 // distinct keywords an engram hit must contain
 	engramTimeout = time.Second
 	vaultTimeout  = 3 * time.Second
 	guardTimeout  = time.Second
@@ -39,6 +41,7 @@ const (
 type hit struct {
 	key  string // dedupe key
 	line string // what gets printed
+	text string // engram title and snippet, lowercased, for relevant
 	// Only for the work-data check in --claude mode.
 	project string // engram project
 	path    string // vault path
@@ -82,7 +85,14 @@ func main() {
 	go func() { defer wg.Done(); vaultHits = searchVault(prompt, cwd) }()
 	wg.Wait()
 
-	hits := append(engramHits, vaultHits...)
+	// Cap after dropping vault copies of shown memories, so a copy doesn't
+	// take a vault slot.
+	engramHits = first(engramHits, nil)
+	shown := map[string]bool{}
+	for _, h := range engramHits {
+		shown[h.key] = true
+	}
+	hits := append(engramHits, first(vaultHits, shown)...)
 	if *claude {
 		hits = dropWorkData(hits, cwd)
 	}
@@ -159,7 +169,43 @@ func searchEngram(prompt, cwd string) []hit {
 	if len(kw) == 0 {
 		return nil
 	}
-	return parseEngram(run(engramTimeout, cwd, "engram", "search", strings.Join(kw, " "), "--match", "any", "--limit", "3"))
+	// Send every keyword and let engram's ranking weigh rare words over
+	// filler; it prints no score, so relevant is the cutoff.
+	out := run(engramTimeout, cwd, "engram", "search", strings.Join(kw, " "), "--match", "any", "--limit", "10")
+	return relevant(parseEngram(out), kw)
+}
+
+// first returns up to maxHits hits whose keys aren't in skip.
+func first(hits []hit, skip map[string]bool) []hit {
+	var out []hit
+	for _, h := range hits {
+		if len(out) < maxHits && !skip[h.key] {
+			out = append(out, h)
+		}
+	}
+	return out
+}
+
+// relevant keeps hits whose text has words starting with at least
+// minMatches distinct keywords. One shared word is usually filler.
+func relevant(hits []hit, kw []string) []hit {
+	var out []hit
+	for _, h := range hits {
+		words := wordRe.FindAllString(h.text, -1)
+		n := 0
+		for _, k := range kw {
+			for _, w := range words {
+				if strings.HasPrefix(w, k) {
+					n++
+					break
+				}
+			}
+		}
+		if n >= minMatches {
+			out = append(out, h)
+		}
+	}
+	return out
 }
 
 // `[1] #490 (discovery) — Title text`, then a few indented content lines,
@@ -174,13 +220,25 @@ func parseEngram(out []byte) []hit {
 	sc := bufio.NewScanner(bytes.NewReader(out))
 	sc.Buffer(make([]byte, 64*1024), 1<<20)
 	for sc.Scan() {
-		if m := engramHeadRe.FindStringSubmatch(sc.Text()); m != nil {
+		line := sc.Text()
+		if m := engramHeadRe.FindStringSubmatch(line); m != nil {
+			title := strings.TrimSpace(m[3])
 			hits = append(hits, hit{
 				key:  "engram:" + m[1],
-				line: fmt.Sprintf("engram #%s (%s) %s", m[1], m[2], strings.TrimSpace(m[3])),
+				line: fmt.Sprintf("engram #%s (%s) %s", m[1], m[2], title),
+				text: strings.ToLower(title),
 			})
-		} else if m := engramMetaRe.FindStringSubmatch(sc.Text()); m != nil && len(hits) > 0 && hits[len(hits)-1].project == "" {
-			hits[len(hits)-1].project = m[1]
+			continue
+		}
+		// Snippet lines run until the meta line, which ends the hit.
+		if len(hits) == 0 || hits[len(hits)-1].project != "" {
+			continue
+		}
+		h := &hits[len(hits)-1]
+		if m := engramMetaRe.FindStringSubmatch(line); m != nil {
+			h.project = m[1]
+		} else {
+			h.text += "\n" + strings.ToLower(line)
 		}
 	}
 	return hits
@@ -192,11 +250,25 @@ func searchVault(prompt, cwd string) []hit {
 		return nil
 	}
 	index := filepath.Join(home, "src/thoreinstein/obsidian-mcp/dist/index.js")
-	return parseVault(run(vaultTimeout, cwd, "node", index, "obsidian_rag_query", "--query", prompt, "--limit", "3"))
+	// Over-fetch so there are still hits after skipping saved reading,
+	// which matches a prompt's tone more than its subject.
+	out := run(vaultTimeout, cwd, "node", index, "obsidian_rag_query", "--query", prompt, "--limit", "10")
+	var hits []hit
+	for _, h := range parseVault(out) {
+		if !strings.HasPrefix(h.path, "reference/library/") && !strings.HasPrefix(h.path, "Readwise/") &&
+			!strings.HasPrefix(h.path, "archive/") {
+			hits = append(hits, h)
+		}
+	}
+	return hits
 }
 
+// A vault copy of an engram memory: engram/<project>/<type>/<slug>-<id>.md.
+var mirrorRe = regexp.MustCompile(`^engram/[^/]+/[^/]+/[^/]+-(\d+)\.md$`)
+
 // Only the `File:` and `Section:` lines; a Section belongs to the File
-// above it.
+// above it. A copy of an engram memory gets that memory's key, so it never
+// shows next to, or after, the memory itself.
 func parseVault(out []byte) []hit {
 	var hits []hit
 	sc := bufio.NewScanner(bytes.NewReader(out))
@@ -205,12 +277,18 @@ func parseVault(out []byte) []hit {
 		line := sc.Text()
 		if p, ok := strings.CutPrefix(line, "File: "); ok {
 			p = strings.TrimSpace(p)
-			hits = append(hits, hit{key: "vault:" + p, line: "vault " + p, path: p})
+			h := hit{key: "vault:" + p, line: "vault " + p, path: p}
+			if m := mirrorRe.FindStringSubmatch(p); m != nil {
+				h.key = "engram:" + m[1]
+			}
+			hits = append(hits, h)
 		} else if s, ok := strings.CutPrefix(line, "Section: "); ok && len(hits) > 0 {
 			h := &hits[len(hits)-1]
 			if h.line == "vault "+h.path {
 				s = strings.TrimSpace(s)
-				h.key += "#" + s
+				if !strings.HasPrefix(h.key, "engram:") {
+					h.key += "#" + s
+				}
 				h.line += " § " + s
 			}
 		}
