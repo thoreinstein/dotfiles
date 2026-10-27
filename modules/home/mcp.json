@@ -32,7 +32,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "github:thoreinstein/obsidian-mcp#0a17de3"
+        "github:thoreinstein/obsidian-mcp#7902b32"
       ]
     },
     "codegraph": {
