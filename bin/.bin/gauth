@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# gauth - Switch the active gcloud account with fzf
+# Usage: gauth
+#
+# Sets the account on the active gcloud configuration, then makes sure both the
+# gcloud user credentials and Application Default Credentials (ADC) belong to it.
+# gcloud keeps user credentials per account, so `gcloud auth login` runs only when
+# they no longer work. ADC is a single file, so each account's copy is cached in
+# ~/.config/gcloud/adc/<account>.json and swapped in; `gcloud auth
+# application-default login` runs only when the cached copy is missing or stale.
+
+set -euo pipefail
+
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+command -v gcloud >/dev/null 2>&1 || error "gcloud is required but not installed"
+
+gcloud_dir="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}"
+adc="$gcloud_dir/application_default_credentials.json"
+cache_dir="$gcloud_dir/adc"
+
+current=$(gcloud config get-value account 2>/dev/null || true)
+
+account=$(
+  gcloud auth list --format='value(account)' |
+    awk -v cur="$current" '{ print ($0 == cur ? "* " : "  ") $0 }' |
+    fzf --height=~10 --reverse --prompt='gcloud account> ' |
+    cut -c3-
+) || exit 0
+[[ -n "$account" ]] || exit 0
+
+gcloud config set account "$account" >/dev/null 2>&1
+
+if ! gcloud auth print-access-token --account "$account" >/dev/null 2>&1; then
+  echo "User credentials for $account expired; logging in..."
+  gcloud auth login "$account"
+fi
+
+mkdir -p "$cache_dir"
+chmod 700 "$cache_dir"
+cached="$cache_dir/$account.json"
+
+adc_ok=false
+if [[ -f "$cached" ]]; then
+  cp "$cached" "$adc"
+  chmod 600 "$adc"
+  gcloud auth application-default print-access-token >/dev/null 2>&1 && adc_ok=true
+fi
+
+if [[ "$adc_ok" == false ]]; then
+  echo "No working ADC cached for $account; logging in (pick $account in the browser)..."
+  gcloud auth application-default login
+  cp "$adc" "$cached"
+  chmod 600 "$cached"
+fi
+
+echo "gcloud account: $account (user credentials and ADC ready)"

@@ -22,6 +22,12 @@
       text = builtins.readFile ../../bin/.bin/git-bypass-guard;
     })
     (pkgs.writeShellApplication {
+      name = "gauth";
+      # gcloud comes from PATH: cli.nix installs the SDK with extra components.
+      runtimeInputs = with pkgs; [ fzf coreutils gawk ];
+      text = builtins.readFile ../../bin/.bin/gauth;
+    })
+    (pkgs.writeShellApplication {
       name = "ghclone";
       runtimeInputs = with pkgs; [ git coreutils gnugrep gnused findutils ];
       text = builtins.readFile ../../bin/.bin/ghclone;
