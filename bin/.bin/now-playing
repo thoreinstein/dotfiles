@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# now-playing - Current song for the tmux status bar.
+#
+# Reads macOS Now Playing through media-control (homebrew). Browsers publish
+# YouTube Music there, so no app API is needed. Prints "♪ title – artist"
+# while something plays, nothing otherwise.
+
+set -euo pipefail
+
+command -v media-control >/dev/null || exit 0
+
+# Browsers pass HTML entities through ("Mr. Morale &amp; The Big Steppers").
+media-control get 2>/dev/null | jq -r '
+  select(.playing == true)
+  | "\(.title) – \(.artist)"
+  | gsub("&amp;"; "&") | gsub("&quot;"; "\"") | gsub("&#39;"; [39] | implode)
+  | gsub("&lt;"; "<") | gsub("&gt;"; ">")
+  | "♪ " + (if length > 50 then .[:49] + "…" else . end)
+'

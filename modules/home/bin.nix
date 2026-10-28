@@ -32,6 +32,12 @@
       runtimeInputs = with pkgs; [ git coreutils gnugrep gnused findutils ];
       text = builtins.readFile ../../bin/.bin/ghclone;
     })
+    (pkgs.writeShellApplication {
+      name = "now-playing";
+      # media-control has no nixpkgs source; homebrew.nix installs it.
+      runtimeInputs = [ pkgs.jq ];
+      text = builtins.readFile ../../bin/.bin/now-playing;
+    })
     # Standard library only, so no vendor hash; `go test` runs during the build.
     # engram, node and claude-work-guard come from PATH at run time.
     (pkgs.buildGoModule {

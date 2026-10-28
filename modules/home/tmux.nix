@@ -59,6 +59,7 @@ in
           set -g @rose_pine_show_current_program 'off'
           set -g @rose_pine_show_pane_directory 'off'
           set -g @rose_pine_default_window_behavior 'on'
+          set -g @rose_pine_status_right_prepend_section '#(now-playing) '
         '';
       }
       {
@@ -98,6 +99,9 @@ in
       set -g extended-keys-format csi-u
 
       set -g history-limit 10000
+
+      # Refresh #(now-playing) within a few seconds of a track change.
+      set -g status-interval 5
 
       set -g focus-events on
 
