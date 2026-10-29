@@ -18,7 +18,7 @@ or CLAUDE.md.
   list you report at the end; don't do it, even when it looks small or helpful.
 - Don't edit shared or root files (`root.hcl`, base modules, CI config, anything other stacks
   import) unless the task names them. Stop and tell me instead.
-- When a review's fixes are done, every addressed thread gets a reply with
+- When a review's fixes are done, every fixed thread gets a reply with
   the fixing SHA and a resolve before the work is reported done. Fixing
   without replying reads as ignoring the review (a past review had 50 comments
   sit unreplied while the fixes shipped).
