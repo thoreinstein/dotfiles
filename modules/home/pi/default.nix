@@ -71,6 +71,7 @@ in
     ".pi/agent/skills/ci-fix/SKILL.md".source = ./skills/ci-fix/SKILL.md;
     ".pi/agent/skills/compound/SKILL.md".source = ./skills/compound/SKILL.md;
     ".pi/agent/skills/plan-review/SKILL.md".source = ./skills/plan-review/SKILL.md;
+    ".pi/agent/skills/pr-comments/SKILL.md".source = ./skills/pr-comments/SKILL.md;
     ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
     ".pi/agent/skills/rebase/SKILL.md".source = ./skills/rebase/SKILL.md;
     ".pi/agent/skills/standup/SKILL.md".source = ./skills/standup/SKILL.md;
