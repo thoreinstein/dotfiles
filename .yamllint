@@ -4,7 +4,7 @@ rules:
     max: 200
     level: warning
   truthy:
-    allowed-values: ['y', 'Y', 'yes', 'Yes', 'YES', 'n', 'N', 'no', 'No', 'NO', 'on', 'On', 'ON', 'off', 'Off', 'OFF', 'true', 'True', 'TRUE', 'false', 'False', 'FALSE']
+    allowed-values: ['yes', 'Yes', 'YES', 'no', 'No', 'NO', 'on', 'On', 'ON', 'off', 'Off', 'OFF', 'true', 'True', 'TRUE', 'false', 'False', 'FALSE']
     level: warning
   indentation:
     spaces: 2
