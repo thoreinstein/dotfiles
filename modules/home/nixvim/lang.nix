@@ -84,7 +84,7 @@
         fmt_on_save = false,
         lsp_inlay_hints = { enable = true },
         trouble = true,
-        dap_debug = true,
+        dap_debug = false, -- dap-go owns the Go DAP setup (dap.nix)
         test_runner = "ginkgo",
         run_in_floaterm = false,
         icons = { breakpoint = "🔴", currentpos = "🔶" },

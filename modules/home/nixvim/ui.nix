@@ -54,12 +54,7 @@ _:
       which-key = {
         enable = true;
         settings = {
-          plugins = {
-            spelling = true;
-          };
-          defaults = {
-            mode = [ "n" "v" ];
-          };
+          plugins.spelling.enabled = true;
           spec = [
             { __unkeyed-1 = "<leader>b"; group = "Buffers"; }
             { __unkeyed-1 = "<leader>c"; group = "Code"; }
@@ -73,8 +68,8 @@ _:
             { __unkeyed-1 = "<leader>t"; group = "Test"; }
             { __unkeyed-1 = "<leader>w"; group = "Window"; }
             { __unkeyed-1 = "<leader>x"; group = "Diagnostics"; }
-            { __unkeyed-1 = "["; __unkeyed-2 = "prev"; }
-            { __unkeyed-1 = "]"; __unkeyed-2 = "next"; }
+            { __unkeyed-1 = "["; group = "prev"; }
+            { __unkeyed-1 = "]"; group = "next"; }
             { __unkeyed-1 = "g"; group = "Goto"; }
           ];
         };
