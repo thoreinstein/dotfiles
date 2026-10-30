@@ -435,13 +435,9 @@ export const MCP_POLICY = {
   // obsidian-mcp
   "obsidian-mcp_obsidian_get_daily_note": DAILY,
   "obsidian-mcp_obsidian_append_daily_log": DAILY,
-  "obsidian-mcp_obsidian_create_note": { rule: "obsidian-write", action: "prompt", reason: "creates a vault note" },
-  "obsidian-mcp_obsidian_append_note": { rule: "obsidian-write", action: "prompt", reason: "appends to a vault note" },
+  // Edits to one note pass silently: 136 prompts in the log, every one approved. Only a
+  // move stays a prompt, since it rewrites links in other notes.
   "obsidian-mcp_obsidian_move_note": { rule: "obsidian-write", action: "prompt", reason: "moves or renames a note and rewrites links to it in other notes" },
-  "obsidian-mcp_obsidian_update_frontmatter": { rule: "obsidian-write", action: "prompt", reason: "edits a note's frontmatter" },
-  "obsidian-mcp_obsidian_replace_section": { rule: "obsidian-write", action: "prompt", reason: "overwrites a section of a note" },
-  "obsidian-mcp_obsidian_insert_at_heading": { rule: "obsidian-write", action: "prompt", reason: "inserts into a note" },
-  "obsidian-mcp_obsidian_replace_in_note": { rule: "obsidian-write", action: "prompt", reason: "edits text in a note" },
 };
 
 // The adapter treats `-`, `.` and `_` alike and also accepts `mcp__<server>__<tool>`.

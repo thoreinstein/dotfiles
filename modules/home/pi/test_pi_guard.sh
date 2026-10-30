@@ -399,6 +399,13 @@ console.log("pi-guard mcp bare-name collisions: ok");
 assert.equal(MCP_POLICY.glean_memory.reason, "Glean Memory is not used. Use engram (mem_save / mem_search) for memory.");
 assert.equal(MCP_POLICY["obsidian-mcp_obsidian_get_daily_note"].reason,
   "Daily/ is generated and read-only. Use mem_save to record work; use obsidian_read_note to read an existing daily note.");
+// vault edits to a single note pass silently; a move still asks; Daily/ is still denied
+for (const t of ["obsidian-mcp_obsidian_create_note", "obsidian-mcp_obsidian_append_note", "obsidian-mcp_obsidian_replace_in_note",
+  "obsidian-mcp_obsidian_insert_at_heading", "obsidian-mcp_obsidian_replace_section", "obsidian-mcp_obsidian_update_frontmatter"]) {
+  assert.equal(mcpPolicy(t), null, t);
+}
+assert.equal(mcpPolicy("obsidian-mcp_obsidian_move_note")?.action, "prompt");
+assert.equal(mcpPolicy("obsidian-mcp_obsidian_append_daily_log")?.action, "deny");
 assert.match(MCP_POLICY["gcp-firestore_delete_database"].reason, /tell the user what to delete and why; they will do it\.$/);
 assert.match(MCP_POLICY.kubernetes_configuration_view.reason, /kubernetes_configuration_contexts_list/);
 assert.match(MCP_POLICY.jira_search.reason, /jira_searchJiraIssuesUsingJql[\s\S]*jira_searchConfluenceUsingCql/);
