@@ -119,6 +119,7 @@
               } ''
               bash ${./modules/home/pi/test_pi_guard.sh} ${./modules/home/pi/pi-guard.ts}
               touch $out
+              bash ${./modules/home/pi/test_pi_notify.sh} ${./modules/home/pi/pi-notify.ts}
             '';
 
           pre-commit-check = git-hooks.lib.${system}.run {
