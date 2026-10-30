@@ -18,6 +18,7 @@
     # Neovim configuration
     nixvim = {
       url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Quality Control
@@ -118,8 +119,8 @@
                 nativeBuildInputs = with pkgs; [ bash nodejs ];
               } ''
               bash ${./modules/home/pi/test_pi_guard.sh} ${./modules/home/pi/pi-guard.ts}
-              touch $out
               bash ${./modules/home/pi/test_pi_notify.sh} ${./modules/home/pi/pi-notify.ts}
+              touch $out
             '';
 
           pre-commit-check = git-hooks.lib.${system}.run {
