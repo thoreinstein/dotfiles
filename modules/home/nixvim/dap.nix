@@ -1,9 +1,17 @@
 { pkgs, ... }:
+let
+  # The ft trigger fires for all four DAP plugins in no fixed order, and the other
+  # two require("dap") in their setup, so each pulls nvim-dap in first.
+  loadDap = "function() require(\"lz.n\").trigger_load(\"nvim-dap\") end";
+in
 {
   programs.nixvim = {
+    # Go is the only debug target (delve), so the whole DAP stack loads on the
+    # first Go buffer.
     plugins = {
       dap = {
         enable = true;
+        lazyLoad.settings.ft = "go";
         signs = {
           dapBreakpoint = { text = "●"; texthl = "DapBreakpoint"; };
           dapBreakpointCondition = { text = "●"; texthl = "DapBreakpointCondition"; };
@@ -12,6 +20,8 @@
         };
       };
 
+      # No lazyLoad: nixvim runs its setup inside nvim-dap's load hook, so it only
+      # needs to be on the runtimepath; nothing of it runs at startup.
       dap-go = {
         enable = true;
         settings = {
@@ -42,6 +52,19 @@
 
       dap-ui = {
         enable = true;
+        lazyLoad.settings = {
+          ft = "go";
+          before.__raw = loadDap;
+          # Auto open/close the UI around a session; registered once both are loaded.
+          after.__raw = ''
+            function()
+              local dap, dapui = require("dap"), require("dapui")
+              dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
+              dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
+              dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
+            end
+          '';
+        };
         settings = {
           icons = { expanded = "▾"; collapsed = "▸"; current_frame = "▸"; };
           layouts = [
@@ -67,7 +90,13 @@
         };
       };
 
-      dap-virtual-text.enable = true;
+      dap-virtual-text = {
+        enable = true;
+        lazyLoad.settings = {
+          ft = "go";
+          before.__raw = loadDap;
+        };
+      };
     };
 
     keymaps = [
@@ -89,14 +118,6 @@
       { mode = "n"; key = "<leader>dx"; action.__raw = ''function() require("dap").clear_breakpoints() end''; options.desc = "Clear breakpoints"; }
       { mode = "n"; key = "<leader>dl"; action.__raw = ''function() require("dap").run_last() end''; options.desc = "Run last"; }
     ];
-
-    extraConfigLua = ''
-      -- Auto open/close DAP UI
-      local dap, dapui = require("dap"), require("dapui")
-      dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
-      dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
-      dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
-    '';
 
     extraPackages = with pkgs; [
       delve

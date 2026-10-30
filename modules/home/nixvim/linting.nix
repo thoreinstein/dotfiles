@@ -16,8 +16,10 @@
         markdown = [ "markdownlint" ];
         yaml = [ "yamllint" ];
       };
+      # On read and write only: BufEnter ran the linters on every buffer switch
+      # and InsertLeave on every Esc.
       autoCmd = {
-        event = [ "BufEnter" "BufWritePost" "InsertLeave" ];
+        event = [ "BufReadPost" "BufWritePost" ];
         callback.__raw = ''
           function()
             require("lint").try_lint()

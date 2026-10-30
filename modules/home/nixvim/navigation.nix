@@ -4,6 +4,10 @@ _:
     plugins = {
       telescope = {
         enable = true;
+        # The <leader>f maps call require("telescope.builtin") directly, so the
+        # plugin has to be present by the time a key is pressed: load it right
+        # after the UI is up rather than on a command.
+        lazyLoad.settings.event = "DeferredUIEnter";
         settings = {
           defaults = {
             prompt_prefix = "   ";
@@ -35,8 +39,11 @@ _:
 
       nvim-tree = {
         enable = true;
+        lazyLoad.settings.cmd = [ "NvimTreeToggle" "NvimTreeFindFile" "NvimTreeRefresh" "NvimTreeCollapse" "NvimTreeOpen" "NvimTreeFocus" ];
         settings = {
           filters.dotfiles = false;
+          # Only applied once the plugin loads; netrw is also disabled up front
+          # in extraConfigLuaPre so `nvim <dir>` doesn't open it meanwhile.
           disable_netrw = true;
           hijack_cursor = true;
           sync_root_with_cwd = true;
@@ -100,6 +107,11 @@ _:
       { mode = "n"; key = "<leader>er"; action = "<cmd>NvimTreeRefresh<cr>"; options.desc = "Refresh tree"; }
       { mode = "n"; key = "<leader>ec"; action = "<cmd>NvimTreeCollapse<cr>"; options.desc = "Collapse tree"; }
     ];
+
+    extraConfigLuaPre = ''
+      vim.g.loaded_netrw = 1
+      vim.g.loaded_netrwPlugin = 1
+    '';
 
     extraConfigLua = ''
       -- Telescope highlight links

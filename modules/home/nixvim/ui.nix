@@ -27,11 +27,6 @@ _:
             always_divide_middle = true;
             always_show_tabline = true;
             globalstatus = false;
-            refresh = {
-              statusline = 100;
-              tabline = 100;
-              winbar = 100;
-            };
           };
           sections = {
             lualine_a = [ "mode" ];
@@ -139,7 +134,14 @@ _:
 
       lspsaga = {
         enable = true;
+        # Nothing to do until a server attaches; the winbar hooks LspAttach.
+        lazyLoad.settings = {
+          cmd = "Lspsaga";
+          event = "LspAttach";
+        };
         settings = {
+          # The lightbulb sends a code-action request on every CursorHold.
+          lightbulb.enable = false;
           symbol_in_winbar = {
             folder_level = 3;
           };

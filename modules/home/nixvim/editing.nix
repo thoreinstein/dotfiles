@@ -15,6 +15,8 @@ _:
 
     ts-autotag = {
       enable = true;
+      # Tag filetypes only; it was ~50 ms of every startup.
+      lazyLoad.settings.ft = [ "html" "xml" "javascriptreact" "typescriptreact" "svelte" "vue" "astro" "markdown" ];
     };
 
     illuminate = {

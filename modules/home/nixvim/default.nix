@@ -23,5 +23,10 @@ _:
     enable = true;
     defaultEditor = true;
     vimAlias = true;
+
+    # Loader for every plugin that sets `lazyLoad` (telescope, nvim-tree, lspsaga,
+    # codediff, dap, neotest, ts-autotag): they stay off the runtimepath until
+    # their command, filetype or event, instead of all loading at startup.
+    plugins.lz-n.enable = true;
   };
 }

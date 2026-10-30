@@ -47,7 +47,8 @@ _: {
               text = "~";
             };
           };
-          current_line_blame = true;
+          # Off by default (a git blame per cursor rest); <leader>hB toggles it.
+          current_line_blame = false;
           current_line_blame_opts = {
             virt_text = true;
             virt_text_pos = "eol";
@@ -119,6 +120,7 @@ _: {
       # Inline (GitHub-style) diffs by default; `t` in a diff toggles side-by-side.
       codediff = {
         enable = true;
+        lazyLoad.settings.cmd = "CodeDiff";
         settings.diff.layout = "inline";
       };
 

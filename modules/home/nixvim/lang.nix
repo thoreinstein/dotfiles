@@ -4,6 +4,8 @@
     plugins = {
       neotest = {
         enable = true;
+        # Only the Go adapter is configured.
+        lazyLoad.settings.ft = "go";
         adapters = {
           go.enable = true;
         };
