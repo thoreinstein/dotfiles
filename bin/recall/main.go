@@ -244,12 +244,33 @@ func parseEngram(out []byte) []hit {
 	return hits
 }
 
-func searchVault(prompt, cwd string) []hit {
-	home, err := os.UserHomeDir()
+// obsidianIndex is obsidian-mcp's entry point: $RECALL_OBSIDIAN_MCP, else the path that
+// home-manager's activation resolved from the npx cache (modules/home/default.nix). Empty
+// when neither is set, which skips the vault.
+func obsidianIndex() string {
+	if p := os.Getenv("RECALL_OBSIDIAN_MCP"); p != "" {
+		return p
+	}
+	state := os.Getenv("XDG_STATE_HOME")
+	if state == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return ""
+		}
+		state = filepath.Join(home, ".local/state")
+	}
+	data, err := os.ReadFile(filepath.Join(state, "recall", "obsidian-mcp"))
 	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
+func searchVault(prompt, cwd string) []hit {
+	index := obsidianIndex()
+	if index == "" {
 		return nil
 	}
-	index := filepath.Join(home, "src/thoreinstein/obsidian-mcp/dist/index.js")
 	// Over-fetch so there are still hits after skipping saved reading,
 	// which matches a prompt's tone more than its subject.
 	out := run(vaultTimeout, cwd, "node", index, "obsidian_rag_query", "--query", prompt, "--limit", "10")

@@ -62,10 +62,26 @@ in
     ".pi/agent/mcp.json".text = piMcpJson;
   };
 
+  # The install also tells recall where obsidian-mcp's entry point landed (bin/recall reads
+  # ~/.local/state/recall/obsidian-mcp), so recall runs it directly instead of through npx.
+  # Skipped while the spec is unchanged and the recorded path still exists, so a switch stays
+  # fast and works offline.
   home.activation.warmObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    PATH="${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:$PATH" \
-      run ${pkgs.nodejs}/bin/npx -y -p ${lib.escapeShellArg obsidianMcpSpec} true \
-      || echo "warning: could not pre-install ${obsidianMcpSpec}; first MCP launch will install it"
+    state="''${XDG_STATE_HOME:-$HOME/.local/state}/recall"
+    if [ "$(cat "$state/obsidian-mcp.spec" 2>/dev/null)" != ${lib.escapeShellArg obsidianMcpSpec} ] \
+      || [ ! -f "$(cat "$state/obsidian-mcp" 2>/dev/null)" ]; then
+      if bin=$(PATH="${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:$PATH" \
+          ${pkgs.nodejs}/bin/npx -y -p ${lib.escapeShellArg obsidianMcpSpec} sh -c 'command -v obsidian-mcp') \
+        && [ -n "$bin" ]; then
+        run mkdir -p "$state"
+        if [[ ! -v DRY_RUN ]]; then
+          readlink -f "$bin" >"$state/obsidian-mcp"
+          printf '%s\n' ${lib.escapeShellArg obsidianMcpSpec} >"$state/obsidian-mcp.spec"
+        fi
+      else
+        echo "warning: could not install ${obsidianMcpSpec}; recall has no vault index until the next switch"
+      fi
+    fi
   '';
 
   home.activation.claudeDesktopObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

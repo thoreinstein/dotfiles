@@ -2,10 +2,34 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+func TestObsidianIndex(t *testing.T) {
+	state := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", state)
+	t.Setenv("RECALL_OBSIDIAN_MCP", "")
+	if got := obsidianIndex(); got != "" {
+		t.Fatalf("no state file: got %q, want empty", got)
+	}
+	if err := os.MkdirAll(filepath.Join(state, "recall"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(state, "recall", "obsidian-mcp"), []byte("/cache/obsidian-mcp/dist/index.js\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if got := obsidianIndex(); got != "/cache/obsidian-mcp/dist/index.js" {
+		t.Fatalf("state file: got %q", got)
+	}
+	t.Setenv("RECALL_OBSIDIAN_MCP", "/dev/checkout/dist/index.js")
+	if got := obsidianIndex(); got != "/dev/checkout/dist/index.js" {
+		t.Fatalf("env override: got %q", got)
+	}
+}
 
 func TestKeywords(t *testing.T) {
 	got := keywords("Where did I land on the Terragrunt repo-consolidation work, and the TG work?")
