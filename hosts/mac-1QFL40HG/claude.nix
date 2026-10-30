@@ -35,16 +35,26 @@ in
 
       permissions = {
         defaultMode = "auto";
+        # Read-only forms only: an entry here skips auto mode's own check, so broad
+        # prefixes (`gh pr *` includes merge, `git branch *` includes -D, `find *`
+        # includes -exec/-delete, `cat *` reads anything) stay out.
         allow = [
-          "Bash(gh pr *)"
+          "Bash(gh pr view *)"
+          "Bash(gh pr list *)"
+          "Bash(gh pr diff *)"
+          "Bash(gh pr checks *)"
+          "Bash(gh pr status *)"
           "Bash(git status)"
           "Bash(git log *)"
           "Bash(git diff *)"
-          "Bash(git branch *)"
+          "Bash(git branch)"
+          "Bash(git branch --show-current)"
+          "Bash(git branch --list *)"
+          "Bash(git branch -a)"
+          "Bash(git branch -r)"
+          "Bash(git branch -vv)"
           "Bash(ls *)"
-          "Bash(find *)"
           "Bash(grep *)"
-          "Bash(cat *)"
           "Bash(rtk *)"
           "mcp__codegraph__*"
           "mcp__obsidian-mcp__obsidian_read_note"
@@ -70,7 +80,35 @@ in
           "mcp__plugin_aic-ai_firehydrant__*"
           "mcp__engram__*"
           "mcp__plugin_engram_engram__*"
-          "mcp__plugin_github_github__*"
+          # Read tools only; the plugin's write tools (merge_pull_request, push_files,
+          # create/delete_repository, issue_write, ...) go through the normal prompt.
+          "mcp__plugin_github_github__get_commit"
+          "mcp__plugin_github_github__get_file_contents"
+          "mcp__plugin_github_github__get_label"
+          "mcp__plugin_github_github__get_latest_release"
+          "mcp__plugin_github_github__get_me"
+          "mcp__plugin_github_github__get_release_by_tag"
+          "mcp__plugin_github_github__get_tag"
+          "mcp__plugin_github_github__get_team_members"
+          "mcp__plugin_github_github__get_teams"
+          "mcp__plugin_github_github__get_copilot_job_status"
+          "mcp__plugin_github_github__issue_read"
+          "mcp__plugin_github_github__list_branches"
+          "mcp__plugin_github_github__list_commits"
+          "mcp__plugin_github_github__list_issue_fields"
+          "mcp__plugin_github_github__list_issue_types"
+          "mcp__plugin_github_github__list_issues"
+          "mcp__plugin_github_github__list_pull_requests"
+          "mcp__plugin_github_github__list_releases"
+          "mcp__plugin_github_github__list_repository_collaborators"
+          "mcp__plugin_github_github__list_tags"
+          "mcp__plugin_github_github__pull_request_read"
+          "mcp__plugin_github_github__search_code"
+          "mcp__plugin_github_github__search_commits"
+          "mcp__plugin_github_github__search_issues"
+          "mcp__plugin_github_github__search_pull_requests"
+          "mcp__plugin_github_github__search_repositories"
+          "mcp__plugin_github_github__search_users"
           "mcp__obsidian-mcp__*"
         ];
       };
