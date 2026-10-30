@@ -5,29 +5,29 @@
       enable = true;
       settings = {
         formatters_by_ft = {
-          css = [ "prettier" ];
+          css = [ "prettierd" ];
           go = [ "goimports" "gofmt" ];
-          graphql = [ "prettier" ];
-          handlebars = [ "prettier" ];
+          graphql = [ "prettierd" ];
+          handlebars = [ "prettierd" ];
           hcl = [ "tofu_fmt" "terragrunt_hclfmt" ];
-          html = [ "prettier" ];
-          javascript = [ "prettier" ];
-          javascriptreact = [ "prettier" ];
-          json = [ "prettier" ];
-          jsonc = [ "prettier" ];
-          less = [ "prettier" ];
+          html = [ "prettierd" ];
+          javascript = [ "prettierd" ];
+          javascriptreact = [ "prettierd" ];
+          json = [ "prettierd" ];
+          jsonc = [ "prettierd" ];
+          less = [ "prettierd" ];
           lua = [ "stylua" ];
-          markdown = [ "prettier" ];
+          markdown = [ "prettierd" ];
           python = [ "isort" "black" ];
           rust = [ "rustfmt" ];
-          scss = [ "prettier" ];
+          scss = [ "prettierd" ];
           sh = [ "shfmt" ];
-          svelte = [ "prettier" ];
+          svelte = [ "prettierd" ];
           terraform = [ "tofu_fmt" ];
           "terraform-vars" = [ "tofu_fmt" ];
-          typescript = [ "prettier" ];
-          typescriptreact = [ "prettier" ];
-          vue = [ "prettier" ];
+          typescript = [ "prettierd" ];
+          typescriptreact = [ "prettierd" ];
+          vue = [ "prettierd" ];
           zig = [ "zigfmt" ];
         };
         format_on_save = {
@@ -42,7 +42,7 @@
               end
               return {
                 timeout_ms = 500,
-                lsp_fallback = true,
+                lsp_format = "fallback",
               }
             end
           '';
@@ -56,7 +56,7 @@
         key = "<leader>rf";
         action.__raw = ''
           function()
-            require("conform").format({ async = true, lsp_fallback = true })
+            require("conform").format({ async = true, lsp_format = "fallback" })
           end
         '';
         options.desc = "Format buffer";
@@ -66,7 +66,15 @@
         key = "<leader>rF";
         action.__raw = ''
           function()
-            require("conform").format({ async = true, lsp_fallback = true })
+            -- The selection as a range; without one conform formats the whole buffer.
+            local s, e = vim.fn.line("v"), vim.fn.line(".")
+            if s > e then s, e = e, s end
+            local last = vim.api.nvim_buf_get_lines(0, e - 1, e, false)[1] or ""
+            require("conform").format({
+              async = true,
+              lsp_format = "fallback",
+              range = { start = { s, 0 }, ["end"] = { e, #last } },
+            })
           end
         '';
         options.desc = "Format selection";
@@ -88,7 +96,6 @@
       prettierd
       shfmt
       stylua
-      yamlfmt
       zig
     ];
   };
