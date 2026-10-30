@@ -7,14 +7,14 @@ _:
       servers = {
         lua_ls = {
           enable = true;
+          # nixvim nests these under `Lua` itself; a `Lua` key here would double it.
           settings = {
-            Lua = {
-              workspace = {
-                library = [
-                  "\${vim.fn.expand(\"$VIMRUNTIME/lua\")}"
-                  "\${3rd}/luv/library"
-                ];
-              };
+            workspace = {
+              library = [
+                # Evaluated in Lua at startup; lua_ls itself only expands ''${3rd}.
+                { __raw = ''vim.fn.expand("$VIMRUNTIME/lua")''; }
+                "\${3rd}/luv/library"
+              ];
             };
           };
         };
@@ -111,8 +111,8 @@ _:
         map("n", "K", vim.lsp.buf.hover, opts "Hover")
 
         -- diagnostics ([ ] navigation)
-        map("n", "[d", vim.diagnostic.goto_prev, opts "Prev diagnostic")
-        map("n", "]d", vim.diagnostic.goto_next, opts "Next diagnostic")
+        map("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, opts "Prev diagnostic")
+        map("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, opts "Next diagnostic")
 
         -- code actions (<leader>c group)
         map("n", "<leader>ck", vim.lsp.buf.signature_help, opts "Signature help")
@@ -122,27 +122,34 @@ _:
         map("n", "<leader>xe", vim.diagnostic.open_float, opts "Show diagnostic float")
         map("n", "<leader>xl", vim.diagnostic.setloclist, opts "Diagnostic loclist")
 
-        if client.supports_method("textDocument/semanticTokens") then
-          client.server_capabilities.semanticTokensProvider = nil
-        end
+        -- Treesitter does the highlighting; drop semantic tokens from every server.
+        client.server_capabilities.semanticTokensProvider = nil
       '';
     };
 
     diagnostic.settings = {
       virtual_text = false;
-      signs = true;
+      # Sign icons go here; vim.fn.sign_define for DiagnosticSign* is ignored since 0.10.
+      signs = {
+        text = {
+          "__rawKey__vim.diagnostic.severity.ERROR" = "󰅚 ";
+          "__rawKey__vim.diagnostic.severity.WARN" = "󰀪 ";
+          "__rawKey__vim.diagnostic.severity.HINT" = "󰌶 ";
+          "__rawKey__vim.diagnostic.severity.INFO" = " ";
+        };
+        numhl = {
+          "__rawKey__vim.diagnostic.severity.ERROR" = "DiagnosticSignError";
+          "__rawKey__vim.diagnostic.severity.WARN" = "DiagnosticSignWarn";
+          "__rawKey__vim.diagnostic.severity.HINT" = "DiagnosticSignHint";
+          "__rawKey__vim.diagnostic.severity.INFO" = "DiagnosticSignInfo";
+        };
+      };
       underline = true;
       update_in_insert = false;
       severity_sort = true;
     };
 
     extraConfigLua = ''
-      local signs = { Error = "󰅚 ", Warn = "󰀪 ", Hint = "󰌶 ", Info = " " }
-      for type, icon in pairs(signs) do
-        local hl = "DiagnosticSign" .. type
-        vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-      end
-
       -- Helm filetype detection
       vim.api.nvim_create_autocmd("BufRead", {
         pattern = "*/templates/*.yaml",
