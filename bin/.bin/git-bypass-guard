@@ -3,7 +3,10 @@
 # git-bypass-guard - Claude Code PreToolUse hook for Bash.
 #
 # Denies git commands that skip hooks or commit signing: --no-verify, commit -n,
-# SKIP=<hook>, core.hooksPath overrides, --no-gpg-sign, commit.gpgsign=false.
+# SKIP=<hook> and the HUSKY/LEFTHOOK/pre-commit equivalents, core.hooksPath
+# overrides (git config, -c, GIT_CONFIG_* env), tampering with .git/hooks or
+# uninstalling the hook manager, --no-gpg-sign, commit.gpgsign=false, and a
+# replaced gpg.program.
 # When a hook or a locked GPG key fails a commit, the answer is to fix the cause
 # or stop and tell the user, never to route around it. pi-guard.ts enforces the
 # same rules for pi.
@@ -15,7 +18,7 @@ set -euo pipefail
 
 input="$(cat)"
 command="$(jq -r '.tool_input.command // ""' <<<"$input")"
-[[ "$command" == *git* ]] || exit 0
+[[ "$command" == *git* || "$command" == *pre-commit* || "$command" == *husky* || "$command" == *lefthook* ]] || exit 0
 
 # Blank out quoted strings so "--no-verify" inside a commit message is not
 # mistaken for a flag. A shell or eval wrapper hides the real command inside
@@ -28,18 +31,25 @@ fi
 
 # [^|;&]* keeps each rule inside one command, so `git status && ls -n` is not a
 # commit -n.
-hooks_re='git[^|;&]*(--no-verify|[[:space:]]commit[^|;&]*[[:space:]]-[A-Za-z]*n[A-Za-z]*([[:space:]]|$)|-c[[:space:]]*core\.hookspath=|config[[:space:]]+core\.hookspath[[:space:]]+[^-])'
-skip_re='(^|[[:space:];&|(])SKIP=[^[:space:]]*[[:space:]]+([^|;&]*[[:space:]])?git[[:space:]][^|;&]*(commit|push|merge|rebase|cherry-pick)'
-sign_re='git[^|;&]*(--no-gpg-sign|gpgsign(=|[[:space:]]+)(false|0|no|off)([[:space:]]|$))'
+# `config` may carry flags (--global, --local) or the `set` subcommand before the key;
+# a value must follow, so `--get`/`--unset` reads stay allowed.
+hooks_re='git[^|;&]*(--no-verify|[[:space:]]commit[^|;&]*[[:space:]]-[A-Za-z]*n[A-Za-z]*([[:space:]]|$)|-c[[:space:]]*core\.hookspath=|config([[:space:]]+(set|-[^[:space:]]+))*[[:space:]]+core\.hookspath[[:space:]]+[^-])'
+# Env prefixes that make git or the hook manager skip hooks. GIT_CONFIG_* can set
+# core.hooksPath (or anything else) for one command, so it counts too.
+skip_re='(^|[[:space:];&|(])(SKIP|HUSKY|LEFTHOOK|PRE_COMMIT_ALLOW_NO_CONFIG|GIT_CONFIG_COUNT|GIT_CONFIG_PARAMETERS|GIT_CONFIG_KEY_[0-9]+)=[^[:space:]]*[[:space:]]+([^|;&]*[[:space:]])?git[[:space:]][^|;&]*(commit|push|merge|rebase|cherry-pick)'
+# Removing, disabling or moving hook files, or uninstalling the hook manager,
+# skips hooks for every later commit, so these are denied on their own.
+hookfiles_re='(^|[[:space:];&|(])(rm|mv|chmod|unlink|truncate)[^|;&]*[[:space:]][^[:space:]]*\.git/hooks|(^|[[:space:];&|(])(pre-commit|husky|lefthook)[[:space:]]+uninstall([[:space:]]|$)'
+sign_re='git[^|;&]*(--no-gpg-sign|gpgsign(=|[[:space:]]+)(false|0|no|off)([[:space:]]|$)|gpg\.program(=|[[:space:]]+)[^[:space:]-])'
 
 reason=""
 for text in "${texts[@]}"; do
-  if grep -Eiq "$hooks_re" <<<"$text" || grep -Eq "$skip_re" <<<"$text"; then
-    reason="Denied: skipping git hooks (--no-verify, commit -n, SKIP=, core.hooksPath) is never allowed. Fix what the hook reports, or stop and tell the user."
+  if grep -Eiq "$hooks_re" <<<"$text" || grep -Eq "$skip_re" <<<"$text" || grep -Eq "$hookfiles_re" <<<"$text"; then
+    reason="Denied: skipping git hooks (--no-verify, commit -n, SKIP=, core.hooksPath, editing .git/hooks) is never allowed. Fix what the hook reports, or stop and tell the user."
     break
   fi
   if grep -Eiq "$sign_re" <<<"$text"; then
-    reason="Denied: bypassing commit signing (--no-gpg-sign, gpgsign=false) is never allowed. If signing failed the key is probably locked: tell the user to unlock it, then retry the same command."
+    reason="Denied: bypassing commit signing (--no-gpg-sign, gpgsign=false, gpg.program) is never allowed. If signing failed the key is probably locked: tell the user to unlock it, then retry the same command."
     break
   fi
 done
