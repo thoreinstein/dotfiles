@@ -68,6 +68,7 @@ _:
             { __unkeyed-1 = "<leader>f"; group = "Find"; }
             { __unkeyed-1 = "<leader>g"; group = "Git"; }
             { __unkeyed-1 = "<leader>h"; group = "Hunk"; }
+            { __unkeyed-1 = "<leader>q"; group = "Quickfix"; }
             { __unkeyed-1 = "<leader>r"; group = "Refactor"; }
             { __unkeyed-1 = "<leader>t"; group = "Test"; }
             { __unkeyed-1 = "<leader>w"; group = "Window"; }

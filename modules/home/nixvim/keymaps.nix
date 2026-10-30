@@ -42,11 +42,11 @@ _:
     # Clear search highlighting
     { mode = "n"; key = "<Esc>"; action = "<cmd>nohlsearch<cr>"; options.desc = "Clear search highlight"; }
 
-    # Quickfix navigation
-    { mode = "n"; key = "<leader>cn"; action = "<cmd>cnext<cr>zz"; options.desc = "Next quickfix item"; }
-    { mode = "n"; key = "<leader>cp"; action = "<cmd>cprev<cr>zz"; options.desc = "Previous quickfix item"; }
-    { mode = "n"; key = "<leader>co"; action = "<cmd>copen<cr>"; options.desc = "Open quickfix list"; }
-    { mode = "n"; key = "<leader>cc"; action = "<cmd>cclose<cr>"; options.desc = "Close quickfix list"; }
+    # Quickfix navigation (<leader>q; <leader>c is Code/Lspsaga, which took cp and co)
+    { mode = "n"; key = "<leader>qn"; action = "<cmd>cnext<cr>zz"; options.desc = "Next quickfix item"; }
+    { mode = "n"; key = "<leader>qp"; action = "<cmd>cprev<cr>zz"; options.desc = "Previous quickfix item"; }
+    { mode = "n"; key = "<leader>qo"; action = "<cmd>copen<cr>"; options.desc = "Open quickfix list"; }
+    { mode = "n"; key = "<leader>qc"; action = "<cmd>cclose<cr>"; options.desc = "Close quickfix list"; }
 
     # Yank to end of line
     { mode = "n"; key = "Y"; action = "y$"; options.desc = "Yank to end of line"; }
@@ -54,8 +54,8 @@ _:
     # Paste without losing register content
     { mode = "x"; key = "<leader>p"; action = ''"_dP''; options.desc = "Paste without yanking"; }
 
-    # Delete without yanking
-    { mode = [ "n" "v" ]; key = "<leader>d"; action = ''"_d''; options.desc = "Delete without yanking"; }
+    # Delete without yanking (<leader>d is the Debug prefix)
+    { mode = [ "n" "v" ]; key = "<leader>D"; action = ''"_d''; options.desc = "Delete without yanking"; }
 
     # Quick save
     { mode = "n"; key = "<C-s>"; action = "<cmd>w<cr>"; options.desc = "Save file"; }

@@ -2,8 +2,8 @@ _:
 {
   programs.nixvim = {
     # Reviewing an agent changeset is walking a list, not hunting a directory.
-    # Quickfix composes with navigation this config already has: <leader>cn,
-    # <leader>cp, ]q, [q, and <leader>xQ to view the same list in Trouble.
+    # Quickfix composes with navigation this config already has: <leader>qn,
+    # <leader>qp, ]q, [q, and <leader>xQ to view the same list in Trouble.
     userCommands.QfGitChanged = {
       desc = "Load files changed vs a rev (default HEAD), plus untracked, into quickfix";
       nargs = "?";
