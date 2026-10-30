@@ -1,5 +1,32 @@
 { pkgs, ... }:
+let
+  # nvim-treesitter-textobjects (main branch) no longer builds keymaps from its
+  # config table; each motion is a plain keymap into its move/swap modules.
+  move = key: fn: query: desc: {
+    mode = [ "n" "x" "o" ];
+    inherit key;
+    action.__raw = "function() require(\"nvim-treesitter-textobjects.move\").${fn}(\"${query}\", \"textobjects\") end";
+    options.desc = desc;
+  };
+  swap = key: fn: query: desc: {
+    mode = "n";
+    inherit key;
+    action.__raw = "function() require(\"nvim-treesitter-textobjects.swap\").${fn}(\"${query}\") end";
+    options.desc = desc;
+  };
+in
 {
+  programs.nixvim.keymaps = [
+    (move "]f" "goto_next_start" "@function.outer" "Next function")
+    (move "[f" "goto_previous_start" "@function.outer" "Previous function")
+    (move "]k" "goto_next_start" "@class.outer" "Next class") # ]c/[c are the diff-hunk motions
+    (move "[k" "goto_previous_start" "@class.outer" "Previous class")
+    (move "]a" "goto_next_start" "@parameter.inner" "Next parameter")
+    (move "[a" "goto_previous_start" "@parameter.inner" "Previous parameter")
+    (swap "<leader>a" "swap_next" "@parameter.inner" "Swap with next parameter")
+    (swap "<leader>A" "swap_previous" "@parameter.inner" "Swap with previous parameter")
+  ];
+
   programs.nixvim.plugins = {
     treesitter = {
       enable = true;
@@ -54,6 +81,8 @@
         markdown
         markdown_inline
         html
+        python
+        rust
         css
         gotmpl
         comment
@@ -70,31 +99,7 @@
 
     treesitter-textobjects = {
       enable = true;
-      settings = {
-        move = {
-          enable = true;
-          set_jumps = true;
-          goto_next_start = {
-            "]f" = "@function.outer";
-            "]c" = "@class.outer";
-            "]a" = "@parameter.inner";
-          };
-          goto_previous_start = {
-            "[f" = "@function.outer";
-            "[c" = "@class.outer";
-            "[a" = "@parameter.inner";
-          };
-        };
-        swap = {
-          enable = true;
-          swap_next = {
-            "<leader>a" = "@parameter.inner";
-          };
-          swap_previous = {
-            "<leader>A" = "@parameter.inner";
-          };
-        };
-      };
+      settings.move.set_jumps = true;
     };
   };
 }
