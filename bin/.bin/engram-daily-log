@@ -29,7 +29,12 @@ for day in "$(date -v-1d +%F)" "$(date +%F)"; do
 
   out="$vault/Daily/${day:0:4}/${day:5:2}/$day.md"
   mkdir -p "$(dirname "$out")"
-  body=$(echo "$files" | xargs cat | claude -p "$prompt" --tools "" --no-session-persistence --disable-slash-commands --strict-mcp-config)
+  # claude prints API errors to stdout, which launchd throws away (only stderr
+  # is captured), so surface the failure instead of dying silently
+  if ! body=$(echo "$files" | xargs cat | claude -p "$prompt" --tools "" --no-session-persistence --disable-slash-commands --strict-mcp-config); then
+    echo "claude -p failed for $day: ${body:0:200}" >&2
+    exit 1
+  fi
 
   standup=""
   [ -f "$out" ] && standup=$(awk '/^## /{f = ($0 == "## Standup")} f' "$out")
