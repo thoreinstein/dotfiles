@@ -17,13 +17,25 @@ const GIT_ASK = new Set([
 ]);
 // Global git options that take their value as the next token.
 const GIT_OPT_ARG = new Set(["-C", "-c", "--git-dir", "--work-tree", "--namespace"]);
+// The git.nix aliases, expanded so `git cm x -n` is seen as the commit it is.
+const GIT_ALIASES = {
+  cm: ["commit"], co: ["checkout"], cb: ["checkout", "-b"], rewrite: ["rebase", "-i"], sync: ["rebase"],
+  wr: ["worktree", "remove"], ca: ["commit", "--amend"], can: ["commit", "--amend", "--no-edit"],
+};
+// Env vars that make git or a hook manager skip hooks for the command they prefix. GIT_CONFIG_*
+// can set anything, core.hooksPath included.
+const HOOK_SKIP_ENV = /^(SKIP|HUSKY|LEFTHOOK|PRE_COMMIT_ALLOW_NO_CONFIG|GIT_CONFIG_COUNT|GIT_CONFIG_KEY_\d+|GIT_CONFIG_PARAMETERS)=/;
+// An alias body that itself skips hooks or signing.
+const ALIAS_BYPASS = /--no-veri|--no-gpg|\s-[A-Za-z]*n[A-Za-z]*(\s|$)|hookspath|gpg\.program/i;
 const TF = new Set(["terraform", "tofu", "terragrunt"]);
 // Binaries whose first non-flag argument names the command family (git status vs git log).
 const SUBCOMMANDED = new Set([...TF, "git", "gh", "gcloud", "kubectl", "docker", "nix", "make", "npm"]);
 const NOISE = new Set(["cd", "export", "set", "source", ".", "true"]);
 
 // Splits a bash command into pipelines of tokens, honouring quotes, so a quoted "rm" or
-// "--no-verify" inside a commit message is not mistaken for a command.
+// "--no-verify" inside a commit message is not mistaken for a command. `(` and `)` end a
+// command like `;` does, so a subshell's contents are stages of their own; a backslash-newline
+// is a line continuation, not part of a word.
 function parse(cmd) {
   const commands = [];
   let pipeline = [], tokens = [], word = "", quote = "", inWord = false;
@@ -37,9 +49,10 @@ function parse(cmd) {
       else if (c === "\\" && quote === '"' && i + 1 < cmd.length) word += cmd[++i];
       else word += c;
     } else if (c === "'" || c === '"') { quote = c; inWord = true; }
+    else if (c === "\\" && cmd[i + 1] === "\n") { i++; endWord(); }
     else if (c === "\\" && i + 1 < cmd.length) { word += cmd[++i]; inWord = true; }
     else if (c === " " || c === "\t") endWord();
-    else if (c === "\n" || c === ";") endCommand();
+    else if (c === "\n" || c === ";" || c === "(" || c === ")") endCommand();
     else if (c === "&" || c === "|") {
       if (cmd[i + 1] === c) { i++; endCommand(); }
       else if (c === "|") endStage();
@@ -50,14 +63,33 @@ function parse(cmd) {
   return commands;
 }
 
-// Drops env assignments and wrappers so `FOO=1 sudo git commit` reads as `git commit`.
+const base = (s) => s.split("/").pop();
+
+// Prefixes that run the rest of the line as-is, flags included, so `sudo -u root git commit`
+// reads as `git commit`. Shells, eval, xargs and the like are WRAPPERS below instead: their
+// argument is a string the tokenizer can't see into.
+// Each maps to the flags that take their value as the next token (sudo -u root, caffeinate -t 300).
+const PASSTHROUGH = {
+  sudo: new Set(["-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-T", "-U"]),
+  env: new Set(["-u", "-C", "-S"]),
+  caffeinate: new Set(["-t", "-w"]),
+  command: new Set(), time: new Set(), nohup: new Set(), rtk: new Set(), arch: new Set(), builtin: new Set(),
+};
+// Shell words that can precede a command inside one stage: `{ cmd; }`, `! cmd`, `then cmd`.
+const SHELL_WORDS = new Set(["{", "}", "!", "if", "then", "else", "elif", "fi", "do", "done", "while", "until"]);
+
+// Drops env assignments, shell words and pass-through wrappers with their flags.
 function strip(tokens) {
   let t = tokens;
-  while (t.length && (/^\w+=/.test(t[0]) || ["sudo", "command", "env", "time", "nohup"].includes(t[0]))) t = t.slice(1);
-  return t;
+  for (;;) {
+    if (!t.length) return t;
+    if (/^\w+=/.test(t[0]) || SHELL_WORDS.has(t[0])) { t = t.slice(1); continue; }
+    const optArg = PASSTHROUGH[base(t[0])];
+    if (!optArg) return t;
+    t = t.slice(1);
+    while (t.length && t[0].startsWith("-")) t = t.slice(optArg.has(t[0]) ? 2 : 1);
+  }
 }
-
-const base = (s) => s.split("/").pop();
 
 function subcommand(args, optWithArg = new Set()) {
   for (let i = 0; i < args.length; i++) {
@@ -95,23 +127,33 @@ export function check(tokens) {
   const bin = base(t[0]), args = t.slice(1);
   const hits = [];
   if (bin === "git") {
-    const sub = subcommand(args, GIT_OPT_ARG);
+    let sub = subcommand(args, GIT_OPT_ARG);
+    if (GIT_ALIASES[sub]) {
+      args.splice(args.indexOf(sub), 1, ...GIT_ALIASES[sub]);
+      sub = GIT_ALIASES[sub][0];
+    }
     // Ways to skip hooks or signing. `-n` is --no-verify only on commit (on push it is a dry run).
-    // A leading SKIP=<hook> env assignment is stripped from `t`, so read it off the raw tokens.
+    // Long options match on their shortest unambiguous prefix, as git accepts them. A leading
+    // SKIP=<hook> env assignment is stripped from `t`, so read it off the raw tokens.
     const optValues = args.filter((a, i) => args[i - 1] === "-c");
-    const skipEnv = tokens.slice(0, tokens.length - t.length).some((e) => /^SKIP=/.test(e));
-    if (args.includes("--no-verify")
+    const skipEnv = tokens.slice(0, tokens.length - t.length).some((e) => HOOK_SKIP_ENV.test(e));
+    const configKey = (re) => sub === "config" && args.some((a) => re.test(a)) && !args.some((a) => a === "--get" || a === "--get-all" || a === "--unset");
+    const configAlias = configKey(/^alias\./i);
+    if (args.some((a) => /^--no-veri/.test(a))
       || (sub === "commit" && args.some((a) => /^-[A-Za-z]*n[A-Za-z]*$/.test(a)))
-      || optValues.some((v) => /^core\.hookspath=/i.test(v))
-      || (sub === "config" && args.some((a) => /^core\.hookspath$/i.test(a)) && !args.some((a) => a === "--get" || a === "--unset"))
+      || optValues.some((v) => /^core\.hookspath=/i.test(v) || /^alias\./i.test(v))
+      || args.some((a) => /^--config-env=core\.hookspath=/i.test(a))
+      || configKey(/^core\.hookspath$/i)
+      || (configAlias && args.some((a) => ALIAS_BYPASS.test(a)))
       || (skipEnv && ["commit", "push", "merge", "rebase", "cherry-pick"].includes(sub)))
       hits.push(["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)"]);
-    if (args.includes("--no-gpg-sign")
-      || optValues.some((v) => /^(commit|tag)\.gpgsign=(false|0|no|off)$/i.test(v))
-      || (sub === "config" && args.some((a) => /gpgsign/i.test(a)) && args.some((a) => /^(false|0|no|off)$/i.test(a))))
+    if (args.some((a) => /^--no-gpg/.test(a))
+      || optValues.some((v) => /^(commit|tag)\.gpgsign=(false|0|no|off)$/i.test(v) || /^gpg\.program=/i.test(v))
+      || (sub === "config" && args.some((a) => /gpgsign/i.test(a)) && args.some((a) => /^(false|0|no|off)$/i.test(a)))
+      || (configKey(/^gpg\.program$/i) && args.indexOf(args.find((a) => /^gpg\.program$/i.test(a))) < args.length - 1))
       hits.push(["git-no-sign", "git signing bypass (--no-gpg-sign, gpgsign=false)"]);
-    // `ca` and `can` are the git.nix aliases for `commit --amend`.
-    if ((sub === "commit" && args.includes("--amend")) || sub === "ca" || sub === "can") hits.push(["git-amend", "git commit --amend REWRITES THE LAST COMMIT"]);
+    if (sub === "commit" && args.includes("--amend")) hits.push(["git-amend", "git commit --amend REWRITES THE LAST COMMIT"]);
+    if (configAlias) hits.push(["git-config-alias", "git config alias.* defines a new git command"]);
     // Continuing a rebase that already stopped only commits the resolution; starting, skipping
     // (drops the commit) or aborting one still asks.
     const continuing = sub === "rebase" && args.slice(args.indexOf("rebase") + 1).join(" ") === "--continue";
@@ -145,22 +187,26 @@ const WRAPPERS = new Set([
   "watch", "env", "ssh", "parallel", "su", "doas", "flock", "stdbuf", "setsid", "script", "busybox",
 ]);
 const NESTED = /\$\(|`|<\(|>\(/;
+// A short flag cluster ends at whitespace, a closing quote or a shell operator.
+const FLAG_END = String.raw`(\s|$|['")\x60;&|])`;
 const RAW_RULES = [
-  ["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)", /\bgit\b[\s\S]*(--no-verify|\bcommit\b[\s\S]*\s-[A-Za-z]*n[A-Za-z]*(\s|$)|core\.hookspath)/i],
-  ["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)", /\bSKIP=[\s\S]*\bgit\b[\s\S]*\b(commit|push|merge|rebase|cherry-pick)\b/],
-  ["git-no-sign", "git signing bypass (--no-gpg-sign, gpgsign=false)", /\bgit\b[\s\S]*(--no-gpg-sign|gpgsign[=\s]+(false|0|no|off)\b)/i],
-  ["rm", "rm", /(^|[\s;&|(`"'])rm\b/],
+  ["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)", new RegExp(String.raw`\bgit\b[\s\S]*(--no-veri|\bcommit\b[\s\S]*\s-[A-Za-z]*n[A-Za-z]*${FLAG_END}|core\.hookspath|\balias\.\w+=)`, "i")],
+  ["git-no-verify", "git hook bypass (--no-verify, commit -n, SKIP=, core.hooksPath)", /\b(SKIP|HUSKY|LEFTHOOK|PRE_COMMIT_ALLOW_NO_CONFIG|GIT_CONFIG_(COUNT|KEY_\d+|PARAMETERS))=[\s\S]*\bgit\b[\s\S]*\b(commit|push|merge|rebase|cherry-pick)\b/],
+  ["git-no-sign", "git signing bypass (--no-gpg-sign, gpgsign=false)", /\bgit\b[\s\S]*(--no-gpg|gpgsign[=\s]+(false|0|no|off)\b|gpg\.program[=\s])/i],
+  ["rm", "rm", /(^|[\s;&|(`"'\\/])rm\b/],
   ["find-delete", "find -delete", /\bfind\b[\s\S]*\s-delete\b/],
-  ["rmdir", "rmdir", /(^|[\s;&|(`"'])rmdir\b/],
+  ["rmdir", "rmdir", /(^|[\s;&|(`"'\\/])rmdir\b/],
   ["terraform-destroy", "terraform destroy", /\b(terraform|tofu|terragrunt)\b[\s\S]*\bdestroy\b/],
   ["terraform-state-rm", "terraform state rm", /\b(terraform|tofu|terragrunt)\b[\s\S]*\bstate\s+rm\b/],
   ["gcloud-delete", "gcloud subcommand that deletes", /\bgcloud\b[\s\S]*\b(delete|destroy|rm)\b/],
   ["gh-delete", "gh subcommand that deletes", /\bgh\b[\s\S]*(\b(delete|destroy|rm)\b|(-X|--method)\s*=?\s*DELETE)/i],
   ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\b[\s\S]*\bcommit\b[\s\S]*--amend\b/],
   ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\s+can?\b/],
+  ["git-alias", "git.nix alias for commit/checkout/rebase/worktree remove", /\bgit\s+(cm|co|cb|rewrite|sync|wr)\b/],
   ["git-stash-drop", "git stash drop/clear", /\bgit\b[\s\S]*\bstash\s+(drop|clear)\b/],
   ["git-switch-discard", "git switch that discards changes", /\bgit\b[\s\S]*\bswitch\b[\s\S]*(--discard-changes|\s-f\b|--force)/],
-  ...[...GIT_ASK].map((s) => [`git-${s}`, `git ${s}`, new RegExp(`\\bgit\\b[\\s\\S]*\\b${s}\\b`)]),
+  // `(?![\w-])` keeps merge-base, commit-tree and the like from reading as merge or commit.
+  ...[...GIT_ASK].map((s) => [`git-${s}`, `git ${s}`, new RegExp(`\\bgit\\b[\\s\\S]*\\b${s}\\b(?![\\w-])`)]),
 ];
 
 function isNested(stage, command) {

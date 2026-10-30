@@ -196,6 +196,94 @@ for (const cmd of ["git commit --no-gpg-sign -m x", "git -c commit.gpgsign=false
 }
 console.log("pi-guard hook/signing bypass: ok");
 
+// Wrappers with flags, shell grouping, line continuations, git.nix aliases, inline aliases and
+// hook-skipping env vars all reach the rules. A fresh session per call keeps the loop rule out.
+let asked = 0, wrapSession = 0;
+const askCtx = {
+  hasUI: true,
+  ui: { confirm: async () => { asked++; return true; } },
+  sessionManager: { getSessionId: () => `sess-w${wrapSession}`, getBranch: () => [] },
+};
+const verdict = async (command) => {
+  asked = 0;
+  wrapSession++;
+  const res = await handler({ toolName: "bash", toolCallId: "t3", input: { command } }, askCtx);
+  if (!res?.block) return asked ? "ask" : "allow";
+  if (/skipping hooks/.test(res.reason)) return "deny:hooks";
+  if (/commit signing/.test(res.reason)) return "deny:sign";
+  if (/never amend/.test(res.reason)) return "deny:amend";
+  return "deny:other";
+};
+for (const cmd of [
+  "rtk git commit --no-verify -m x",
+  "sudo -u root git commit --no-verify -m x",
+  "command -p git commit -n -m x",
+  "caffeinate -i git commit -n -m x",
+  "env -i PATH=/usr/bin git commit --no-verify -m x",
+  "/usr/bin/sudo git commit --no-verify -m x",
+  "(git commit --no-verify -m x)",
+  "{ git commit -n -m x; }",
+  "if true; then git commit --no-verify -m x; fi",
+  "git commit -m x \\\n--no-verify",
+  "git commit --no-veri -m x",
+  "git cm x -n",
+  "git -c alias.x='commit --no-verify' x -m m",
+  "git config alias.ci '!git commit --no-verify'",
+  "git --config-env=core.hooksPath=HOOKS commit -m x",
+  "GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/dev/null git commit -m x",
+  "GIT_CONFIG_PARAMETERS=\"'core.hooksPath=/dev/null'\" git commit -m x",
+  "HUSKY=0 git commit -m x",
+  "LEFTHOOK=0 git push",
+  "PRE_COMMIT_ALLOW_NO_CONFIG=1 git commit -m x",
+  "bash -c 'git commit -m x -n'",
+  "sh -c \"git commit -nm x -n\"",
+  "HUSKY=0 bash -c 'git commit -m x'",
+]) assert.equal(await verdict(cmd), "deny:hooks", cmd);
+for (const cmd of [
+  "git -c gpg.program=/usr/bin/true commit -m x",
+  "git config gpg.program /usr/bin/true",
+  "git config --global gpg.program true",
+  "git commit --no-gpg-s -m x",
+  "sudo -u me git commit --no-gpg-sign -m x",
+]) assert.equal(await verdict(cmd), "deny:sign", cmd);
+for (const cmd of ["rtk git ca -m x", "(git can)", "git cb x && git ca"]) assert.equal(await verdict(cmd), "deny:amend", cmd);
+for (const cmd of [
+  "caffeinate git push --force",
+  "arch -arm64 git push",
+  "rtk git push",
+  "sudo -u root git reset --hard",
+  "! git reset --hard",
+  "for i in 1; do rm -rf ~/x; done",
+  "while true; do git push -f; done",
+  "(rm -rf x)",
+  "{ git push; }",
+  "git co .",
+  "git cm x",
+  "git rewrite HEAD~3",
+  "git sync",
+  "git wr path",
+  "git config alias.st status",
+  "bash -c '/bin/rm -rf x'",
+  "sh -c '\\rm -rf x'",
+  "git push \\\n--force",
+]) assert.equal(await verdict(cmd), "ask", cmd);
+for (const cmd of [
+  "sudo -u root git status",
+  "rtk git status",
+  "caffeinate -t 300 make build",
+  "(git status)",
+  "{ git log -1; }",
+  "if true; then git status; fi",
+  "git log $(git merge-base HEAD main)..HEAD",
+  "git merge-base HEAD main",
+  "git config --get alias.ci",
+  "git config --get gpg.program",
+  "echo '(git commit --no-verify)'",
+  "echo 'rm -rf x'",
+  "git commit-tree HEAD^{tree} -m x | cat",
+]) assert.equal(await verdict(cmd), "allow", cmd);
+console.log("pi-guard wrappers/grouping/aliases: ok");
+
 // MCP tool names resolve the way the adapter resolves them
 const policyOf = (...a) => mcpPolicy(...a)?.tool ?? null;
 assert.equal(policyOf("glean_chat"), "glean_chat");
