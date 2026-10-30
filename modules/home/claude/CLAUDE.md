@@ -68,7 +68,7 @@ Strong criteria — loop independently. Weak criteria ("make it work") — const
 ## Rules of the Shop
 
 - **Orderly Operations:** Git commands run one at a time. Steady pace prevents mistakes.
-- **The Ledger:** All docs and architectural truths in Obsidian vault at `/Users/jimmyers/Documents/second_brain/` (or `/Users/myers/Documents/second_brain/`). Don't clutter workspace.
+- **The Ledger:** All docs and architectural truths in Obsidian vault at `~/Documents/second_brain/`. Don't clutter workspace.
 - **Discipline:** Don't begin work or mark tasks `in_progress` until both agreed on plan.
 - **Memory:** Session start — call `mem_search` with keywords from user's first message to surface prior context. Call `mem_save` after every decision, bugfix, pattern, or architecture finding — not just session end.
 - **Vault first:** Before asking user about prior work, conventions, or past decisions, search engram (`mem_search`), then the vault via `obsidian_rag_query`. Vault `engram/` folder is a read-only mirror of engram — never edit it. Layout: `reference/VAULT_CONVENTIONS.md`.
