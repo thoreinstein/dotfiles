@@ -51,5 +51,21 @@
       style = "bold blue";
       format = "[$symbol($output)]($style) ";
     };
+
+    claude-code = {
+      settings = {
+        permissions.allow = [
+          "mcp__jira__*"
+          "mcp__glean__*"
+          "mcp__firehydrant__*"
+          "mcp__plugin_aic-ai_firehydrant__*"
+        ];
+        enabledPlugins = {
+          "aic-ai@aic-ai" = true;
+          "polaris@polaris" = true;
+        };
+      };
+      skills.standup = ./pi/skills/standup/SKILL.md;
+    };
   };
 }

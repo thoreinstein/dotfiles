@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 let
   pi = import ../modules/home/pi/model.nix lib;
 
@@ -105,28 +105,7 @@ let
   };
 in
 {
-  imports = [ ./mac-1QFL40HG/claude.nix ../modules/home/work.nix ];
-
-  # codegraph CLI + MCP server (wired for Claude and pi in modules/home/mcp.json).
-  # rtk backs Claude's PreToolUse hook and pi-rtk-optimizer; the nixpkgs build has no
-  # telemetry endpoint.
-  home = {
-    packages = [
-      pkgs.codegraph
-      pkgs.rtk
-    ];
-    sessionVariables = {
-      CODEGRAPH_TELEMETRY = "0";
-      # The python.org python3 on PATH ships with no CA bundle, so Python HTTPS (e.g. the
-      # security-guidance plugin's review hook) fails CERTIFICATE_VERIFY_FAILED. Use the
-      # nix-darwin bundle.
-      SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
-      # claude-code 2.1.308 lost its bundled root store on macOS
-      # (UNABLE_TO_GET_ISSUER_CERT_LOCALLY); point it at the nix-darwin bundle. Drop
-      # once upstream ships a fix (2.1.303 and earlier didn't need it).
-      NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
-    };
-  };
+  imports = [ ../modules/home/work.nix ];
 
   programs = {
     pi-coding-agent = {
