@@ -30,7 +30,7 @@ make golden    # Regenerate tests/pi goldens (after pi settings changes)
 | `Jims-Mac-mini` | `myers` | Mac mini |
 | `mac-1QFL40HG` | `jimmyers` | MacBook |
 
-Adding a new host: add a `darwinConfigurations` entry in `flake.nix` using `mkDarwinHost`.
+Adding a new host: add it to the `hosts` table in `flake.nix` and create `hosts/<hostname>.nix`.
 
 ## What's Included
 
@@ -52,9 +52,8 @@ dotfiles/
 ├── flake.lock
 ├── Makefile               # switch, build, check, fmt, update, golden
 ├── hosts/
-│   ├── Jims-Mac-mini.nix  # Mac mini overrides
-│   ├── mac-1QFL40HG.nix   # MacBook overrides (pi providers/models)
-│   └── mac-1QFL40HG/      # Work Claude Code config
+│   ├── Jims-Mac-mini.nix  # Mac mini overrides (pi default)
+│   └── mac-1QFL40HG.nix   # MacBook overrides (omlx, imports work.nix)
 ├── modules/
 │   ├── darwin/
 │   │   ├── default.nix    # Users, fonts, nix settings
@@ -69,6 +68,9 @@ dotfiles/
 │       ├── ghostty.nix    # Terminal
 │       ├── bin.nix        # Custom scripts (ts, ghclone)
 │       ├── engram-vault-sync.nix  # Engram vault sync launchd agents
+│       ├── claude.nix     # Claude Code
+│       ├── mcp.nix        # MCP server files
+│       ├── work.nix       # Work-only config, imported by the MacBook
 │       ├── nixvim/        # Neovim config (16 modules)
 │       │   ├── lsp.nix
 │       │   ├── completion.nix

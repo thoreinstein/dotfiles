@@ -19,11 +19,12 @@ Verification loop for any change: `make check` → `make build` → `make switch
 
 ## Architecture
 
-- `flake.nix` — single entry point. `mkDarwinHost` helper builds each `darwinConfigurations.<host>` entry; two hosts today (`Jims-Mac-mini` / user `myers`, `mac-1QFL40HG` / user `jimmyers`), both `aarch64-darwin`.
+- `flake.nix` — single entry point. `hosts` table feeds `mkDarwinHost` and the `pi-config` check; two hosts today (`Jims-Mac-mini` / user `myers`, `mac-1QFL40HG` / user `jimmyers`), both `aarch64-darwin`.
 - `modules/darwin/` — shared system config (users, fonts, nix settings, `homebrew.nix`, macOS defaults in `system.nix`).
 - `modules/home/` — shared home-manager config (zsh, tmux, git, starship, ghostty, CLI tools, `bin.nix`).
 - `modules/home/nixvim/` — Neovim config split across 16 submodules (lsp, completion, formatting, treesitter, keymaps, ui, …). Add Neovim features here, not in a monolith.
-- `hosts/<hostname>.nix` — per-host home-manager overrides. `mac-1QFL40HG.nix` carries pi providers/models and host packages, and imports `mac-1QFL40HG/claude.nix` (Claude Code via `programs.claude-code`).
+- `modules/home/work.nix` — everything work-only (Polaris, work MCP servers and plugins, gcloud, k9s, gauth). Personal config goes in shared modules; work config goes here, with no host flags.
+- `hosts/<hostname>.nix` — per-host home-manager overrides. `mac-1QFL40HG.nix` carries `omlx` and imports `work.nix`.
 - `bin/` — custom scripts (`ts`, `ghclone`) wired in via `modules/home/bin.nix`.
 - `tests/` — golden files asserted by `flake.checks`, e.g. `tests/pi/` for
   `checks.aarch64-darwin.pi-config`. Enforced by local `make check`; see each subdirectory's
