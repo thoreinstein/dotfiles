@@ -23,6 +23,27 @@ make fmt       # Format nix files
 make golden    # Regenerate tests/pi goldens (after pi settings changes)
 ```
 
+## Setting Up a Mac
+
+The full runbook is in the vault, and vaults don't sync between machines, so this is the version every Mac can read.
+
+Before the first switch:
+
+1. Check `brew list` on a Mac that already has Homebrew. `homebrew.onActivation.cleanup = "zap"` removes undeclared brews and casks, with their data. Declare or back up what you want to keep.
+2. Make sure the Mac can reach GitHub over SSH. The clone below and the `thoreinstein-plugins` marketplace both use `git@github.com`.
+3. Create this Mac's own vault: `mkdir -p ~/Documents/second_brain`. The engram launchd agents write there.
+
+Apply the config:
+
+4. On a new checkout, run the Quick Install commands. On an existing one, run `git pull`, then `make switch`.
+
+After the switch, in a new terminal:
+
+5. Restore `~/.envrc` (API tokens, never commit) and `~/.gitconfig.local` (git identity), and import your GPG key.
+6. Log in: `claude`, then `/login`. In pi, run `/login` for Kimi.
+
+Work machines also import `modules/home/work.nix`. That adds `gcloud auth login` and `gcloud auth application-default login`.
+
 ## Hosts
 
 | Host | User | Description |
