@@ -116,7 +116,6 @@
         export PATH
 
         # Environment
-        export K9S_CONFIG_DIR="$HOME/.config/k9s"
         export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
 
         # FZF defaults
