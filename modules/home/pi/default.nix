@@ -20,6 +20,9 @@ let
       })
     ];
   };
+
+  # Installed on every host. standup is work-only, in modules/home/work.nix.
+  skills = [ "ci-fix" "compound" "plan-review" "pr-comments" "pr-review" "rebase" "wrap-up" ];
 in
 {
   programs.pi-coding-agent = {
@@ -90,7 +93,9 @@ in
     };
   };
 
-  home.file = {
+  home.file = lib.genAttrs' skills
+    (name: lib.nameValuePair ".pi/agent/skills/${name}/SKILL.md" { source = ./skills/${name}/SKILL.md; })
+  // {
     ".pi/agent/bash_aliases".text = lib.concatStrings (
       lib.mapAttrsToList (n: v: "alias ${n}=${lib.escapeShellArg v}\n") agentAliases
     );
@@ -99,14 +104,6 @@ in
     ".pi/agent/extensions/pi-guard.ts".source = ./pi-guard.ts;
     ".pi/agent/extensions/pi-notify.ts".source = ./pi-notify.ts;
     ".pi/agent/extensions/recall.ts".source = ./recall.ts;
-    ".pi/agent/skills/ci-fix/SKILL.md".source = ./skills/ci-fix/SKILL.md;
-    ".pi/agent/skills/compound/SKILL.md".source = ./skills/compound/SKILL.md;
-    ".pi/agent/skills/plan-review/SKILL.md".source = ./skills/plan-review/SKILL.md;
-    ".pi/agent/skills/pr-comments/SKILL.md".source = ./skills/pr-comments/SKILL.md;
-    ".pi/agent/skills/pr-review/SKILL.md".source = ./skills/pr-review/SKILL.md;
-    ".pi/agent/skills/rebase/SKILL.md".source = ./skills/rebase/SKILL.md;
-    ".pi/agent/skills/standup/SKILL.md".source = ./skills/standup/SKILL.md;
-    ".pi/agent/skills/wrap-up/SKILL.md".source = ./skills/wrap-up/SKILL.md;
   };
 
   # pi-starship refuses a symlinked settings file, so copy it in as a regular file.

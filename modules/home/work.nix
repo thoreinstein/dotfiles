@@ -90,6 +90,8 @@ in
     ];
 
     sessionVariables.K9S_CONFIG_DIR = "$HOME/.config/k9s";
+
+    file.".pi/agent/skills/standup/SKILL.md".source = ./pi/skills/standup/SKILL.md;
   };
 
   mcpServers = {
