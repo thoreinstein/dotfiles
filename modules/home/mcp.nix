@@ -1,0 +1,74 @@
+{ config, pkgs, lib, ... }:
+let
+  shared = (builtins.fromJSON (builtins.readFile ./mcp.json)).mcpServers;
+  mcpJson = builtins.toJSON { inherit (config) mcpServers; };
+  # ynab is personal; pi is the work harness, so it doesn't get it.
+  # pi's MCP adapter hides tools behind its `mcp` proxy; directTools lists
+  # codegraph_explore beside read/bash so pi actually reaches for it.
+  piMcpJson = builtins.toJSON {
+    mcpServers = removeAttrs config.mcpServers [ "ynab" ] // {
+      codegraph = config.mcpServers.codegraph // { directTools = [ "codegraph_explore" ]; };
+    };
+  };
+  # npx installs a github: package on first launch (clone + npm install + build).
+  # That can outlast pi's 60s MCP startup timeout, so install it at switch time.
+  obsidianMcpSpec = lib.last shared."obsidian-mcp".args;
+in
+{
+  options.mcpServers = lib.mkOption {
+    type = lib.types.attrsOf lib.types.attrs;
+    description = "MCP servers written to ~/.mcp.json and pi's mcp.json.";
+  };
+
+  config = {
+    mcpServers = shared;
+
+    home = {
+      file = {
+        ".mcp.json".text = mcpJson;
+        # pi >= 0.99 reads native MCP config from here
+        ".pi/agent/mcp.json".text = piMcpJson;
+      };
+
+      # The install also tells recall where obsidian-mcp's entry point landed (bin/recall reads
+      # ~/.local/state/recall/obsidian-mcp), so recall runs it directly instead of through npx.
+      # Skipped while the spec is unchanged and the recorded path still exists, so a switch stays
+      # fast and works offline.
+      activation.warmObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        state="''${XDG_STATE_HOME:-$HOME/.local/state}/recall"
+        if [ "$(cat "$state/obsidian-mcp.spec" 2>/dev/null)" != ${lib.escapeShellArg obsidianMcpSpec} ] \
+          || [ ! -f "$(cat "$state/obsidian-mcp" 2>/dev/null)" ]; then
+          if bin=$(PATH="${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:$PATH" \
+              ${pkgs.nodejs}/bin/npx -y -p ${lib.escapeShellArg obsidianMcpSpec} sh -c 'command -v obsidian-mcp') \
+            && [ -n "$bin" ]; then
+            run mkdir -p "$state"
+            if [[ ! -v DRY_RUN ]]; then
+              readlink -f "$bin" >"$state/obsidian-mcp"
+              printf '%s\n' ${lib.escapeShellArg obsidianMcpSpec} >"$state/obsidian-mcp.spec"
+            fi
+          else
+            echo "warning: could not install ${obsidianMcpSpec}; recall has no vault index until the next switch"
+          fi
+        fi
+      '';
+
+      activation.claudeDesktopObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        cfg="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+        if [ -f "$cfg" ]; then
+          entry=$(${pkgs.jq}/bin/jq -n \
+            --arg cmd "${pkgs.nodejs}/bin/npx" \
+            --arg spec ${lib.escapeShellArg obsidianMcpSpec} \
+            --arg path "${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:/usr/bin:/bin" \
+            '{command: $cmd, args: ["-y", $spec], env: {PATH: $path}}')
+          tmp=$(mktemp "$(dirname "$cfg")/.claude_desktop_config.XXXXXX")
+          if [ -n "$entry" ] && ${pkgs.jq}/bin/jq --argjson e "$entry" '.mcpServers["obsidian-mcp"] = $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
+            if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else chmod 600 "$tmp"; run mv "$tmp" "$cfg"; fi
+          else
+            rm -f "$tmp"
+            echo "warning: could not update Claude Desktop config; left unchanged"
+          fi
+        fi
+      '';
+    };
+  };
+}
