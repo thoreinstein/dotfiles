@@ -1,4 +1,72 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
+let
+  pi = import ./pi/model.nix lib;
+
+  # Cloud gateway: these ids are custom to the gateway, so pi has no built-in
+  # metadata for them. Window sizes and reasoning are declared here; reasoning
+  # defaults to false, which would disable thinking. Cost is zero: the company
+  # pays, spend isn't tracked in pi, and the aliases have no published price.
+  polaris = {
+    baseUrl = "https://llm-gateway.polaris.pingidentity.com";
+    api = "anthropic-messages";
+    apiKey = "$POLARIS_AUTH_TOKEN";
+    authHeader = true;
+    models = map (m: m // { cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; }; }) [
+      (pi.mkModel {
+        id = "anthropic.Polaris.Model.Smart.High";
+        reasoning = true;
+        contextWindow = 380000;
+        maxTokens = 32768;
+      })
+      (pi.mkModel {
+        id = "anthropic.Polaris.Model.Smart.Medium";
+        reasoning = true;
+        contextWindow = 380000;
+        maxTokens = 32768;
+      })
+      (pi.mkModel {
+        id = "anthropic.Polaris.Model.Smart.Low";
+        reasoning = true;
+        contextWindow = 380000;
+        maxTokens = 32768;
+      })
+      (pi.mkModel {
+        id = "anthropic.Claude.Sonnet";
+        reasoning = true;
+        contextWindow = 1000000;
+        maxTokens = 128000;
+      })
+      (pi.mkModel {
+        id = "anthropic.Claude.Haiku";
+        reasoning = true;
+        contextWindow = 200000;
+        maxTokens = 64000;
+      })
+      (pi.mkModel {
+        # Window sizes assumed from Terra/Luna; the gateway doesn't publish them.
+        id = "anthropic.OpenAI.Sol";
+        contextWindow = 1000000;
+        maxTokens = 128000;
+      })
+      (pi.mkModel {
+        id = "anthropic.OpenAI.Terra";
+        contextWindow = 1000000;
+        maxTokens = 128000;
+      })
+      (pi.mkModel {
+        id = "anthropic.OpenAI.Luna";
+        contextWindow = 1000000;
+        maxTokens = 128000;
+      })
+      (pi.mkModel {
+        id = "anthropic.Zai.GLM53Flash";
+        reasoning = true;
+        contextWindow = 380000;
+        maxTokens = 32768;
+      })
+    ];
+  };
+in
 {
   # Everything only the work machine needs. Lists and attrs merge into the shared modules.
   home = {
@@ -66,6 +134,20 @@
         };
       };
       skills.standup = ./pi/skills/standup/SKILL.md;
+    };
+
+    pi-coding-agent = {
+      settings = {
+        # Between the shared strata (default order) and k3 (mkAfter) in pi's model picker.
+        enabledModels = lib.mkOrder 1200 (pi.mkEnabledModels [ "polaris" ] { inherit polaris; });
+        # The Smart aliases name their own level; match it instead of the global medium.
+        modelThinkingLevels = {
+          "polaris/anthropic.Polaris.Model.Smart.High" = "high";
+          "polaris/anthropic.Polaris.Model.Smart.Medium" = "medium";
+          "polaris/anthropic.Polaris.Model.Smart.Low" = "low";
+        };
+      };
+      models.providers = { inherit polaris; };
     };
   };
 }
