@@ -23,6 +23,21 @@ in
   config = {
     mcpServers = shared;
 
+    programs.mcp = {
+      enable = true;
+      servers = {
+        context7 = {
+          url = "https://mcp.context7.com/mcp";
+        };
+        exa = {
+          url = "https://mcp.exa.ai/mcp?tools=web_search_exa";
+        };
+        grep_app = {
+          url = "https://mcp.grep.app";
+        };
+      };
+    };
+
     home = {
       file = {
         ".mcp.json".text = mcpJson;
