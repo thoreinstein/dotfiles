@@ -15,10 +15,6 @@ _: {
         name = "gentleman-programming/tap";
         trusted = true;
       }
-      {
-        name = "incoai/tap";
-        trusted = true;
-      }
     ];
 
     # ──────────────────────────────────────────────
