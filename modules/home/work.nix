@@ -42,4 +42,14 @@
       ];
     };
   };
+
+  programs = {
+    starship.settings.custom.gcloud = {
+      command = "echo $PROJECT_NAME";
+      when = ''[ -n "$PROJECT_NAME" ]'';
+      symbol = "󱇶 ";
+      style = "bold blue";
+      format = "[$symbol($output)]($style) ";
+    };
+  };
 }

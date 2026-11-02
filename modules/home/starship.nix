@@ -64,14 +64,6 @@ _:
       nodejs.disabled = true;
       python.disabled = true;
       package.disabled = true;
-
-      custom.gcloud = {
-        command = "echo $PROJECT_NAME";
-        when = ''[ -n "$PROJECT_NAME" ]'';
-        symbol = "󱇶 ";
-        style = "bold blue";
-        format = "[$symbol($output)]($style) ";
-      };
     };
   };
 }
