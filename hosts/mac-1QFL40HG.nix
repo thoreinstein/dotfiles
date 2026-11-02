@@ -105,7 +105,7 @@ let
   };
 in
 {
-  imports = [ ./mac-1QFL40HG/claude.nix ];
+  imports = [ ./mac-1QFL40HG/claude.nix ../modules/home/work.nix ];
 
   # codegraph CLI + MCP server (wired for Claude and pi in modules/home/mcp.json).
   # rtk backs Claude's PreToolUse hook and pi-rtk-optimizer; the nixpkgs build has no
