@@ -45,14 +45,16 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
+      # hostname -> username
+      hosts = {
+        "Jims-Mac-mini" = "myers";
+        "mac-1QFL40HG" = "jimmyers";
+      };
+
       mkDarwinHost =
-        { hostname
-        , system
-        , username
-        ,
-        }:
+        hostname: username:
         nix-darwin.lib.darwinSystem {
-          inherit system;
+          system = "aarch64-darwin";
           modules = [
             ./modules/darwin
             home-manager.darwinModules.home-manager
@@ -158,8 +160,13 @@
                   hm = self.darwinConfigurations.${host}.config.home-manager.users.${user};
                 in
                 hm.home.file."${hm.programs.pi-coding-agent.configDir}/${name}".source;
-              mini = name: piFile "Jims-Mac-mini" "myers" name;
-              work = name: piFile "mac-1QFL40HG" "jimmyers" name;
+              comparisons = nixpkgs.lib.concatStrings (nixpkgs.lib.mapAttrsToList
+                (host: user: nixpkgs.lib.concatMapStrings
+                  (name: ''
+                    compare ${./tests/pi + "/${host}/${name}"} ${piFile host user name} "${host} ${name}"
+                  '')
+                  [ "settings.json" "models.json" "AGENTS.md" ])
+                hosts);
             in
             pkgs.runCommand "pi-config-golden" { } ''
                 fail=0
@@ -171,18 +178,7 @@
                   fail=1
                 fi
               }
-              compare ${./tests/pi/Jims-Mac-mini/settings.json} \
-                      ${mini "settings.json"} "Jims-Mac-mini settings"
-              compare ${./tests/pi/Jims-Mac-mini/models.json} \
-                      ${mini "models.json"} "Jims-Mac-mini models"
-              compare ${./tests/pi/Jims-Mac-mini/AGENTS.md} \
-                      ${mini "AGENTS.md"} "Jims-Mac-mini AGENTS.md"
-              compare ${./tests/pi/mac-1QFL40HG/settings.json} \
-                      ${work "settings.json"} "mac-1QFL40HG settings"
-              compare ${./tests/pi/mac-1QFL40HG/models.json} \
-                      ${work "models.json"} "mac-1QFL40HG models"
-              compare ${./tests/pi/mac-1QFL40HG/AGENTS.md} \
-                      ${work "AGENTS.md"} "mac-1QFL40HG AGENTS.md"
+              ${comparisons}
               if [ "$fail" -ne 0 ]; then
                 echo "pi config drifted from tests/pi goldens. See tests/pi/README.md to regenerate."
                 exit 1
@@ -214,17 +210,6 @@
       );
 
       # nix-darwin configurations
-      darwinConfigurations."Jims-Mac-mini" = mkDarwinHost {
-        hostname = "Jims-Mac-mini";
-        system = "aarch64-darwin";
-        username = "myers";
-      };
-
-      darwinConfigurations."mac-1QFL40HG" = mkDarwinHost {
-        hostname = "mac-1QFL40HG";
-        system = "aarch64-darwin";
-        username = "jimmyers";
-      };
-
+      darwinConfigurations = nixpkgs.lib.mapAttrs mkDarwinHost hosts;
     };
 }
