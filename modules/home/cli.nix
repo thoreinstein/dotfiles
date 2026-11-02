@@ -3,7 +3,6 @@
   home.packages = with pkgs; [
     codefresh
     codespell
-    freelens-bin
     gitleaks
     # `gcloud components install` can't write to the nix store; declare components here.
     (google-cloud-sdk.withExtraComponents (
