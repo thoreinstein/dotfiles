@@ -24,7 +24,10 @@
   "externalEditor": "nvim",
   "hideThinkingBlock": true,
   "modelThinkingLevels": {
-    "kimi-coding/k3": "high"
+    "kimi-coding/k3": "high",
+    "polaris/anthropic.Polaris.Model.Smart.High": "high",
+    "polaris/anthropic.Polaris.Model.Smart.Low": "low",
+    "polaris/anthropic.Polaris.Model.Smart.Medium": "medium"
   },
   "packages": [
     "git:github.com/apmantza/pi-lens",

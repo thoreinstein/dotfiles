@@ -156,8 +156,14 @@ in
         # `providers` and is listed by id.
         enabledModels = pi.mkEnabledModels [ "omlx" "strata" "polaris" ] providers
           ++ [ "kimi-coding/k3" ];
-        # k3 has no medium level, so the global default would leave it without thinking.
-        modelThinkingLevels."kimi-coding/k3" = "high";
+        modelThinkingLevels = {
+          # k3 has no medium level, so the global default would leave it without thinking.
+          "kimi-coding/k3" = "high";
+          # The Smart aliases name their own level; match it instead of the global medium.
+          "polaris/anthropic.Polaris.Model.Smart.High" = "high";
+          "polaris/anthropic.Polaris.Model.Smart.Medium" = "medium";
+          "polaris/anthropic.Polaris.Model.Smart.Low" = "low";
+        };
       };
 
       models = {
