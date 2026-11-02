@@ -24,8 +24,8 @@
 
 set -euo pipefail
 
-PERSONAL_ENGRAM_PROJECTS="dotfiles obsidian-mcp gemini-obsidian obsidian-backup workbench thoreinstein .claude .pi jimmyers pi-obsidian second_brain wiki"
-PERSONAL_VAULT_ENGRAM="dotfiles gemini-obsidian jimmyers obsidian-backup obsidian-mcp workbench thoreinstein"
+PERSONAL_ENGRAM_PROJECTS="dotfiles obsidian-mcp gemini-obsidian obsidian-backup workbench thoreinstein .claude .pi jimmyers myers pi-obsidian second_brain wiki"
+PERSONAL_VAULT_ENGRAM="dotfiles gemini-obsidian jimmyers myers obsidian-backup obsidian-mcp workbench thoreinstein"
 PERSONAL_VAULT_WORKING="dotfiles-nix finances health obsidian-mcp workbench"
 
 input="$(cat)"
