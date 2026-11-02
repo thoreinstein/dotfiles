@@ -3,6 +3,23 @@ let
   # Tool shorthands from zsh that agents type too. Aliases that swap a standard command
   # (cat -> bat, ls -> eza) stay out: they change output the agent parses.
   agentAliases = lib.getAttrs [ "k" "tf" "tg" ] config.programs.zsh.shellAliases;
+
+  pi = import ./model.nix lib;
+
+  # strata on the gaming PC (LAN); no API key.
+  strata = {
+    baseUrl = "http://chicago.local:8080/v1";
+    api = "openai-completions";
+    apiKey = "not-needed";
+    models = [
+      (pi.mkLocalModel {
+        id = "swift-qwen3.8-flash-next-gsq-rco-iq3_xxs";
+        name = "Qwen3.8 Flash Next IQ3_XXS (strata)";
+        contextWindow = 65536;
+        maxTokens = 16384;
+      })
+    ];
+  };
 in
 {
   programs.pi-coding-agent = {
@@ -42,6 +59,15 @@ in
 
       warnings.anthropicExtraUsage = true;
 
+      # kimi-coding is a pi built-in provider (auth via /login), so it has no provider
+      # entry and is listed by id, last in pi's model picker.
+      enabledModels = lib.mkMerge [
+        (pi.mkEnabledModels [ "strata" ] { inherit strata; })
+        (lib.mkAfter [ "kimi-coding/k3" ])
+      ];
+      # k3 has no medium level, so the global default would leave it without thinking.
+      modelThinkingLevels."kimi-coding/k3" = "high";
+
       # rose-pine-dawn above depends on the pi-rose-pine entry here.
       packages = [
         "git:github.com/apmantza/pi-lens"
@@ -56,6 +82,11 @@ in
         "npm:pi-rtk-optimizer"
         "npm:pi-split-view"
       ];
+    };
+
+    models = {
+      "$schema" = "https://pi.dev/schemas/models.schema.json";
+      providers = { inherit strata; };
     };
   };
 

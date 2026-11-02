@@ -1,14 +1,21 @@
 {
   "collapseChangelog": true,
-  "defaultModel": "claude-opus-5",
-  "defaultProvider": "anthropic",
+  "defaultModel": "k3",
+  "defaultProvider": "kimi-coding",
   "defaultThinkingLevel": "medium",
   "defaultTools": [
     "+codemode"
   ],
   "enableInstallTelemetry": false,
+  "enabledModels": [
+    "strata/swift-qwen3.8-flash-next-gsq-rco-iq3_xxs",
+    "kimi-coding/k3"
+  ],
   "externalEditor": "nvim",
   "hideThinkingBlock": true,
+  "modelThinkingLevels": {
+    "kimi-coding/k3": "high"
+  },
   "packages": [
     "git:github.com/apmantza/pi-lens",
     "git:github.com/ibragim-bad/evals-from-sessions",

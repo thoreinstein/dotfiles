@@ -23,21 +23,6 @@ let
       ];
     };
 
-    # strata on the gaming PC (LAN); no API key.
-    strata = {
-      baseUrl = "http://chicago.local:8080/v1";
-      api = "openai-completions";
-      apiKey = "not-needed";
-      models = [
-        (pi.mkLocalModel {
-          id = "swift-qwen3.8-flash-next-gsq-rco-iq3_xxs";
-          name = "Qwen3.8 Flash Next IQ3_XXS (strata)";
-          contextWindow = 65536;
-          maxTokens = 16384;
-        })
-      ];
-    };
-
     # Cloud gateway: these ids are custom to the gateway, so pi has no built-in
     # metadata for them. Window sizes and reasoning are declared here; reasoning
     # defaults to false, which would disable thinking. Cost is zero: the company
@@ -112,13 +97,12 @@ in
       settings = {
         defaultProvider = "omlx";
         defaultModel = "Qwen3.8-27B-oQ4e-mtp";
-        # kimi-coding is a pi built-in provider (auth via /login), so it has no entry in
-        # `providers` and is listed by id.
-        enabledModels = pi.mkEnabledModels [ "omlx" "strata" "polaris" ] providers
-          ++ [ "kimi-coding/k3" ];
+        # omlx first and polaris between the shared strata and k3 in pi's model picker.
+        enabledModels = lib.mkMerge [
+          (lib.mkBefore (pi.mkEnabledModels [ "omlx" ] providers))
+          (lib.mkOrder 1200 (pi.mkEnabledModels [ "polaris" ] providers))
+        ];
         modelThinkingLevels = {
-          # k3 has no medium level, so the global default would leave it without thinking.
-          "kimi-coding/k3" = "high";
           # The Smart aliases name their own level; match it instead of the global medium.
           "polaris/anthropic.Polaris.Model.Smart.High" = "high";
           "polaris/anthropic.Polaris.Model.Smart.Medium" = "medium";
@@ -127,7 +111,6 @@ in
       };
 
       models = {
-        "$schema" = "https://pi.dev/schemas/models.schema.json";
         inherit providers;
       };
     };
