@@ -128,10 +128,6 @@ in
     };
   };
 
-  # Same fix for the engram launchd agents (engram-daily-log shells out to claude);
-  # sessionVariables don't reach launchd.
-  engram.agents.caBundle = "/etc/ssl/certs/ca-certificates.crt";
-
   programs = {
     mcp = {
       enable = true;
