@@ -49,6 +49,13 @@ in
         alt-shift-k = [ "join-with up" "mode main" ];
         alt-shift-l = [ "join-with right" "mode main" ];
       };
+
+      on-window-detected = [
+        {
+          "if".app-id = "com.apple.Passwords";
+          run = "layout floating";
+        }
+      ];
     };
   };
 }
