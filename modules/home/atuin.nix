@@ -2,10 +2,13 @@
 {
   programs.atuin = {
     enable = true;
-    # Skip the check phase: atuin's e2e_capture tests are PTY timing tests that
-    # flake in the nix sandbox (e.g. filtered_commands_leave_no_captured_output),
-    # and the binary cache lags new releases, so a flaky test means a wasted
-    # ~30min source build.
+    # Temporary: atuin 18.24.4 fails its own e2e_ai_sessions tests on darwin
+    # (hydra's aarch64-darwin build is red, so there is no cached stock build
+    # either). Skipping the check phase changes the derivation hash, which
+    # forces a source build on every atuin bump, so drop this override as soon
+    # as hydra is green again:
+    #   nix path-info --store https://cache.nixos.org \
+    #     "$(nix eval --raw .#darwinConfigurations.mac-1QFL40HG.pkgs.atuin.outPath)"
     package = pkgs.atuin.overrideAttrs (_: { doCheck = false; });
     enableZshIntegration = true;
     settings = {
