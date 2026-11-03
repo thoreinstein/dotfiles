@@ -1,0 +1,9 @@
+defaults:
+  theme:
+    light: light
+    dark: dark
+snippet:
+  exec:
+    enable: true
+speaker_notes:
+  always_publish: true

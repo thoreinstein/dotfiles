@@ -12,6 +12,9 @@
     yq-go
   ];
 
+  # presenterm on macOS reads Library/Application Support, not ~/.config (unless XDG_CONFIG_HOME is set).
+  home.file."Library/Application Support/presenterm/config.yaml".source = ./presenterm.yaml;
+
   programs = {
     asciinema = {
       enable = true;
