@@ -1,0 +1,10 @@
+k9s:
+  liveViewAutoRefresh: true
+  apiServerTimeout: 15s
+  maxConnRetry: 5
+  ui:
+    logoless: true
+    skin: rose-pine
+  logger:
+    buffer: 5000
+    sinceSeconds: 300

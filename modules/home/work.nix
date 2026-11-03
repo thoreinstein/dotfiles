@@ -94,6 +94,10 @@ in
     file = {
       ".pi/agent/skills/standup/SKILL.md".source = ./pi/skills/standup/SKILL.md;
       ".finicky.js".source = ./finicky.js;
+      # Not programs.k9s: on darwin it writes to Library/Application Support, which K9S_CONFIG_DIR bypasses.
+      ".config/k9s/config.yaml".source = ./k9s/config.yaml;
+      ".config/k9s/aliases.yaml".source = ./k9s/aliases.yaml;
+      ".config/k9s/skins/rose-pine.yaml".source = ./k9s/rose-pine.yaml;
     };
   };
 
