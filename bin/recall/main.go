@@ -71,6 +71,7 @@ func main() {
 	if cwd == "" {
 		cwd, _ = os.Getwd()
 	}
+	prompt = stripSkill(prompt)
 	if len(strings.Fields(prompt)) < minWords {
 		return
 	}
@@ -101,6 +102,20 @@ func main() {
 		return
 	}
 	fmt.Print(render(hits))
+}
+
+// stripSkill drops the `<skill ...>...</skill>` block pi puts at the start of
+// a prompt that runs a skill, keeping only what the user typed after it.
+// Matching on the skill's own text finds notes about the skill, not the task.
+func stripSkill(prompt string) string {
+	if !strings.HasPrefix(strings.TrimSpace(prompt), "<skill ") {
+		return prompt
+	}
+	_, rest, ok := strings.Cut(prompt, "</skill>")
+	if !ok {
+		return ""
+	}
+	return strings.TrimSpace(rest)
 }
 
 func render(hits []hit) string {
@@ -271,17 +286,31 @@ func searchVault(prompt, cwd string) []hit {
 	if index == "" {
 		return nil
 	}
-	// Over-fetch so there are still hits after skipping saved reading,
-	// which matches a prompt's tone more than its subject.
+	// Over-fetch so there are still hits after dropping folders outside
+	// vaultAllowed.
 	out := run(vaultTimeout, cwd, "node", index, "obsidian_rag_query", "--query", prompt, "--limit", "10")
 	var hits []hit
 	for _, h := range parseVault(out) {
-		if !strings.HasPrefix(h.path, "reference/library/") && !strings.HasPrefix(h.path, "Readwise/") &&
-			!strings.HasPrefix(h.path, "archive/") {
+		if vaultAllowed(h.path) {
 			hits = append(hits, h)
 		}
 	}
 	return hits
+}
+
+// vaultAllowed keeps only folders that hold engineering knowledge. The rest
+// (Notes, Briefings, Daily, saved reading, session dumps)
+// matched a prompt's words or tone, not its subject, and agents skipped them.
+func vaultAllowed(path string) bool {
+	if strings.HasPrefix(path, "engram/_sessions/") {
+		return false
+	}
+	for _, p := range []string{"Engineering/", "reference/runbooks/", "working/", "Presentations/proposals/", "ForgeRock/ADRs/", "engram/"} {
+		if strings.HasPrefix(path, p) {
+			return true
+		}
+	}
+	return false
 }
 
 // A vault copy of an engram memory: engram/<project>/<type>/<slug>-<id>.md.

@@ -124,6 +124,42 @@ func TestUnseen(t *testing.T) {
 	}
 }
 
+func TestVaultAllowed(t *testing.T) {
+	for p, want := range map[string]bool{
+		"Engineering/Patterns/X.md":                    true,
+		"reference/runbooks/rb-pi.md":                  true,
+		"working/fraas/fraas-30998.md":                 true,
+		"ForgeRock/ADRs/ADR-001.md":                    true,
+		"engram/dotfiles/decision/standup-505.md":      true,
+		"engram/_sessions/01a18c64@fraas.md":           false,
+		"reference/library/article.md":                 false,
+		"reference/resources/forge-commands/README.md": false,
+		"Notes/Zettelkasten.md":                        false,
+		"Presentations/proposals/x.md":                 true,
+		"Presentations/talk.md":                        false,
+		"Briefings/2026-04-06-Standup.md":              false,
+		"Daily/2026/10/2026-10-07.md":                  false,
+		"AGENTS.md":                                    false,
+	} {
+		if got := vaultAllowed(p); got != want {
+			t.Errorf("vaultAllowed(%q) = %v, want %v", p, got, want)
+		}
+	}
+}
+
+func TestStripSkill(t *testing.T) {
+	for in, want := range map[string]string{
+		"<skill name=\"x\" location=\"/s/SKILL.md\">\n# X\nDo things.\n</skill>":             "",
+		"<skill name=\"x\" location=\"/s/SKILL.md\">\n# X\n</skill>\n\non the saas PR":       "on the saas PR",
+		"why does the skill block <skill name=\"x\"> show up in my prompt text for this one": "why does the skill block <skill name=\"x\"> show up in my prompt text for this one",
+		"  <skill name=\"x\">\nunterminated":                                                 "",
+	} {
+		if got := stripSkill(in); got != want {
+			t.Errorf("stripSkill(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestRelevant(t *testing.T) {
 	kw := []string{"recall", "relevance", "built", "day"}
 	both := hit{key: "a", text: "recall: prompt-time pointers\n    built with buildgomodule"}
