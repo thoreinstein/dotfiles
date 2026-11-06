@@ -13,6 +13,22 @@ let
   # npx installs a github: package on first launch (clone + npm install + build).
   # That can outlast pi's 60s MCP startup timeout, so install it at switch time.
   obsidianMcpSpec = lib.last shared."obsidian-mcp".args;
+  # Claude Desktop launches servers without the shell env, so each wrapper sets its own
+  # PATH and reads its secret from sops-nix at start.
+  ynabMcp = pkgs.writeShellScript "ynab-mcp" ''
+    export PATH="${lib.makeBinPath [ pkgs.nodejs ]}:/usr/bin:/bin"
+    YNAB_API_TOKEN=$(cat ${config.sops.secrets.ynab_token.path})
+    export YNAB_API_TOKEN
+    exec npx -y ynab-mcp-server@0.4.1
+  '';
+  krogerMcp = pkgs.writeShellScript "kroger-mcp" ''
+    KROGER_CLIENT_SECRET=$(cat ${config.sops.secrets.kroger_client_secret.path})
+    export KROGER_CLIENT_SECRET
+    export KROGER_CLIENT_ID=personalmcpserver-bbcj1nxg
+    export KROGER_REDIRECT_URI=http://localhost:8000/callback
+    export KROGER_USER_ZIP_CODE=41075
+    exec ${pkgs.uv}/bin/uvx kroger-mcp
+  '';
 in
 {
   options.mcpServers = lib.mkOption {
@@ -21,7 +37,13 @@ in
   };
 
   config = {
-    mcpServers = shared;
+    mcpServers = shared // {
+      ynab = {
+        type = "stdio";
+        command = "${ynabMcp}";
+        args = [ ];
+      };
+    };
 
     programs.mcp = {
       enable = true;
@@ -67,16 +89,20 @@ in
         fi
       '';
 
-      activation.claudeDesktopObsidianMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      activation.claudeDesktopMcp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         cfg="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
         if [ -f "$cfg" ]; then
-          entry=$(${pkgs.jq}/bin/jq -n \
+          entries=$(${pkgs.jq}/bin/jq -n \
             --arg cmd "${pkgs.nodejs}/bin/npx" \
             --arg spec ${lib.escapeShellArg obsidianMcpSpec} \
             --arg path "${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:/usr/bin:/bin" \
-            '{command: $cmd, args: ["-y", $spec], env: {PATH: $path}}')
+            --arg ynab "${ynabMcp}" \
+            --arg kroger "${krogerMcp}" \
+            '{"obsidian-mcp": {command: $cmd, args: ["-y", $spec], env: {PATH: $path}},
+              ynab: {command: $ynab, args: []},
+              kroger: {command: $kroger, args: []}}')
           tmp=$(mktemp "$(dirname "$cfg")/.claude_desktop_config.XXXXXX")
-          if [ -n "$entry" ] && ${pkgs.jq}/bin/jq --argjson e "$entry" '.mcpServers["obsidian-mcp"] = $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
+          if [ -n "$entries" ] && ${pkgs.jq}/bin/jq --argjson e "$entries" '.mcpServers += $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
             if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else chmod 600 "$tmp"; run mv "$tmp" "$cfg"; fi
           else
             rm -f "$tmp"

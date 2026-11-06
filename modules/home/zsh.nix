@@ -117,6 +117,7 @@
 
         # Environment
         export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
+        export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
 
         # FZF defaults
         if command -v rg >/dev/null 2>&1; then

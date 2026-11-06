@@ -1,0 +1,11 @@
+# Each host decrypts with its own age key at ~/.config/sops/age/keys.txt.
+# After adding a host's key here, run: sops updatekeys sops/secrets.yaml
+keys:
+  - &mac-1QFL40HG age1rtww8my5gnwvxch7jmad060s2l3slu3wmzc0a48fz358cnpl4czsmux60m
+  - &Jims-Mac-mini age1x2a7yncl7ctry2rsddc9m2ryfk82lazcx2secn75awv0n8d473dq9nz33s
+creation_rules:
+  - path_regex: sops/secrets\.yaml$
+    key_groups:
+      - age:
+          - *mac-1QFL40HG
+          - *Jims-Mac-mini

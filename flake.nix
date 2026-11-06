@@ -21,6 +21,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Secrets
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Quality Control
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -34,6 +40,7 @@
     , nix-darwin
     , home-manager
     , nixvim
+    , sops-nix
     , git-hooks
     , ...
     }@inputs:
@@ -69,6 +76,7 @@
                 ];
                 sharedModules = [
                   nixvim.homeModules.nixvim
+                  sops-nix.homeManagerModules.sops
                 ];
                 extraSpecialArgs = {
                   inherit username;

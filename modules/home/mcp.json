@@ -26,17 +26,6 @@
         "serve",
         "--mcp"
       ]
-    },
-    "ynab": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "ynab-mcp-server@0.4.1"
-      ],
-      "env": {
-        "YNAB_API_TOKEN": "${YNAB_TOKEN}"
-      }
     }
   }
 }
