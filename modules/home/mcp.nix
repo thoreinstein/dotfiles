@@ -60,6 +60,12 @@ in
       };
     };
 
+    # obsidian-mcp refuses every vault tool until it has a vault root. The config file reaches
+    # every client (Claude Code, Claude Desktop, pi, recall); an env var in mcp.json would not.
+    xdg.configFile."obsidian-mcp/config.json".text = builtins.toJSON {
+      vault_path = "${config.home.homeDirectory}/Documents/second_brain";
+    };
+
     home = {
       file = {
         ".mcp.json".text = mcpJson;
