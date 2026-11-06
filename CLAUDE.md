@@ -7,6 +7,7 @@ Personal macOS dotfiles: **nix-darwin + home-manager**, flake-based. See `README
 Run from repo root. Hostname auto-detected via `scutil --get LocalHostName`.
 
 ```bash
+make bootstrap # first switch on a fresh Mac (no darwin-rebuild, flakes off yet)
 make check    # nix flake check — run this before switch
 make build    # darwin-rebuild build (no apply) — use to surface errors
 make switch   # sudo darwin-rebuild switch — applies config

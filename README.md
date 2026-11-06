@@ -9,8 +9,10 @@ Requires [Nix](https://nixos.org/download/) with flakes enabled.
 ```bash
 git clone git@github.com:thoreinstein/dotfiles.git ~/src/thoreinstein/dotfiles
 cd ~/src/thoreinstein/dotfiles
-nix run nix-darwin/master#darwin-rebuild -- switch --flake '.#<hostname>'
+make bootstrap
 ```
+
+`make bootstrap` is for the first switch only. It enables flakes for that one run, creates the vault directory, and runs the `darwin-rebuild` pinned in `flake.lock`. If activation stops on unrecognized files in `/etc` (the Nix installer writes `/etc/zshrc`, `/etc/bashrc` and `/etc/nix/nix.conf`), rename each to `<file>.before-nix-darwin` as the error says and run it again.
 
 Subsequent rebuilds:
 
@@ -31,11 +33,11 @@ Before the first switch:
 
 1. Check `brew list` on a Mac that already has Homebrew. `homebrew.onActivation.cleanup = "zap"` removes undeclared brews and casks, with their data. Declare or back up what you want to keep.
 2. Make sure the Mac can reach GitHub over SSH. The clone below and the `thoreinstein-plugins` marketplace both use `git@github.com`.
-3. Create this Mac's own vault: `mkdir -p ~/Documents/second_brain`. The engram launchd agents write there.
+3. Create this Mac's own vault: `mkdir -p ~/Documents/second_brain`. The engram launchd agents write there. (`make bootstrap` does this for you.)
 
 Apply the config:
 
-4. On a new checkout, run the Quick Install commands. On an existing one, run `git pull`, then `make switch`.
+4. On a new checkout, run the Quick Install commands (`make bootstrap`). On an existing one, run `git pull`, then `make switch`.
 
 After the switch, in a new terminal:
 
@@ -71,7 +73,7 @@ Adding a new host: add it to the `hosts` table in `flake.nix` and create `hosts/
 dotfiles/
 ├── flake.nix              # Flake entry point with mkDarwinHost helper
 ├── flake.lock
-├── Makefile               # switch, build, check, fmt, update, golden
+├── Makefile               # bootstrap, switch, build, check, fmt, update, golden
 ├── hosts/
 │   ├── Jims-Mac-mini.nix  # Mac mini overrides (pi default)
 │   └── mac-1QFL40HG.nix   # MacBook overrides (omlx, imports work.nix)
