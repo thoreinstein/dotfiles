@@ -6,7 +6,12 @@
     nodejs
     pkg-config
     poppler-utils
-    presenterm
+    # nixpkgs f4a03c0: onig_sys wants a system oniguruma via pkg-config, which the
+    # recipe doesn't provide, so the uncached darwin build fails. Drop once fixed upstream.
+    (presenterm.overrideAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkg-config ];
+      buildInputs = (old.buildInputs or [ ]) ++ [ oniguruma ];
+    }))
     terminal-notifier
     uv
     yq-go
