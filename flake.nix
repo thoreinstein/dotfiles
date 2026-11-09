@@ -135,6 +135,16 @@
 
           pre-commit-check = git-hooks.lib.${system}.run {
             src = ./.;
+            # pre-commit's test suite pulls in dotnet, go, cargo, cabal and
+            # coursier. doCheck drops those inputs, env drops DOTNET_ROOT (which
+            # keeps dotnet on its own), and pytestCheckHook ignores doCheck here.
+            # When a nixpkgs bump lands before the cache has pre-commit, that
+            # means building .NET from source just to enter the devShell.
+            package = nixpkgs.legacyPackages.${system}.pre-commit.overridePythonAttrs (_: {
+              doCheck = false;
+              dontUsePytestCheck = true;
+              env = { };
+            });
             hooks = {
               nixpkgs-fmt.enable = true;
               statix.enable = true;
