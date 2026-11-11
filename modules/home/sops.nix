@@ -12,6 +12,7 @@
     secrets = {
       ynab_token = { };
       kroger_client_secret = { };
+      mealie_token = { };
     };
   };
 }

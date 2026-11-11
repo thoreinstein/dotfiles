@@ -29,6 +29,13 @@ let
     export KROGER_USER_ZIP_CODE=41075
     exec ${pkgs.uv}/bin/uvx kroger-mcp
   '';
+  # Mealie runs on the Mac mini; the MacBook reaches it over Bonjour on the LAN.
+  mealieMcp = pkgs.writeShellScript "mealie-mcp" ''
+    MEALIE_API_TOKEN=$(cat ${config.sops.secrets.mealie_token.path})
+    export MEALIE_API_TOKEN
+    export MEALIE_BASE_URL=http://jims-mac-mini.local:9925
+    exec ${pkgs.uv}/bin/uvx mcp-mealie@0.7.1
+  '';
 in
 {
   options.mcpServers = lib.mkOption {
@@ -104,9 +111,11 @@ in
             --arg path "${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:/usr/bin:/bin" \
             --arg ynab "${ynabMcp}" \
             --arg kroger "${krogerMcp}" \
+            --arg mealie "${mealieMcp}" \
             '{"obsidian-mcp": {command: $cmd, args: ["-y", $spec], env: {PATH: $path}},
               ynab: {command: $ynab, args: []},
-              kroger: {command: $kroger, args: []}}')
+              kroger: {command: $kroger, args: []},
+              mealie: {command: $mealie, args: []}}')
           tmp=$(mktemp "$(dirname "$cfg")/.claude_desktop_config.XXXXXX")
           if [ -n "$entries" ] && ${pkgs.jq}/bin/jq --argjson e "$entries" '.mcpServers += $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
             if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else chmod 600 "$tmp"; run mv "$tmp" "$cfg"; fi
