@@ -34,7 +34,7 @@ let
     MEALIE_API_TOKEN=$(cat ${config.sops.secrets.mealie_token.path})
     export MEALIE_API_TOKEN
     export MEALIE_BASE_URL=http://jims-mac-mini.local:9925
-    exec ${pkgs.uv}/bin/uvx mcp-mealie@0.7.1
+    exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/mcp-mealie@5f4748cbe52b8f67aba81f8df7ff4ba4270c3b4d mcp-mealie
   '';
 in
 {
