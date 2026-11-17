@@ -10,6 +10,7 @@
     ./engram-vault-sync.nix
     ./mcp.nix
     ./mise.nix
+    ./officebar.nix
     ./eza.nix
     ./fd.nix
     ./git.nix

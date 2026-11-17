@@ -136,6 +136,26 @@
         "type": "github"
       }
     },
+    "office-daemon": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794929427,
+        "narHash": "sha256-eEllFGSBfS9352CrgZipt3zPu1Ox56+KWjBA5Q167s8=",
+        "ref": "refs/heads/main",
+        "rev": "1278084823e7bfcc5975a2d34c59057475edbf35",
+        "revCount": 72,
+        "type": "git",
+        "url": "ssh://git@github.com/thoreinstein/office_daemon"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/thoreinstein/office_daemon"
+      }
+    },
     "root": {
       "inputs": {
         "git-hooks": "git-hooks",
@@ -143,6 +163,7 @@
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
+        "office-daemon": "office-daemon",
         "sops-nix": "sops-nix"
       }
     },

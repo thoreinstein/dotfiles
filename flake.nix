@@ -27,6 +27,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # officebar, the menu bar app for officed. Private repo: fetched over SSH
+    # with the user's agent when the flake is evaluated.
+    office-daemon = {
+      url = "git+ssh://git@github.com/thoreinstein/office_daemon";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Quality Control
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -79,7 +86,7 @@
                   sops-nix.homeManagerModules.sops
                 ];
                 extraSpecialArgs = {
-                  inherit username;
+                  inherit inputs username;
                   homeDirectory = "/Users/${username}";
                 };
               };
