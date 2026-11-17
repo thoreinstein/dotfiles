@@ -47,8 +47,8 @@ _: {
               text = "~";
             };
           };
-          # Off by default (a git blame per cursor rest); <leader>hB toggles it.
-          current_line_blame = false;
+          # On by default; <leader>hB toggles it.
+          current_line_blame = true;
           current_line_blame_opts = {
             virt_text = true;
             virt_text_pos = "eol";
