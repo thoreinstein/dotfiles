@@ -545,7 +545,7 @@ export function agentMessage(branch, toolCallId, parentToolCallId) {
 // Code searches that codegraph_explore usually answers better. A search counts only as the first
 // stage of a pipeline, so `ps | grep x` filtering another command's output does not.
 const SEARCHERS = new Set(["grep", "rg", "find", "fd", "ag"]);
-export const CODEGRAPH_NUDGE = 'Indexed repo: codegraph_explore "<symbol or question>" returns source + callers in one call. Prefer it for code questions.';
+export const CODEGRAPH_NUDGE = 'Indexed repo: mcp__codegraph__codegraph_explore({ query: "<symbol or question>" }) returns source + callers in one call. Prefer it for code questions.';
 
 export function codeSearch(toolName, input) {
   if (toolName === "grep" || toolName === "find") return true;

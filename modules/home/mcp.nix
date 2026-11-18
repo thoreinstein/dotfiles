@@ -3,11 +3,12 @@ let
   shared = (builtins.fromJSON (builtins.readFile ./mcp.json)).mcpServers;
   mcpJson = builtins.toJSON { inherit (config) mcpServers; };
   # ynab is personal; pi is the work harness, so it doesn't get it.
-  # pi's MCP adapter hides tools behind its `mcp` proxy; directTools lists
-  # codegraph_explore beside read/bash so pi actually reaches for it.
+  # pi keeps MCP tools inside codemode by default; direct exposure declares
+  # codegraph_explore beside read/bash (as mcp__codegraph__codegraph_explore)
+  # so pi actually reaches for it.
   piMcpJson = builtins.toJSON {
     mcpServers = removeAttrs config.mcpServers [ "ynab" ] // {
-      codegraph = config.mcpServers.codegraph // { directTools = [ "codegraph_explore" ]; };
+      codegraph = config.mcpServers.codegraph // { toolExposure.codegraph_explore = "direct"; };
     };
   };
   # npx installs a github: package on first launch (clone + npm install + build).

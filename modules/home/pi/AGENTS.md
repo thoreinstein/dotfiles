@@ -138,8 +138,8 @@ thousands of tokens and usually finds the wrong thing.
 
 ## CodeGraph
 
-In a repo with a `.codegraph/` directory at its root, use the codegraph MCP server's
-`codegraph_explore` tool before grep, find, or reading files. One call returns the relevant
+In a repo with a `.codegraph/` directory at its root, call the
+`mcp__codegraph__codegraph_explore` tool before grep, find, or reading files. One call returns the relevant
 symbols' current source plus the call paths between them, including dynamic-dispatch hops
 grep can't follow. If the MCP tool isn't available, `codegraph explore "<symbols or question>"`
 in the shell prints the same output.
