@@ -269,6 +269,8 @@ for (const cmd of [
   "cd x && # it's wedged\ngit push",
   "# don't worry\ngh run cancel 1",
   "ls # it's fine\nrm -rf x",
+  "echo a\\\n#; rm -rf x",
+  "git log\\\n#; git push",
 ]) assert.equal(await verdict(cmd), "ask", cmd);
 for (const cmd of [
   "sudo -u root git status",
