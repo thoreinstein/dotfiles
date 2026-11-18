@@ -62,9 +62,11 @@ Found 2 memories:
 	got := parseEngram(out)
 	want := []hit{
 		{key: "engram:375", line: "engram #375 (session_summary) Compaction recovery summary", project: "dotfiles",
-			text: "compaction recovery summary\n    ## goal\n[not a header] #1 (x) — y"},
+			text:    "compaction recovery summary\n    ## goal\n[not a header] #1 (x) — y",
+			snippet: "## Goal [not a header] #1 (x) — y"},
 		{key: "engram:513", line: "engram #513 (decision) ci-fix skill: fix all red checks", project: "work-thing",
-			text: "ci-fix skill: fix all red checks\n    **what**: ..."},
+			text:    "ci-fix skill: fix all red checks\n    **what**: ...",
+			snippet: "**What**: ..."},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v\nwant %+v", got, want)
@@ -78,6 +80,7 @@ File: a/One.md
 Meta: reference · 2026-02-09 · type: clipping
 Section: One > Rationale
 Content: Some content
+  that wraps
 ---
 File: b/Two.md
 File: c/Three.md
@@ -89,13 +92,14 @@ File: engram/_sessions/35bc6e68-02a3-1234.md
 `)
 	got := parseVault(out)
 	want := []hit{
-		{key: "vault:a/One.md#One > Rationale", line: "vault a/One.md § One > Rationale", path: "a/One.md"},
-		{key: "vault:b/Two.md", line: "vault b/Two.md", path: "b/Two.md"},
-		{key: "vault:c/Three.md#Three", line: "vault c/Three.md § Three", path: "c/Three.md"},
+		{key: "vault:a/One.md#One > Rationale", line: "vault a/One.md § One > Rationale", path: "a/One.md",
+			text: "a/one.md one > rationale some content that wraps", snippet: "Some content that wraps"},
+		{key: "vault:b/Two.md", line: "vault b/Two.md", path: "b/Two.md", text: "b/two.md"},
+		{key: "vault:c/Three.md#Three", line: "vault c/Three.md § Three", path: "c/Three.md", text: "c/three.md three"},
 		{key: "engram:561", line: "vault engram/dotfiles/decision/gauth-switcher-561.md § gauth",
-			path: "engram/dotfiles/decision/gauth-switcher-561.md"},
+			path: "engram/dotfiles/decision/gauth-switcher-561.md", text: "engram/dotfiles/decision/gauth-switcher-561.md gauth"},
 		{key: "vault:engram/_sessions/35bc6e68-02a3-1234.md", line: "vault engram/_sessions/35bc6e68-02a3-1234.md",
-			path: "engram/_sessions/35bc6e68-02a3-1234.md"},
+			path: "engram/_sessions/35bc6e68-02a3-1234.md", text: "engram/_sessions/35bc6e68-02a3-1234.md"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v\nwant %+v", got, want)
@@ -105,7 +109,7 @@ File: engram/_sessions/35bc6e68-02a3-1234.md
 func TestFirst(t *testing.T) {
 	a, b, c, d := hit{key: "a"}, hit{key: "b"}, hit{key: "c"}, hit{key: "d"}
 	got := first([]hit{a, b, c, d}, map[string]bool{"b": true})
-	if want := []hit{a, c, d}; !reflect.DeepEqual(got, want) {
+	if want := []hit{a, c}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v, want %+v", got, want)
 	}
 }
@@ -132,6 +136,7 @@ func TestVaultAllowed(t *testing.T) {
 		"ForgeRock/ADRs/ADR-001.md":                    true,
 		"engram/dotfiles/decision/standup-505.md":      true,
 		"engram/_sessions/01a18c64@fraas.md":           false,
+		"engram/x/session_summary/recovery-481.md":     false,
 		"reference/library/article.md":                 false,
 		"reference/resources/forge-commands/README.md": false,
 		"Notes/Zettelkasten.md":                        false,
@@ -157,6 +162,23 @@ func TestStripSkill(t *testing.T) {
 		if got := stripSkill(in); got != want {
 			t.Errorf("stripSkill(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestUseful(t *testing.T) {
+	keep := hit{line: "engram #1 (decision) Pick X"}
+	drop := hit{line: "engram #2 (session_summary) Session summary"}
+	if got := useful([]hit{keep, drop}); !reflect.DeepEqual(got, []hit{keep}) {
+		t.Fatalf("got %+v", got)
+	}
+}
+
+func TestRender(t *testing.T) {
+	long := strings.Repeat("x", 250)
+	got := render([]hit{{line: "engram #1 (decision) A", snippet: "why it matters"}, {line: "vault b.md", snippet: long}, {line: "vault c.md"}})
+	want := "engram #1 (decision) A\n  why it matters\nvault b.md\n  " + strings.Repeat("x", maxSnippet) + "…\nvault c.md\n</recall>\n"
+	if !strings.HasPrefix(got, "<recall ") || !strings.HasSuffix(got, want) {
+		t.Fatalf("got %q", got)
 	}
 }
 
