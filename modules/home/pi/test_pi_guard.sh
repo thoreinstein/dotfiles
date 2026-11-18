@@ -284,6 +284,49 @@ for (const cmd of [
 ]) assert.equal(await verdict(cmd), "allow", cmd);
 console.log("pi-guard wrappers/grouping/aliases: ok");
 
+// gh commands that write to GitHub ask, directly and nested; reads don't
+assert.deepEqual(rules("gh pr create --fill"), ["gh-write"]);
+assert.deepEqual(rules("gh pr --repo o/r comment 1 -b x"), ["gh-write"]);
+assert.deepEqual(rules("gh run rerun 123 --failed"), ["gh-write"]);
+assert.deepEqual(rules("gh api repos/o/r/pulls/1/reviews --method POST"), ["gh-write"]);
+assert.deepEqual(rules("gh api -XPATCH repos/o/r"), ["gh-write"]);
+assert.deepEqual(rules("gh api repos/o/r/issues -f title=x"), ["gh-write"]);
+assert.deepEqual(rules("gh api repos/o/r/pulls/1/reviews --input -"), ["gh-write"]);
+assert.deepEqual(rules("gh api -X DELETE repos/o/r"), ["gh-delete"]);
+assert.deepEqual(rules("gh release delete v1"), ["gh-delete"]);
+assert.deepEqual(rules("gh api repos/o/r/pulls -X GET -f state=open"), []);
+assert.deepEqual(rules("gh pr view 1 --json url"), []);
+assert.deepEqual(rules("gh pr list"), []);
+assert.deepEqual(rules("gh run view 123 --log-failed"), []);
+for (const cmd of [
+  "gh pr create --title 'x' --body 'y'",
+  "gh pr merge 1 --squash",
+  "gh pr close 1",
+  "gh pr review 1 --approve",
+  "gh issue comment 1 -b x",
+  "gh workflow run deploy.yml",
+  "gh run cancel 1",
+  "gh secret set TOKEN < f",
+  "gh repo fork o/r",
+  "gh api graphql -f query='mutation { addComment(input: {}) { clientMutationId } }'",
+  "bash -c 'gh pr create --fill'",
+  "URL=$(gh pr create --fill)",
+  "echo $(gh api repos/o/r/issues -f title=x)",
+  "R=$(gh api --method=POST repos/o/r/dispatches)",
+]) assert.equal(await verdict(cmd), "ask", cmd);
+for (const cmd of [
+  "gh pr view 1 --json headRefOid,url",
+  "gh pr checks 1",
+  "gh pr diff 1",
+  "gh run list --limit 5",
+  "gh api repos/o/r/pulls --jq '.[].number'",
+  "gh api graphql -f query='query { viewer { login } }'",
+  "N=$(gh pr view 1 --json number --jq .number)",
+  "X=$(gh api graphql -f query='{ viewer { login } }')",
+  "echo 'gh pr create'",
+]) assert.equal(await verdict(cmd), "allow", cmd);
+console.log("pi-guard gh writes: ok");
+
 // MCP tool names resolve the way the adapter resolves them
 const policyOf = (...a) => mcpPolicy(...a)?.tool ?? null;
 assert.equal(policyOf("glean_chat"), "glean_chat");

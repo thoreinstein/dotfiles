@@ -28,6 +28,22 @@ const HOOK_SKIP_ENV = /^(SKIP|HUSKY|LEFTHOOK|PRE_COMMIT_ALLOW_NO_CONFIG|GIT_CONF
 // An alias body that itself skips hooks or signing.
 const ALIAS_BYPASS = /--no-veri|--no-gpg|\s-[A-Za-z]*n[A-Za-z]*(\s|$)|hookspath|gpg\.program/i;
 const TF = new Set(["terraform", "tofu", "terragrunt"]);
+// gh subcommands that write to GitHub, by group. Deletes have their own rule; `gh api` writes are
+// found by method in ghWrite.
+const GH_ASK = {
+  pr: ["create", "merge", "close", "reopen", "edit", "comment", "review", "ready"],
+  issue: ["create", "close", "reopen", "edit", "comment"],
+  release: ["create", "edit"],
+  repo: ["create", "fork", "edit", "rename", "archive"],
+  label: ["create", "edit"],
+  gist: ["create", "edit"],
+  run: ["rerun", "cancel"],
+  workflow: ["run", "enable", "disable"],
+  secret: ["set"],
+  variable: ["set"],
+};
+// gh api flags that send a body, which makes the request a POST unless a method is given.
+const GH_FIELD = /^(-f|-F|--field|--raw-field|--input)(=|$)|^-[fF]./;
 // Binaries whose first non-flag argument names the command family (git status vs git log).
 const SUBCOMMANDED = new Set([...TF, "git", "gh", "gcloud", "kubectl", "docker", "nix", "make", "npm"]);
 const NOISE = new Set(["cd", "export", "set", "source", ".", "true"]);
@@ -175,8 +191,29 @@ export function check(tokens) {
     if (args.some((a) => a === "delete" || a === "destroy" || a === "rm")
       || (method >= 0 && String(args[method + 1]).toUpperCase() === "DELETE"))
       hits.push([`${bin}-delete`, `${bin} subcommand that deletes`]);
+    else if (bin === "gh" && ghWrite(args)) hits.push(["gh-write", "gh command that writes to GitHub"]);
   }
   return hits;
+}
+
+// A gh command that changes something on GitHub: a GH_ASK subcommand, or a `gh api` call with a
+// write method, a body and no method (gh sends it as a POST), or a GraphQL mutation.
+function ghWrite(args) {
+  const pos = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "-R" || args[i] === "--repo") i++;
+    else if (!args[i].startsWith("-")) pos.push(args[i]);
+  }
+  if (pos[0] !== "api") return GH_ASK[pos[0]]?.includes(pos[1]) ?? false;
+  let method;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "-X" || args[i] === "--method") method = args[i + 1];
+    else if (args[i].startsWith("--method=")) method = args[i].slice(9);
+    else if (/^-X./.test(args[i])) method = args[i].slice(2);
+  }
+  if (method) return !["GET", "HEAD", "DELETE"].includes(String(method).toUpperCase());
+  if (pos[1] === "graphql") return args.some((a) => /\bmutation\b/.test(a) || /^--input(=|$)/.test(a));
+  return args.some((a) => GH_FIELD.test(a));
 }
 
 // The tokenizer cannot see inside another command, so when one is nested (a shell or exec
@@ -200,6 +237,10 @@ const RAW_RULES = [
   ["terraform-state-rm", "terraform state rm", /\b(terraform|tofu|terragrunt)\b[\s\S]*\bstate\s+rm\b/],
   ["gcloud-delete", "gcloud subcommand that deletes", /\bgcloud\b[\s\S]*\b(delete|destroy|rm)\b/],
   ["gh-delete", "gh subcommand that deletes", /\bgh\b[\s\S]*(\b(delete|destroy|rm)\b|(-X|--method)\s*=?\s*DELETE)/i],
+  ["gh-write", "gh command that writes to GitHub", new RegExp(String.raw`\bgh\b[\s\S]*\b(${Object.entries(GH_ASK).map(([g, v]) => `${g}\\s+(${v.join("|")})`).join("|")})\b`)],
+  ["gh-write", "gh command that writes to GitHub", /\bgh\s+api\b[\s\S]*(-X|--method)\s*=?\s*['"]?(POST|PUT|PATCH)\b/i],
+  ["gh-write", "gh command that writes to GitHub", /^(?![\s\S]*\bgh\s+api\s+graphql\b)[\s\S]*\bgh\s+api\b[\s\S]*\s(-f|-F|--field|--raw-field|--input)(\s|=|$)/],
+  ["gh-write", "gh command that writes to GitHub", /\bgh\s+api\s+graphql\b[\s\S]*\bmutation\b/],
   ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\b[\s\S]*\bcommit\b[\s\S]*--amend\b/],
   ["git-amend", "git commit --amend REWRITES THE LAST COMMIT", /\bgit\s+can?\b/],
   ["git-alias", "git.nix alias for commit/checkout/rebase/worktree remove", /\bgit\s+(cm|co|cb|rewrite|sync|wr)\b/],
