@@ -266,6 +266,9 @@ for (const cmd of [
   "bash -c '/bin/rm -rf x'",
   "sh -c '\\rm -rf x'",
   "git push \\\n--force",
+  "cd x && # it's wedged\ngit push",
+  "# don't worry\ngh run cancel 1",
+  "ls # it's fine\nrm -rf x",
 ]) assert.equal(await verdict(cmd), "ask", cmd);
 for (const cmd of [
   "sudo -u root git status",
@@ -281,6 +284,8 @@ for (const cmd of [
   "echo '(git commit --no-verify)'",
   "echo 'rm -rf x'",
   "git commit-tree HEAD^{tree} -m x | cat",
+  "git status # then git push",
+  "echo a#b; git log -1",
 ]) assert.equal(await verdict(cmd), "allow", cmd);
 console.log("pi-guard wrappers/grouping/aliases: ok");
 

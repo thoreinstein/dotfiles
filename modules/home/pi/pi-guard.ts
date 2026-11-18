@@ -51,7 +51,8 @@ const NOISE = new Set(["cd", "export", "set", "source", ".", "true"]);
 // Splits a bash command into pipelines of tokens, honouring quotes, so a quoted "rm" or
 // "--no-verify" inside a commit message is not mistaken for a command. `(` and `)` end a
 // command like `;` does, so a subshell's contents are stages of their own; a backslash-newline
-// is a line continuation, not part of a word.
+// is a line continuation, not part of a word; a `#` comment is skipped, so its apostrophes don't
+// open a quote that hides the lines after it.
 function parse(cmd) {
   const commands = [];
   let pipeline = [], tokens = [], word = "", quote = "", inWord = false;
@@ -67,6 +68,8 @@ function parse(cmd) {
     } else if (c === "'" || c === '"') { quote = c; inWord = true; }
     else if (c === "\\" && cmd[i + 1] === "\n") { i++; endWord(); }
     else if (c === "\\" && i + 1 < cmd.length) { word += cmd[++i]; inWord = true; }
+    // A `#` that starts a word comments out the rest of the line, quotes included.
+    else if (c === "#" && !inWord) { while (i + 1 < cmd.length && cmd[i + 1] !== "\n") i++; }
     else if (c === " " || c === "\t") endWord();
     else if (c === "\n" || c === ";" || c === "(" || c === ")") endCommand();
     else if (c === "&" || c === "|") {
