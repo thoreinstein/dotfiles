@@ -112,6 +112,12 @@ don't wait for me to stage anything.
   nix packages + Homebrew casks (`modules/darwin/homebrew.nix`, `cleanup = "zap"`).
 - Two hosts: `Jims-Mac-mini` (user `myers`) and `mac-1QFL40HG` (user `jimmyers`).
   Use `$HOME` or host-configured user — never hardcode `/Users/<name>`.
+- Project tools (tofu, terragrunt, go, pre-commit, …) are already on PATH as mise shims: every
+  command loads the directory's `.envrc` first. Call them by name. Don't build PATH from
+  `~/.local/share/mise/installs` or `/nix/store`, and don't use `mise exec`/`mise x` to reach a
+  tool — it fails when any tool in the config can't install, even if yours is fine. If a tool
+  is missing, run `command -v <tool>` and show me the error. Never apply a PATH workaround from
+  memory without that check.
 - Dotfiles repo at `~/src/thoreinstein/dotfiles`: bare git repo with per-branch worktrees.
 
 ## Tooling
