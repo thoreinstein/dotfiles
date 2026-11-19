@@ -2,6 +2,39 @@
 let
   pi = import ./pi/model.nix lib;
 
+  # git2go v31 (go/common/pkg/git2go, used by saas/tools/forge) hard-errors
+  # outside libgit2 v1.1–v1.3 and nixpkgs ships 1.9.x, so pin 1.3.2 here. The
+  # nix darwin fixup phase gives the dylib an absolute install name, so Go
+  # binaries linked via pkg-config record a resolvable store path and need no
+  # rpath or DYLD_LIBRARY_PATH (the retired @rpath hand-build under
+  # /usr/local/libgit2 needed both, and its CGO_LDFLAGS workaround leaked
+  # -lgit2 into every cgo binary in the workspace — golangci-lint included).
+  # HTTPS stays on Secure Transport (cmake's darwin default, matching the
+  # hand-build); libssh2 is nix's 1.11.1 instead of the dead homebrew Cellar
+  # path the hand-build pointed at.
+  libgit2-for-git2go = pkgs.stdenv.mkDerivation {
+    pname = "libgit2";
+    version = "1.3.2";
+    src = pkgs.fetchFromGitHub {
+      owner = "libgit2";
+      repo = "libgit2";
+      rev = "a6c822e353e01f690728a082fe32f09b01b845c6"; # v1.3.2
+      hash = "sha256-Ip0EMT6SRx9qWBelbCY4jsEoBayXF6Ov+SkQLJF6z7Y=";
+    };
+    nativeBuildInputs = [ pkgs.cmake pkgs.pkg-config ];
+    buildInputs = [ pkgs.libssh2 pkgs.openssl pkgs.zlib pkgs.pcre2 ];
+    cmakeFlags = [
+      "-DUSE_SSH=ON"
+      "-DREGEX_BACKEND=pcre2"
+      "-DUSE_GSSAPI=OFF"
+      "-DBUILD_SHARED_LIBS=ON"
+      "-DBUILD_TESTS=OFF"
+      # libgit2 1.3's test runner wants python even with BUILD_TESTS=OFF
+      "-DBUILD_CLAR=OFF"
+      "-DBUILD_CLI=OFF"
+    ];
+  };
+
   # Cloud gateway: these ids are custom to the gateway, so pi has no built-in
   # metadata for them. Window sizes and reasoning are declared here; reasoning
   # defaults to false, which would disable thinking. Cost is zero: the company
@@ -72,6 +105,7 @@ in
   home = {
     packages = with pkgs; [
       codefresh
+      libgit2-for-git2go
       # `gcloud components install` can't write to the nix store; declare components here.
       (google-cloud-sdk.withExtraComponents (
         with google-cloud-sdk.components;
@@ -88,6 +122,13 @@ in
         text = builtins.readFile ../../bin/.bin/gauth;
       })
     ];
+
+    # nix-darwin's per-user profile (/etc/profiles/per-user/<user>) links only
+    # bin/etc/info/share — no lib — so expose the .pc through a stable home
+    # path instead. The .pc carries absolute store-path libdir/include, so
+    # pkg-config consumers link straight into the store and load the dylib by
+    # its absolute install name; see ~/src/forgecloud/.envrc for the consumer.
+    file.".local/lib/pkgconfig/libgit2.pc".source = "${libgit2-for-git2go}/lib/pkgconfig/libgit2.pc";
 
     sessionVariables.K9S_CONFIG_DIR = "$HOME/.config/k9s";
 
