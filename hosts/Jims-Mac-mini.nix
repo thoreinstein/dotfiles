@@ -12,6 +12,20 @@ let
     exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/mcp-mealie@685c88db58c32126e098c4c6d861fe7231566a23 \
       mcp-mealie --http --port 9930 --allowed-host recipes-mcp.myerslabs.dev
   '';
+
+  # Grocy MCP over Streamable HTTP for the claude.ai connector, from the fork
+  # (github.com/thoreinstein/grocy-mcp). Loopback only; the tunnel publishes it
+  # as grocy-mcp.myerslabs.dev behind Cloudflare Access, so the server's own
+  # auth is off. GROCY_API_URL and GROCY_API_KEY come from
+  # ~/.config/grocy-mcp/env (0600, written at Grocy setup), read at start.
+  grocyMcpHttp = pkgs.writeShellScript "grocy-mcp-http" ''
+    export PATH="${pkgs.git}/bin:/usr/bin:/bin"
+    set -a
+    . ${homeDirectory}/.config/grocy-mcp/env
+    set +a
+    exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/grocy-mcp@e0a8cf80e7ac6eb488478b38c0f478826594df4a \
+      grocy-mcp --transport http --port 9941 --public-host grocy-mcp.myerslabs.dev --no-auth
+  '';
 in
 {
   programs.pi-coding-agent.settings = {
@@ -92,6 +106,19 @@ in
       ThrottleInterval = 30;
       StandardOutPath = "${homeDirectory}/Library/Logs/mealie-mcp-http.log";
       StandardErrorPath = "${homeDirectory}/Library/Logs/mealie-mcp-http.log";
+    };
+  };
+
+  launchd.agents.grocy-mcp-http = {
+    enable = true;
+    config = {
+      Label = "com.thoreinstein.grocy-mcp-http";
+      ProgramArguments = [ "${grocyMcpHttp}" ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      ThrottleInterval = 30;
+      StandardOutPath = "${homeDirectory}/Library/Logs/grocy-mcp-http.log";
+      StandardErrorPath = "${homeDirectory}/Library/Logs/grocy-mcp-http.log";
     };
   };
 }
