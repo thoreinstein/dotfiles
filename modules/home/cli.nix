@@ -13,6 +13,9 @@
       buildInputs = (old.buildInputs or [ ]) ++ [ oniguruma ];
     }))
     terminal-notifier
+    # macOS has no `timeout`, and agents reach for it. Only this one GNU tool, so ls/date/etc.
+    # stay BSD.
+    (writeShellScriptBin "timeout" ''exec ${coreutils}/bin/timeout "$@"'')
     uv
     yq-go
   ];
