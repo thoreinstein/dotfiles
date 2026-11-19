@@ -40,4 +40,30 @@
       StandardErrorPath = "${homeDirectory}/Library/Logs/office-bridge.log";
     };
   };
+
+  # Cloudflare tunnel "mealie": recipes.myerslabs.dev -> Mealie on :9925, behind
+  # Cloudflare Access. A login agent, not a boot daemon: FileVault means nothing
+  # runs before login anyway, and Mealie's Docker Desktop only starts at login.
+  # ~/.cloudflared holds config.yml, the tunnel credentials JSON and cert.pem
+  # (made by `cloudflared tunnel login` / `tunnel create mealie`), not managed here.
+  launchd.agents.cloudflared-mealie = {
+    enable = true;
+    config = {
+      Label = "com.thoreinstein.cloudflared-mealie";
+      ProgramArguments = [
+        "${pkgs.cloudflared}/bin/cloudflared"
+        "tunnel"
+        "--no-autoupdate"
+        "--config"
+        "${homeDirectory}/.cloudflared/config.yml"
+        "run"
+        "mealie"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      ThrottleInterval = 30;
+      StandardOutPath = "${homeDirectory}/Library/Logs/cloudflared-mealie.log";
+      StandardErrorPath = "${homeDirectory}/Library/Logs/cloudflared-mealie.log";
+    };
+  };
 }
