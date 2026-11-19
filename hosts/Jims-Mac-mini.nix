@@ -23,7 +23,7 @@ let
     set -a
     . ${homeDirectory}/.config/grocy-mcp/env
     set +a
-    exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/grocy-mcp@e0a8cf80e7ac6eb488478b38c0f478826594df4a \
+    exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/grocy-mcp@2830ffd91081411660aba917a4924ff49099af32 \
       grocy-mcp --transport http --port 9941 --public-host grocy-mcp.myerslabs.dev --no-auth
   '';
 in
