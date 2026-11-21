@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   shared = (builtins.fromJSON (builtins.readFile ./mcp.json)).mcpServers;
   mcpJson = builtins.toJSON { inherit (config) mcpServers; };
@@ -8,7 +13,9 @@ let
   # so pi actually reaches for it.
   piMcpJson = builtins.toJSON {
     mcpServers = removeAttrs config.mcpServers [ "ynab" ] // {
-      codegraph = config.mcpServers.codegraph // { toolExposure.codegraph_explore = "direct"; };
+      codegraph = config.mcpServers.codegraph // {
+        toolExposure.codegraph_explore = "direct";
+      };
     };
   };
   # npx installs a github: package on first launch (clone + npm install + build).
@@ -29,13 +36,6 @@ let
     export KROGER_REDIRECT_URI=http://localhost:8000/callback
     export KROGER_USER_ZIP_CODE=41075
     exec ${pkgs.uv}/bin/uvx kroger-mcp
-  '';
-  # Mealie runs on the Mac mini; the MacBook reaches it over Bonjour on the LAN.
-  mealieMcp = pkgs.writeShellScript "mealie-mcp" ''
-    MEALIE_API_TOKEN=$(cat ${config.sops.secrets.mealie_token.path})
-    export MEALIE_API_TOKEN
-    export MEALIE_BASE_URL=http://jims-mac-mini.local:9925
-    exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/mcp-mealie@5f4748cbe52b8f67aba81f8df7ff4ba4270c3b4d mcp-mealie
   '';
 in
 {
@@ -89,7 +89,12 @@ in
         state="''${XDG_STATE_HOME:-$HOME/.local/state}/recall"
         if [ "$(cat "$state/obsidian-mcp.spec" 2>/dev/null)" != ${lib.escapeShellArg obsidianMcpSpec} ] \
           || [ ! -f "$(cat "$state/obsidian-mcp" 2>/dev/null)" ]; then
-          if bin=$(PATH="${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:$PATH" \
+          if bin=$(PATH="${
+            lib.makeBinPath [
+              pkgs.nodejs
+              pkgs.git
+            ]
+          }:$PATH" \
               ${pkgs.nodejs}/bin/npx -y -p ${lib.escapeShellArg obsidianMcpSpec} sh -c 'command -v obsidian-mcp') \
             && [ -n "$bin" ]; then
             run mkdir -p "$state"
@@ -109,7 +114,12 @@ in
           entries=$(${pkgs.jq}/bin/jq -n \
             --arg cmd "${pkgs.nodejs}/bin/npx" \
             --arg spec ${lib.escapeShellArg obsidianMcpSpec} \
-            --arg path "${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:/usr/bin:/bin" \
+            --arg path "${
+              lib.makeBinPath [
+                pkgs.nodejs
+                pkgs.git
+              ]
+            }:/usr/bin:/bin" \
             --arg ynab "${ynabMcp}" \
             --arg kroger "${krogerMcp}" \
             --arg mealie "${mealieMcp}" \
