@@ -1,4 +1,4 @@
-{ config, homeDirectory, pkgs, ... }:
+{ config, homeDirectory, pkgs, lib, ... }:
 let
   # Mealie MCP over Streamable HTTP for the claude.ai connector, from the fork
   # (github.com/thoreinstein/mcp-mealie). Loopback only; the tunnel publishes it
@@ -25,6 +25,30 @@ let
     set +a
     exec ${pkgs.uv}/bin/uvx --from git+https://github.com/thoreinstein/grocy-mcp@2830ffd91081411660aba917a4924ff49099af32 \
       grocy-mcp --transport http --port 9941 --public-host grocy-mcp.myerslabs.dev --no-auth
+  '';
+
+  # Kroger MCP over Streamable HTTP for the claude.ai connector. Loopback only; the
+  # tunnel publishes it as kroger-mcp.myerslabs.dev behind Cloudflare Access. Same env
+  # as the stdio wrapper in modules/home/mcp.nix, so both share one token and cart.
+  krogerMcpHttp = pkgs.writeShellScript "kroger-mcp-http" ''
+    KROGER_CLIENT_SECRET=$(cat ${config.sops.secrets.kroger_client_secret.path})
+    export KROGER_CLIENT_SECRET
+    export KROGER_CLIENT_ID=personalmcpserver-bbcj1nxg
+    export KROGER_REDIRECT_URI=http://localhost:8000/callback
+    export KROGER_USER_ZIP_CODE=41075
+    exec ${pkgs.uv}/bin/uvx kroger-mcp --transport streamable-http --host 127.0.0.1 --port 9950
+  '';
+
+  # YNAB MCP over Streamable HTTP for the claude.ai connector. ynab-mcp-server only
+  # speaks stdio, so mcp-proxy bridges it. Loopback only; the tunnel publishes it as
+  # ynab-mcp.myerslabs.dev behind Cloudflare Access.
+  ynabMcpHttp = pkgs.writeShellScript "ynab-mcp-http" ''
+    export PATH="${lib.makeBinPath [ pkgs.nodejs ]}:/usr/bin:/bin"
+    YNAB_API_TOKEN=$(cat ${config.sops.secrets.ynab_token.path})
+    export YNAB_API_TOKEN
+    exec ${pkgs.uv}/bin/uvx mcp-proxy@0.15.0 --host 127.0.0.1 --port 9960 \
+      --allowed-host ynab-mcp.myerslabs.dev --pass-environment \
+      -- npx -y ynab-mcp-server@0.4.1
   '';
 in
 {
@@ -72,7 +96,8 @@ in
 
     # Cloudflare tunnel "mealie": recipes.myerslabs.dev -> Mealie on :9925 (Mealie's
     # own login, no Access) and recipes-mcp.myerslabs.dev -> mealie-mcp on :9930
-    # (behind Cloudflare Access). A login agent, not a boot daemon: FileVault means nothing
+    # (behind Cloudflare Access), plus the grocy, kroger and ynab MCP hostnames, also
+    # behind Access. A login agent, not a boot daemon: FileVault means nothing
     # runs before login anyway, and Mealie's Docker Desktop only starts at login.
     # ~/.cloudflared holds config.yml, the tunnel credentials JSON and cert.pem
     # (made by `cloudflared tunnel login` / `tunnel create mealie`), not managed here.
@@ -120,6 +145,32 @@ in
         ThrottleInterval = 30;
         StandardOutPath = "${homeDirectory}/Library/Logs/grocy-mcp-http.log";
         StandardErrorPath = "${homeDirectory}/Library/Logs/grocy-mcp-http.log";
+      };
+    };
+
+    kroger-mcp-http = {
+      enable = true;
+      config = {
+        Label = "com.thoreinstein.kroger-mcp-http";
+        ProgramArguments = [ "${krogerMcpHttp}" ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 30;
+        StandardOutPath = "${homeDirectory}/Library/Logs/kroger-mcp-http.log";
+        StandardErrorPath = "${homeDirectory}/Library/Logs/kroger-mcp-http.log";
+      };
+    };
+
+    ynab-mcp-http = {
+      enable = true;
+      config = {
+        Label = "com.thoreinstein.ynab-mcp-http";
+        ProgramArguments = [ "${ynabMcpHttp}" ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 30;
+        StandardOutPath = "${homeDirectory}/Library/Logs/ynab-mcp-http.log";
+        StandardErrorPath = "${homeDirectory}/Library/Logs/ynab-mcp-http.log";
       };
     };
   };
