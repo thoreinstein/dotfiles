@@ -125,7 +125,8 @@ in
               ynab: {command: $ynab, args: []},
               kroger: {command: $kroger, args: []}}')
           tmp=$(mktemp "$(dirname "$cfg")/.claude_desktop_config.XXXXXX")
-          if [ -n "$entries" ] && ${pkgs.jq}/bin/jq --argjson e "$entries" '.mcpServers += $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
+          # mealie is the claude.ai connector now; drop the old stdio entry a previous switch wrote.
+          if [ -n "$entries" ] && ${pkgs.jq}/bin/jq --argjson e "$entries" '.mcpServers += $e | del(.mcpServers.mealie)' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
             if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else chmod 600 "$tmp"; run mv "$tmp" "$cfg"; fi
           else
             rm -f "$tmp"
