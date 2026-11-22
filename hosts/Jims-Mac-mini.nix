@@ -54,6 +54,19 @@ let
       --allowed-host ynab-mcp.myerslabs.dev --pass-environment \
       -- npx -y ynab-mcp-server@0.4.1
   '';
+
+  # Obsidian vault MCP over Streamable HTTP for the claude.ai connector. obsidian-mcp only
+  # speaks stdio, so mcp-proxy bridges it. Same pinned package as the stdio clients
+  # (modules/home/mcp.json) and the same vault root (~/.config/obsidian-mcp/config.json).
+  # Loopback only; the tunnel publishes it as obsidian-mcp.myerslabs.dev behind the MCP
+  # portal (myerslabs_iac); an edge WAF rule requires the portal's upstream token.
+  obsidianMcpSpec = lib.last (builtins.fromJSON (builtins.readFile ../modules/home/mcp.json)).mcpServers."obsidian-mcp".args;
+  obsidianMcpHttp = pkgs.writeShellScript "obsidian-mcp-http" ''
+    export PATH="${lib.makeBinPath [ pkgs.nodejs pkgs.git ]}:/usr/bin:/bin"
+    exec ${pkgs.uv}/bin/uvx mcp-proxy@0.15.0 --host 127.0.0.1 --port 9980 \
+      --allowed-host obsidian-mcp.myerslabs.dev --pass-environment \
+      -- npx -y ${lib.escapeShellArg obsidianMcpSpec}
+  '';
 in
 {
   programs.pi-coding-agent.settings = {
@@ -100,7 +113,7 @@ in
 
     # Cloudflare tunnel "mealie": recipes.myerslabs.dev -> Mealie on :9925 (Mealie's
     # own login, no Access) and recipes-mcp.myerslabs.dev -> mealie-mcp on :9930
-    # plus the grocy, kroger, ynab and office MCP hostnames, all behind the MCP portal
+    # plus the grocy, kroger, ynab, office and obsidian MCP hostnames, all behind the MCP portal
     # (myerslabs_iac; an edge WAF rule requires its upstream token). A login agent, not a boot daemon: FileVault means nothing
     # runs before login anyway, and Mealie's Docker Desktop only starts at login.
     # ~/.cloudflared holds config.yml, the tunnel credentials JSON and cert.pem
@@ -198,6 +211,19 @@ in
         ThrottleInterval = 30;
         StandardOutPath = "${homeDirectory}/Library/Logs/ynab-mcp-http.log";
         StandardErrorPath = "${homeDirectory}/Library/Logs/ynab-mcp-http.log";
+      };
+    };
+
+    obsidian-mcp-http = {
+      enable = true;
+      config = {
+        Label = "com.thoreinstein.obsidian-mcp-http";
+        ProgramArguments = [ "${obsidianMcpHttp}" ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 30;
+        StandardOutPath = "${homeDirectory}/Library/Logs/obsidian-mcp-http.log";
+        StandardErrorPath = "${homeDirectory}/Library/Logs/obsidian-mcp-http.log";
       };
     };
   };
