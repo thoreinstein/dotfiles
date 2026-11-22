@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 let
   shared = (builtins.fromJSON (builtins.readFile ./mcp.json)).mcpServers;
@@ -122,11 +121,9 @@ in
             }:/usr/bin:/bin" \
             --arg ynab "${ynabMcp}" \
             --arg kroger "${krogerMcp}" \
-            --arg mealie "${mealieMcp}" \
             '{"obsidian-mcp": {command: $cmd, args: ["-y", $spec], env: {PATH: $path}},
               ynab: {command: $ynab, args: []},
-              kroger: {command: $kroger, args: []},
-              mealie: {command: $mealie, args: []}}')
+              kroger: {command: $kroger, args: []}}')
           tmp=$(mktemp "$(dirname "$cfg")/.claude_desktop_config.XXXXXX")
           if [ -n "$entries" ] && ${pkgs.jq}/bin/jq --argjson e "$entries" '.mcpServers += $e' "$cfg" > "$tmp" && [ -s "$tmp" ]; then
             if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else chmod 600 "$tmp"; run mv "$tmp" "$cfg"; fi
