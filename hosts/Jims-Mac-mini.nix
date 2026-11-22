@@ -2,7 +2,8 @@
 let
   # Mealie MCP over Streamable HTTP for the claude.ai connector, from the fork
   # (github.com/thoreinstein/mcp-mealie). Loopback only; the tunnel publishes it
-  # as recipes-mcp.myerslabs.dev behind Cloudflare Access. The token is read from
+  # as recipes-mcp.myerslabs.dev behind the MCP portal (myerslabs_iac); an edge
+  # WAF rule requires the portal's upstream token. The token is read from
   # the sops secret at start so it never lands in the plist or the nix store.
   mealieMcpHttp = pkgs.writeShellScript "mealie-mcp-http" ''
     export PATH="${pkgs.git}/bin:/usr/bin:/bin"
@@ -15,8 +16,9 @@ let
 
   # Grocy MCP over Streamable HTTP for the claude.ai connector, from the fork
   # (github.com/thoreinstein/grocy-mcp). Loopback only; the tunnel publishes it
-  # as grocy-mcp.myerslabs.dev behind Cloudflare Access, so the server's own
-  # auth is off. GROCY_API_URL and GROCY_API_KEY come from
+  # as grocy-mcp.myerslabs.dev behind the MCP portal (myerslabs_iac); an edge
+  # WAF rule requires the portal's upstream token, so the server's own auth is
+  # off. GROCY_API_URL and GROCY_API_KEY come from
   # ~/.config/grocy-mcp/env (0600, written at Grocy setup), read at start.
   grocyMcpHttp = pkgs.writeShellScript "grocy-mcp-http" ''
     export PATH="${pkgs.git}/bin:/usr/bin:/bin"
@@ -28,7 +30,8 @@ let
   '';
 
   # Kroger MCP over Streamable HTTP for the claude.ai connector. Loopback only; the
-  # tunnel publishes it as kroger-mcp.myerslabs.dev behind Cloudflare Access. Same env
+  # tunnel publishes it as kroger-mcp.myerslabs.dev behind the MCP portal
+  # (myerslabs_iac); an edge WAF rule requires the portal's upstream token. Same env
   # as the stdio wrapper in modules/home/mcp.nix, so both share one token and cart.
   krogerMcpHttp = pkgs.writeShellScript "kroger-mcp-http" ''
     KROGER_CLIENT_SECRET=$(cat ${config.sops.secrets.kroger_client_secret.path})
@@ -41,7 +44,8 @@ let
 
   # YNAB MCP over Streamable HTTP for the claude.ai connector. ynab-mcp-server only
   # speaks stdio, so mcp-proxy bridges it. Loopback only; the tunnel publishes it as
-  # ynab-mcp.myerslabs.dev behind Cloudflare Access.
+  # ynab-mcp.myerslabs.dev behind the MCP portal (myerslabs_iac); an edge WAF rule
+  # requires the portal's upstream token.
   ynabMcpHttp = pkgs.writeShellScript "ynab-mcp-http" ''
     export PATH="${lib.makeBinPath [ pkgs.nodejs ]}:/usr/bin:/bin"
     YNAB_API_TOKEN=$(cat ${config.sops.secrets.ynab_token.path})
@@ -96,8 +100,8 @@ in
 
     # Cloudflare tunnel "mealie": recipes.myerslabs.dev -> Mealie on :9925 (Mealie's
     # own login, no Access) and recipes-mcp.myerslabs.dev -> mealie-mcp on :9930
-    # (behind Cloudflare Access), plus the grocy, kroger and ynab MCP hostnames, also
-    # behind Access. A login agent, not a boot daemon: FileVault means nothing
+    # plus the grocy, kroger, ynab and office MCP hostnames, all behind the MCP portal
+    # (myerslabs_iac; an edge WAF rule requires its upstream token). A login agent, not a boot daemon: FileVault means nothing
     # runs before login anyway, and Mealie's Docker Desktop only starts at login.
     # ~/.cloudflared holds config.yml, the tunnel credentials JSON and cert.pem
     # (made by `cloudflared tunnel login` / `tunnel create mealie`), not managed here.
