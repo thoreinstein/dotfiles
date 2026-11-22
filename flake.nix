@@ -27,7 +27,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # officebar, the menu bar app for officed. Private repo: fetched over SSH
+    # officebar and officemcp, for officed. Private repo: fetched over SSH
     # with the user's agent when the flake is evaluated.
     office-daemon = {
       url = "git+ssh://git@github.com/thoreinstein/office_daemon";

@@ -1,4 +1,4 @@
-{ config, homeDirectory, pkgs, ... }:
+{ config, homeDirectory, inputs, pkgs, ... }:
 let
   # Mealie MCP over Streamable HTTP for the claude.ai connector, from the fork
   # (github.com/thoreinstein/mcp-mealie). Loopback only; the tunnel publishes it
@@ -120,6 +120,29 @@ in
         ThrottleInterval = 30;
         StandardOutPath = "${homeDirectory}/Library/Logs/grocy-mcp-http.log";
         StandardErrorPath = "${homeDirectory}/Library/Logs/grocy-mcp-http.log";
+      };
+    };
+
+    # officemcp: the MCP server for officed (office_daemon's cmd/officemcp).
+    # Loopback only; the tunnel publishes it as office-mcp.myerslabs.dev for
+    # the Cloudflare MCP portal, so it has no auth of its own. It talks to
+    # officed's socket.
+    officemcp-http = {
+      enable = true;
+      config = {
+        Label = "com.thoreinstein.officemcp-http";
+        ProgramArguments = [
+          "${inputs.office-daemon.packages.${pkgs.stdenv.hostPlatform.system}.officemcp}/bin/officemcp"
+          "-addr"
+          "127.0.0.1:9970"
+          "-allowed-host"
+          "office-mcp.myerslabs.dev"
+        ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 30;
+        StandardOutPath = "${homeDirectory}/Library/Logs/officemcp-http.log";
+        StandardErrorPath = "${homeDirectory}/Library/Logs/officemcp-http.log";
       };
     };
   };

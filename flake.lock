@@ -143,11 +143,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794929427,
-        "narHash": "sha256-eEllFGSBfS9352CrgZipt3zPu1Ox56+KWjBA5Q167s8=",
+        "lastModified": 1795349476,
+        "narHash": "sha256-0iB6vvbjpG0TU3auADV5DRME18dFEQWpOaH0dznYs64=",
         "ref": "refs/heads/main",
-        "rev": "1278084823e7bfcc5975a2d34c59057475edbf35",
-        "revCount": 72,
+        "rev": "78d421f09fbda866cdf0943c260a9240e57b721b",
+        "revCount": 73,
         "type": "git",
         "url": "ssh://git@github.com/thoreinstein/office_daemon"
       },
