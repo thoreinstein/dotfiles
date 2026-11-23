@@ -312,6 +312,9 @@ for (const cmd of [
   "echo ${x-<<EOF}\nrm -rf x\nEOF}",
   "echo ${x:0<<EOF}\nrm -rf x\nEOF}",
   "echo $[1<<EOF]\nrm -rf x\nEOF]",
+  // `<<` in an assignment subscript is a shift, with or without the closer in the delimiter
+  "a[1<<EOF]=1\nrm -rf x\nEOF]=1",
+  "a[1<<EOF ]=1\nrm -rf x\nEOF",
   // unquoted delimiter: bash joins `EO\` + `F` into `EOF` and ends the heredoc there
   "cat <<EOF\nEO\\\nF\nrm -rf x\nEOF",
 ]) assert.notEqual(await verdict(cmd), "allow", cmd);
