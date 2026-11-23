@@ -77,9 +77,9 @@ function parse(cmd) {
     else if (cmd.startsWith("<<<", i)) { word += "<<<"; inWord = true; i += 2; }
     // `<<WORD`, `<<'WORD'`, `<<"WORD"`, `<<-WORD`: the body starts on the next line.
     else if (cmd.startsWith("<<", i)) {
-      // Inside an unclosed `((` on this line, `<<` may be a shift, not a heredoc.
-      const before = cmd.slice(cmd.lastIndexOf("\n", i - 1) + 1, i);
-      if (before.split("((").length > before.split("))").length) unsafe = true;
+      // After any `((`, `<<` may be a shift, not a heredoc. `((` can open on an earlier line,
+      // and counting `))` is fooled by one in quotes, so any `((` before it fails closed.
+      if (cmd.slice(0, i).includes("((")) unsafe = true;
       endWord();
       i += 2;
       const tabs = cmd[i] === "-";
@@ -87,7 +87,7 @@ function parse(cmd) {
       while (cmd[i] === " " || cmd[i] === "\t") i++;
       // As bash does, the delimiter is the whole word with its quotes and backslashes removed.
       const m = /^(?:'[^']*'|"[^"]*"|\\.|[^\s;&|<>()'"\\])+/.exec(cmd.slice(i));
-      if (m) heredocs.push({ delim: m[0].replace(/['"\\]/g, ""), tabs });
+      if (m) heredocs.push({ delim: m[0].replace(/['"\\]/g, ""), tabs, quoted: /['"\\]/.test(m[0]) });
       else unsafe = true;
       i += (m ? m[0].length : 0) - 1;
     }
@@ -96,12 +96,15 @@ function parse(cmd) {
       endCommand();
       // Skip each pending heredoc body through its delimiter line.
       if (c === "\n") {
-        for (const { delim, tabs } of heredocs) {
+        for (const { delim, tabs, quoted } of heredocs) {
           let closed = false;
           while (!closed && i + 1 < cmd.length) {
             const end = cmd.indexOf("\n", i + 1) < 0 ? cmd.length : cmd.indexOf("\n", i + 1);
             const line = cmd.slice(i + 1, end);
             i = end;
+            // With an unquoted delimiter, bash joins a backslash-newline into the next line
+            // before looking for the delimiter, so `EO\` + `F` closes the heredoc. Don't model it.
+            if (!quoted && /(^|[^\\])(\\\\)*\\$/.test(line)) unsafe = true;
             closed = (tabs ? line.replace(/^\t+/, "") : line) === delim;
           }
           if (!closed) unsafe = true;

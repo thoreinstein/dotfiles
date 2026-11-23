@@ -302,6 +302,14 @@ for (const cmd of [
   "echo $((1<<2))\nrm -rf x",
   "(( y = 1<<EOF ))\nrm -rf x\nEOF",
   "x=$((1<<EOF))\ngit push\nEOF",
+  // `((` opened on an earlier line still makes `<<` a shift
+  "((\n1<<EOF))\nrm -rf x\nEOF",
+  "x=$((\n1<<EOF))\nrm -rf x\nEOF",
+  // a quoted `))` must not cancel the `((`
+  "echo '))'; ((\n1<<EOF))\nrm -rf x\nEOF",
+  "echo '))'; (( 1<<EOF ))\nrm -rf x\nEOF",
+  // unquoted delimiter: bash joins `EO\` + `F` into `EOF` and ends the heredoc there
+  "cat <<EOF\nEO\\\nF\nrm -rf x\nEOF",
 ]) assert.notEqual(await verdict(cmd), "allow", cmd);
 assert.equal(await verdict("cat > f <<'EOF'\nit's\n"), "ask");
 for (const cmd of [
@@ -323,6 +331,9 @@ for (const cmd of [
   "cat > f <<'EOF'\ngit push\nrm -rf /\nEOF",
   "cat <<-EOF > f\n\tgh pr create --fill\n\tEOF\necho ok",
   "cat <<<\"git push\"",
+  // a quoted delimiter keeps backslash-newline literal, and `\\` is an escaped backslash
+  "cat > f <<'EOF'\nEO\\\nF\nrm -rf x\nEOF",
+  "cat > f <<EOF\nC:\\\\\nEOF",
 ]) assert.equal(await verdict(cmd), "allow", cmd);
 console.log("pi-guard wrappers/grouping/aliases: ok");
 
