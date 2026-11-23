@@ -308,6 +308,10 @@ for (const cmd of [
   // a quoted `))` must not cancel the `((`
   "echo '))'; ((\n1<<EOF))\nrm -rf x\nEOF",
   "echo '))'; (( 1<<EOF ))\nrm -rf x\nEOF",
+  // `<<` inside `${...}` is text and inside `$[...]` a shift: the delimiter swallows the closer
+  "echo ${x-<<EOF}\nrm -rf x\nEOF}",
+  "echo ${x:0<<EOF}\nrm -rf x\nEOF}",
+  "echo $[1<<EOF]\nrm -rf x\nEOF]",
   // unquoted delimiter: bash joins `EO\` + `F` into `EOF` and ends the heredoc there
   "cat <<EOF\nEO\\\nF\nrm -rf x\nEOF",
 ]) assert.notEqual(await verdict(cmd), "allow", cmd);

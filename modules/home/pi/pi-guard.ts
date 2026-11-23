@@ -53,8 +53,8 @@ const NOISE = new Set(["cd", "export", "set", "source", ".", "true"]);
 // command like `;` does, so a subshell's contents are stages of their own; a backslash-newline
 // is a line continuation, dropped from the word it sits in; a `#` comment is skipped, so its apostrophes don't
 // open a quote that hides the lines after it. A heredoc body is skipped the same way: it is data.
-// When a heredoc can't be read for sure (no delimiter, no closing line, or a `((` that may make
-// `<<` a shift), the result carries `unsafe: true` and the caller fails closed.
+// When a heredoc can't be read for sure (no delimiter, no closing line, or a `((`, `$[` or `${`
+// that may make `<<` something else), the result carries `unsafe: true` and the caller fails closed.
 function parse(cmd) {
   const commands = [];
   let pipeline = [], tokens = [], word = "", quote = "", inWord = false, heredocs = [], unsafe = false;
@@ -77,9 +77,10 @@ function parse(cmd) {
     else if (cmd.startsWith("<<<", i)) { word += "<<<"; inWord = true; i += 2; }
     // `<<WORD`, `<<'WORD'`, `<<"WORD"`, `<<-WORD`: the body starts on the next line.
     else if (cmd.startsWith("<<", i)) {
-      // After any `((`, `<<` may be a shift, not a heredoc. `((` can open on an earlier line,
-      // and counting `))` is fooled by one in quotes, so any `((` before it fails closed.
-      if (cmd.slice(0, i).includes("((")) unsafe = true;
+      // After any `((` or `$[`, `<<` may be a shift; inside `${...}` it is plain text. Either way
+      // it is not a heredoc. They can open on an earlier line, and counting closers is fooled by
+      // one in quotes, so any opener before it fails closed.
+      if (/\(\(|\$\[|\$\{/.test(cmd.slice(0, i))) unsafe = true;
       endWord();
       i += 2;
       const tabs = cmd[i] === "-";
