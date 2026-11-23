@@ -97,6 +97,14 @@ let
         contextWindow = 380000;
         maxTokens = 32768;
       })
+      (pi.mkModel {
+        # Window sizes assumed from GLM53Flash, the other self-hosted model.
+        id = "anthropic.Moonshot.KimiK31Pro";
+        reasoning = true;
+        input = [ "text" "image" ];
+        contextWindow = 380000;
+        maxTokens = 32768;
+      })
     ];
   };
 in
@@ -188,13 +196,15 @@ in
 
     pi-coding-agent = {
       settings = {
-        # Between the shared strata (default order) and k3 (mkAfter) in pi's model picker.
+        # After omlx (mkBefore, in the host file) in pi's model picker.
         enabledModels = lib.mkOrder 1200 (pi.mkEnabledModels [ "polaris" ] { inherit polaris; });
         # The Smart aliases name their own level; match it instead of the global medium.
+        # Kimi has no medium level (off/low/high/max), so the global default would miss.
         modelThinkingLevels = {
           "polaris/anthropic.Polaris.Model.Smart.High" = "high";
           "polaris/anthropic.Polaris.Model.Smart.Medium" = "medium";
           "polaris/anthropic.Polaris.Model.Smart.Low" = "low";
+          "polaris/anthropic.Moonshot.KimiK31Pro" = "high";
         };
       };
       models.providers = { inherit polaris; };

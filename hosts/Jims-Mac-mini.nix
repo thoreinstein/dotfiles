@@ -69,12 +69,6 @@ let
   '';
 in
 {
-  programs.pi-coding-agent.settings = {
-    # strata runs on the gaming PC, which isn't always on.
-    defaultProvider = "kimi-coding";
-    defaultModel = "k3";
-  };
-
   launchd.agents = {
     # officed: the office daemon (github.com/thoreinstein/office_daemon). The
     # binary is not built by nix: it must keep a stable path and signing

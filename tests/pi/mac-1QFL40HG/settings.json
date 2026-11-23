@@ -9,7 +9,6 @@
   "enableInstallTelemetry": false,
   "enabledModels": [
     "omlx/Qwen3.8-27B-oQ4e-mtp",
-    "strata/swift-qwen3.8-flash-next-gsq-rco-iq3_xxs",
     "polaris/anthropic.Polaris.Model.Smart.High",
     "polaris/anthropic.Polaris.Model.Smart.Medium",
     "polaris/anthropic.Polaris.Model.Smart.Low",
@@ -19,12 +18,12 @@
     "polaris/anthropic.OpenAI.Terra",
     "polaris/anthropic.OpenAI.Luna",
     "polaris/anthropic.Zai.GLM53Flash",
-    "kimi-coding/k3"
+    "polaris/anthropic.Moonshot.KimiK31Pro"
   ],
   "externalEditor": "nvim",
   "hideThinkingBlock": true,
   "modelThinkingLevels": {
-    "kimi-coding/k3": "high",
+    "polaris/anthropic.Moonshot.KimiK31Pro": "high",
     "polaris/anthropic.Polaris.Model.Smart.High": "high",
     "polaris/anthropic.Polaris.Model.Smart.Low": "low",
     "polaris/anthropic.Polaris.Model.Smart.Medium": "medium"

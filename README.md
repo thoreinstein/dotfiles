@@ -42,7 +42,7 @@ Apply the config:
 After the switch, in a new terminal:
 
 5. Restore `~/.envrc` (API tokens, never commit) and `~/.gitconfig.local` (git identity), and import your GPG key.
-6. Log in: `claude`, then `/login`. In pi, run `/login` for Kimi.
+6. Log in: `claude`, then `/login`.
 
 Work machines also import `modules/home/work.nix`. That adds `gcloud auth login` and `gcloud auth application-default login`.
 

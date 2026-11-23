@@ -137,28 +137,21 @@
           "id": "anthropic.Zai.GLM53Flash",
           "maxTokens": 32768,
           "reasoning": true
-        }
-      ]
-    },
-    "strata": {
-      "api": "openai-completions",
-      "apiKey": "not-needed",
-      "baseUrl": "http://chicago.local:8080/v1",
-      "models": [
+        },
         {
-          "contextWindow": 65536,
+          "contextWindow": 380000,
           "cost": {
             "cacheRead": 0,
             "cacheWrite": 0,
             "input": 0,
             "output": 0
           },
-          "id": "swift-qwen3.8-flash-next-gsq-rco-iq3_xxs",
+          "id": "anthropic.Moonshot.KimiK31Pro",
           "input": [
-            "text"
+            "text",
+            "image"
           ],
-          "maxTokens": 16384,
-          "name": "Qwen3.8 Flash Next IQ3_XXS (strata)",
+          "maxTokens": 32768,
           "reasoning": true
         }
       ]
