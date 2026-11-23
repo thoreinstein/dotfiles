@@ -212,6 +212,7 @@ const verdict = async (command) => {
   if (/skipping hooks/.test(res.reason)) return "deny:hooks";
   if (/commit signing/.test(res.reason)) return "deny:sign";
   if (/never amend/.test(res.reason)) return "deny:amend";
+  if (/as its own command/.test(res.reason)) return "deny:compound";
   return "deny:other";
 };
 for (const cmd of [
@@ -270,8 +271,39 @@ for (const cmd of [
   "# don't worry\ngh run cancel 1",
   "ls # it's fine\nrm -rf x",
   "echo a\\\n#; rm -rf x",
-  "git log\\\n#; git push",
+  "cd /x && git push -u origin HEAD",
+  "git -C /x push",
+  "cd x\ngit push",
+  // a heredoc body is data: its quotes don't swallow the lines after it
+  "cat > f <<'EOF'\nit's\nEOF\nrm -rf x",
+  "cat > f <<EOF\nsay \"hi\nEOF\nrm -rf x",
+  "cat <<-EOF > f\n\tit's\n\tEOF\nrm -rf x",
 ]) assert.equal(await verdict(cmd), "ask", cmd);
+// a push or gh write sharing a call with another command is denied, so it is only ever asked alone
+for (const cmd of [
+  "git add -A && git commit -m x && git push",
+  "git push origin main && gh pr create --fill",
+  "git push 2>&1 | tail -3",
+  "git commit -m x; echo; git log --oneline -1; git push 2>&1 | tail -1",
+  "if git push; then gh pr create --fill; fi",
+  "git log\\\n#; git push",
+  "cat > /tmp/b.md <<'EOF'\nIt's done\nEOF\ngh pr create --body-file /tmp/b.md",
+  "cat > /tmp/b.md <<EOF\nsay \"hi\nEOF\ngit push",
+  "cat <<A <<'B'\nit's\nA\ndon't\nB\ngit push",
+  "echo $(gh api repos/o/r/issues -f title=x)",
+  // bash strips quotes anywhere in the delimiter word
+  "cat > f <<E'OF'\nit's\nEOF\ngit push",
+  "cat > f <<\"E\"OF\nit's\nEOF\ngit push",
+]) assert.equal(await verdict(cmd), "deny:compound", cmd);
+// a heredoc the guard can't be sure of fails closed: unterminated, or `<<` that may be arithmetic
+for (const cmd of [
+  "cat > f <<'EOF'\nit's\nrm -rf x",
+  "x=$((1<<EOF))\nrm -rf x\nEOF",
+  "echo $((1<<2))\nrm -rf x",
+  "(( y = 1<<EOF ))\nrm -rf x\nEOF",
+  "x=$((1<<EOF))\ngit push\nEOF",
+]) assert.notEqual(await verdict(cmd), "allow", cmd);
+assert.equal(await verdict("cat > f <<'EOF'\nit's\n"), "ask");
 for (const cmd of [
   "sudo -u root git status",
   "rtk git status",
@@ -288,6 +320,9 @@ for (const cmd of [
   "git commit-tree HEAD^{tree} -m x | cat",
   "git status # then git push",
   "echo a#b; git log -1",
+  "cat > f <<'EOF'\ngit push\nrm -rf /\nEOF",
+  "cat <<-EOF > f\n\tgh pr create --fill\n\tEOF\necho ok",
+  "cat <<<\"git push\"",
 ]) assert.equal(await verdict(cmd), "allow", cmd);
 console.log("pi-guard wrappers/grouping/aliases: ok");
 
@@ -318,8 +353,8 @@ for (const cmd of [
   "gh api graphql -f query='mutation { addComment(input: {}) { clientMutationId } }'",
   "bash -c 'gh pr create --fill'",
   "URL=$(gh pr create --fill)",
-  "echo $(gh api repos/o/r/issues -f title=x)",
   "R=$(gh api --method=POST repos/o/r/dispatches)",
+  "gh pr create --title t --body \"$(cat <<'EOF'\nIt's done\nEOF\n)\"",
 ]) assert.equal(await verdict(cmd), "ask", cmd);
 for (const cmd of [
   "gh pr view 1 --json headRefOid,url",

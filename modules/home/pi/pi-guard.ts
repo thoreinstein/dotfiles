@@ -52,10 +52,12 @@ const NOISE = new Set(["cd", "export", "set", "source", ".", "true"]);
 // "--no-verify" inside a commit message is not mistaken for a command. `(` and `)` end a
 // command like `;` does, so a subshell's contents are stages of their own; a backslash-newline
 // is a line continuation, dropped from the word it sits in; a `#` comment is skipped, so its apostrophes don't
-// open a quote that hides the lines after it.
+// open a quote that hides the lines after it. A heredoc body is skipped the same way: it is data.
+// When a heredoc can't be read for sure (no delimiter, no closing line, or a `((` that may make
+// `<<` a shift), the result carries `unsafe: true` and the caller fails closed.
 function parse(cmd) {
   const commands = [];
-  let pipeline = [], tokens = [], word = "", quote = "", inWord = false;
+  let pipeline = [], tokens = [], word = "", quote = "", inWord = false, heredocs = [], unsafe = false;
   const endWord = () => { if (inWord) tokens.push(word); word = ""; inWord = false; };
   const endStage = () => { endWord(); if (tokens.length) pipeline.push(tokens); tokens = []; };
   const endCommand = () => { endStage(); if (pipeline.length) commands.push(pipeline); pipeline = []; };
@@ -71,8 +73,42 @@ function parse(cmd) {
     else if (c === "\\" && i + 1 < cmd.length) { word += cmd[++i]; inWord = true; }
     // A `#` that starts a word comments out the rest of the line, quotes included.
     else if (c === "#" && !inWord) { while (i + 1 < cmd.length && cmd[i + 1] !== "\n") i++; }
+    // `<<<` is a here-string, its word an ordinary argument.
+    else if (cmd.startsWith("<<<", i)) { word += "<<<"; inWord = true; i += 2; }
+    // `<<WORD`, `<<'WORD'`, `<<"WORD"`, `<<-WORD`: the body starts on the next line.
+    else if (cmd.startsWith("<<", i)) {
+      // Inside an unclosed `((` on this line, `<<` may be a shift, not a heredoc.
+      const before = cmd.slice(cmd.lastIndexOf("\n", i - 1) + 1, i);
+      if (before.split("((").length > before.split("))").length) unsafe = true;
+      endWord();
+      i += 2;
+      const tabs = cmd[i] === "-";
+      if (tabs) i++;
+      while (cmd[i] === " " || cmd[i] === "\t") i++;
+      // As bash does, the delimiter is the whole word with its quotes and backslashes removed.
+      const m = /^(?:'[^']*'|"[^"]*"|\\.|[^\s;&|<>()'"\\])+/.exec(cmd.slice(i));
+      if (m) heredocs.push({ delim: m[0].replace(/['"\\]/g, ""), tabs });
+      else unsafe = true;
+      i += (m ? m[0].length : 0) - 1;
+    }
     else if (c === " " || c === "\t") endWord();
-    else if (c === "\n" || c === ";" || c === "(" || c === ")") endCommand();
+    else if (c === "\n" || c === ";" || c === "(" || c === ")") {
+      endCommand();
+      // Skip each pending heredoc body through its delimiter line.
+      if (c === "\n") {
+        for (const { delim, tabs } of heredocs) {
+          let closed = false;
+          while (!closed && i + 1 < cmd.length) {
+            const end = cmd.indexOf("\n", i + 1) < 0 ? cmd.length : cmd.indexOf("\n", i + 1);
+            const line = cmd.slice(i + 1, end);
+            i = end;
+            closed = (tabs ? line.replace(/^\t+/, "") : line) === delim;
+          }
+          if (!closed) unsafe = true;
+        }
+        heredocs = [];
+      }
+    }
     else if (c === "&" || c === "|") {
       if (cmd[i + 1] === c) { i++; endCommand(); }
       else if (c === "|") endStage();
@@ -80,6 +116,7 @@ function parse(cmd) {
     } else { word += c; inWord = true; }
   }
   endCommand();
+  commands.unsafe = unsafe || heredocs.length > 0;
   return commands;
 }
 
@@ -643,11 +680,14 @@ export default function (pi: ExtensionAPI) {
     if (event.toolName !== "bash") return;
 
     const command = String(event.input.command ?? "");
-    const stages = parse(command).flat();
+    const parsed = parse(command);
+    const stages = parsed.flat();
     const hits = stages.flatMap(check);
     const requests = mcpBypass(command);
     if (requests.length) hits.push(["mcp-bypass", "direct call to an API that has an MCP server"]);
-    if (stages.some((s) => isNested(s, command)) || NESTED.test(command)) {
+    // A heredoc it can't read for sure may hide commands, so ask, and run the raw rules too.
+    if (parsed.unsafe) hits.push(["heredoc-unclear", "heredoc pi-guard can't parse (no closing line, or `<<` near `((`)"]);
+    if (parsed.unsafe || stages.some((s) => isNested(s, command)) || NESTED.test(command)) {
       for (const [name, why, re] of RAW_RULES) {
         if (re.test(command) && !hits.some(([n]) => n === name)) hits.push([name, why]);
       }
@@ -662,6 +702,11 @@ export default function (pi: ExtensionAPI) {
     }
     const looping = first && run.count > LOOP_LIMIT;
     if (looping) hits.push(["loop", `"${first}" ran ${run.count - 1} times in a row`]);
+    // A push or GitHub write chained with other commands hides in the prompt, so it must run alone.
+    // `cd` and other NOISE (export, true, ...) don't count as another command.
+    const compound = hits.some(([n]) => n === "git-push" || n === "gh-write")
+      && stages.filter((s) => { const t = strip(s); return t.length && !NOISE.has(base(t[0])); }).length > 1;
+    if (compound) hits.push(["outbound-compound", "git push or gh write chained with other commands"]);
     if (!hits.length) return;
 
     const rules = hits.map(([name]) => name);
@@ -678,6 +723,12 @@ export default function (pi: ExtensionAPI) {
     } else if (amend) {
       answer = "deny";
       reason = "Denied by pi-guard: never amend commits. Make a new commit instead.";
+    } else if (compound) {
+      answer = "deny";
+      reason = "Denied by pi-guard: git push and gh commands that write to GitHub must each run as its own command, "
+        + "with nothing chained before or after it (no &&, ;, |, heredoc or $(...) other than the gh --body). "
+        + "Run the other commands in a separate call first, then the push or gh command alone so the user sees "
+        + "exactly what they are approving. Write a long PR body to a file first and pass --body-file.";
     } else if (requests.length) {
       answer = "deny";
       reason = [...new Set(requests.map((r) => r.server))].map(bypassReason).join("\n\n");
@@ -703,7 +754,7 @@ export default function (pi: ExtensionAPI) {
         agent_message: agentMessage(ctx.sessionManager.getBranch(), event.toolCallId, event.parentToolCallId),
         ...(requests.length && { requests: requests.map(({ host, path, method }) => ({ host, path, method })) }),
         answer,
-        auto: noVerify || amend || requests.length > 0 || !ctx.hasUI,
+        auto: noVerify || amend || compound || requests.length > 0 || !ctx.hasUI,
       });
     } catch (err) {
       // Failing closed beats running an unlogged call.
